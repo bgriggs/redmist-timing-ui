@@ -12,6 +12,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.Desktop",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.iOS", "RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj", "{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.TimingCommon", "redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj", "{0E3292A9-D018-8A12-0037-2B5F75C52CFA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodules", "submodules", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigMission.Shared", "bigmission-shared\BigMission.Shared\BigMission.Shared.csproj", "{B4143355-4E45-84AE-0D47-ADCF5651B041}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,9 +48,21 @@ Global
 		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0E3292A9-D018-8A12-0037-2B5F75C52CFA} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B4143355-4E45-84AE-0D47-ADCF5651B041} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0988C19D-0C38-4B74-BA04-C30FA48A521D}

@@ -3,10 +3,14 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace RedMist.Timing.UI;
@@ -34,7 +38,23 @@ public partial class App : Application
 
         var builder = Host.CreateApplicationBuilder();
         var services = builder.Services;
-        //ConfigureServices(services);
+
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddDebug();
+        });
+        services.AddSingleton(loggerFactory);
+
+        var tempConfig = new Dictionary<string, string?>
+        {
+       
+        };
+        IConfiguration config = new ConfigurationBuilder()
+            .AddInMemoryCollection(tempConfig)
+            .Build();
+        services.AddSingleton(config);
+
+        ConfigureServices(services);
         ConfigureViewModels(services);
         ConfigureViews(services);
 
@@ -66,17 +86,17 @@ public partial class App : Application
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
        => _ = _host!.StopAsync(_cancellationTokenSource!.Token);
 
-    //[Singleton(typeof(WindowsSettingsProvider), typeof(ISettingsProvider))]
-    //[Singleton(typeof(WindowsConfiguration), typeof(IConfiguration))]
-
-    //internal static partial void ConfigureServices(IServiceCollection services);
+    [Transient(typeof(EventClient))]
+    [Singleton(typeof(HubClient))]
+    internal static partial void ConfigureServices(IServiceCollection services);
 
     [Singleton(typeof(MainViewModel))]
-    //[Singleton(typeof(LogViewerControlViewModel))]
-    //[Singleton(typeof(RMonitorClient))]
+    [Singleton(typeof(EventsListViewModel))]
+    [Singleton(typeof(EventStatusViewModel))]
     ////[Singleton(typeof(QuarterViewModelFactory), typeof(IQuarterViewModelFactory))]
     internal static partial void ConfigureViewModels(IServiceCollection services);
 
     [Singleton(typeof(MainView))]
+    [Singleton(typeof(EventsListView))]
     internal static partial void ConfigureViews(IServiceCollection services);
 }

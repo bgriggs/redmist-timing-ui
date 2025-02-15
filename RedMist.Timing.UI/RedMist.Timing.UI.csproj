@@ -22,9 +22,9 @@
 		<PackageReference Include="ActiproSoftware.Controls.Avalonia" Version="25.1.1" />
 		<PackageReference Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.1.1" />
 		<PackageReference Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.240213-build.1640" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.2" />
 
-		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.1">
+		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.2">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -32,5 +32,15 @@
 		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.4" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.2" />
+		<PackageReference Include="RestSharp" Version="112.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\bigmission-shared\BigMission.Shared\BigMission.Shared.csproj" />
+	  <ProjectReference Include="..\redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Configuration\" />
 	</ItemGroup>
 </Project>

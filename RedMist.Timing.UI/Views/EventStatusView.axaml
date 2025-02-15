@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RedMist.Timing.UI.Views.EventStatusView">
+	<Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto">
+		<TextBlock Text="{Binding EventName, StringFormat='Event: {0}'}}"/>
+		<TextBlock Text="{Binding Flag, StringFormat='Flag: {0}'}}" Grid.Row="1"/>
+		<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Grid.Row="2"/>
+		<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Grid.Row="3"/>
+	</Grid>
+</UserControl>
