@@ -1,0 +1,52 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35723.152
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI", "RedMist.Timing.UI\RedMist.Timing.UI.csproj", "{723F199A-20BD-CC3B-0A1B-1F2E37627491}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.Android", "RedMist.Timing.UI.Android\RedMist.Timing.UI.Android.csproj", "{F770E86B-0734-06D9-3F27-B97C47269670}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.Browser", "RedMist.Timing.UI.Browser\RedMist.Timing.UI.Browser.csproj", "{00404A9B-ED78-8187-C8B7-0F923CB7B5F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.Desktop", "RedMist.Timing.UI.Desktop\RedMist.Timing.UI.Desktop.csproj", "{FF966585-F997-9F07-C052-D376CA9F8BD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.iOS", "RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj", "{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{723F199A-20BD-CC3B-0A1B-1F2E37627491}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{723F199A-20BD-CC3B-0A1B-1F2E37627491}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{723F199A-20BD-CC3B-0A1B-1F2E37627491}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{723F199A-20BD-CC3B-0A1B-1F2E37627491}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F770E86B-0734-06D9-3F27-B97C47269670}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F770E86B-0734-06D9-3F27-B97C47269670}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F770E86B-0734-06D9-3F27-B97C47269670}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{F770E86B-0734-06D9-3F27-B97C47269670}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F770E86B-0734-06D9-3F27-B97C47269670}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F770E86B-0734-06D9-3F27-B97C47269670}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{00404A9B-ED78-8187-C8B7-0F923CB7B5F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00404A9B-ED78-8187-C8B7-0F923CB7B5F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00404A9B-ED78-8187-C8B7-0F923CB7B5F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00404A9B-ED78-8187-C8B7-0F923CB7B5F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF966585-F997-9F07-C052-D376CA9F8BD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF966585-F997-9F07-C052-D376CA9F8BD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF966585-F997-9F07-C052-D376CA9F8BD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF966585-F997-9F07-C052-D376CA9F8BD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0988C19D-0C38-4B74-BA04-C30FA48A521D}
+	EndGlobalSection
+EndGlobal
