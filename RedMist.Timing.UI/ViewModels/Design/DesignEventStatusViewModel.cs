@@ -22,8 +22,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             Class = "GP3",
         });
 
@@ -36,8 +36,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             Class = "GP3",
         });
 
@@ -50,8 +50,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             Class = "GP3",
         });
 
@@ -64,8 +64,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             Class = "GP1",
             IsStale = false,
         });
@@ -78,8 +78,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             IsStale = true,
         }, out var _);
 
@@ -92,8 +92,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             Class = "GP1",
         });
 
@@ -105,8 +105,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
         }, out var _);
 
         Cars.Add(new CarViewModel
@@ -118,8 +118,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:01:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             Class = "GP1",
         });
 
@@ -131,8 +131,8 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:01:17.872",
-            Gap = "00:00:02.872",
-            Difference = "00:00:12.872",
+            OverallGap = "00:00:02.872",
+            OverallDifference = "00:00:12.872",
             IsOverallFastest = true,
             IsClassFastest = true,
         }, out var _);

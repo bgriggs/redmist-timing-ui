@@ -46,14 +46,15 @@ public partial class App : Application
         services.AddSingleton(loggerFactory);
 
         var tempConfig = new Dictionary<string, string?>
-        {
-             { "Server:Url", "http://10.0.0.6:5179/TimingAndScoring" },
-             { "Hub:Url", "http://10.0.0.6:5179/ts-hub" },
-             { "Keycloak:AuthServerUrl", "https://sunnywood.redmist.racing/dev/auth/" },
-             { "Keycloak:Realm", "redmist" },
-             { "Keycloak:ClientId", "" },
-             { "Keycloak:ClientSecret", "" },
-        };
+{
+     { "Server:Url", "http://10.0.0.6:5179/TimingAndScoring" },
+     { "Hub:Url", "http://10.0.0.6:5179/ts-hub" },
+     { "Keycloak:AuthServerUrl", "https://sunnywood.redmist.racing/dev/auth/" },
+     { "Keycloak:Realm", "redmist" },
+     { "Keycloak:ClientId", "***REMOVED***" },
+     { "Keycloak:ClientSecret", "***REMOVED***" },
+};
+
         IConfiguration config = new ConfigurationBuilder()
             .AddInMemoryCollection(tempConfig)
             .Build();

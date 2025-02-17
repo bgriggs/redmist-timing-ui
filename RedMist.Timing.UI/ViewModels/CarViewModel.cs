@@ -42,13 +42,21 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     private int bestLap;
     [ObservableProperty]
-    private bool isBestTime;
+    private bool isBestTimeOverall;
     [ObservableProperty]
     private bool isBestTimeClass;
     [ObservableProperty]
-    private string gap = string.Empty;
+    [NotifyPropertyChangedFor(nameof(Gap))]
+    private string overallGap = string.Empty;
     [ObservableProperty]
-    private string difference = string.Empty;
+    [NotifyPropertyChangedFor(nameof(Difference))]
+    private string overallDifference = string.Empty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Gap))]
+    private string inClassGap = string.Empty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Difference))]
+    private string inClassDifference = string.Empty;
     [ObservableProperty]
     private string totalTime = string.Empty;
     [ObservableProperty]
@@ -125,6 +133,51 @@ public partial class CarViewModel : ObservableObject
         }
     }
 
+    public string Gap
+    {
+        get
+        {
+            if (CurrentGroupMode == GroupMode.Overall)
+            {
+                return OverallGap;
+            }
+            else
+            {
+                return InClassGap;
+            }
+        }
+    }
+
+    public string Difference
+    {
+        get
+        {
+            if (CurrentGroupMode == GroupMode.Overall)
+            {
+                return OverallDifference;
+            }
+            else
+            {
+                return InClassDifference;
+            }
+        }
+    }
+
+    public bool IsBestTime
+    {
+        get
+        {
+            if (CurrentGroupMode == GroupMode.Overall)
+            {
+                return IsBestTimeOverall;
+            }
+            else
+            {
+                return IsBestTimeClass;
+            }
+        }
+    }
+
     private Color _rowBackground = rowNormalColor;
     public Color RowBackground
     {
@@ -150,6 +203,9 @@ public partial class CarViewModel : ObservableObject
             {
                 currentGroupMode = value;
                 OnPropertyChanged(nameof(Position));
+                OnPropertyChanged(nameof(Gap));
+                OnPropertyChanged(nameof(Difference));
+                OnPropertyChanged(nameof(IsBestTime));
             }
         }
     }
@@ -167,10 +223,12 @@ public partial class CarViewModel : ObservableObject
         Number = carPosition.Number ?? string.Empty;
         BestTime = carPosition.BestTime ?? string.Empty;
         BestLap = carPosition.BestLap;
-        IsBestTime = carPosition.IsBestTime;
+        IsBestTimeOverall = carPosition.IsBestTime;
         IsBestTimeClass = carPosition.IsBestTimeClass;
-        Gap = carPosition.Gap ?? string.Empty;
-        Difference = carPosition.Difference ?? string.Empty;
+        OverallGap = carPosition.OverallGap ?? string.Empty;
+        OverallDifference = carPosition.OverallDifference ?? string.Empty;
+        InClassGap = carPosition.InClassGap ?? string.Empty;
+        InClassDifference = carPosition.InClassDifference ?? string.Empty;
         TotalTime = carPosition.TotalTime ?? string.Empty;
         LastTime = carPosition.LastTime ?? string.Empty;
         LastLap = carPosition.LastLap;
@@ -203,12 +261,12 @@ public partial class CarViewModel : ObservableObject
         if (prevLap != LastLap && RowBackground != rowUpdateColor)
         {
             Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => RowBackground = rowUpdateColor);
-            Observable.Timer(TimeSpan.FromSeconds(1.7)).Subscribe(_ => RowBackground = rowNormalColor);
+            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => RowBackground = rowNormalColor);
         }
 
         if (LastLap > 0)
         {
-            if (IsOverallFastest)
+            if (IsBestTime)
             {
                 LapDataColor = carOverallBestLapColor;
                 LapDataFontWeight = FontWeight.Bold;
