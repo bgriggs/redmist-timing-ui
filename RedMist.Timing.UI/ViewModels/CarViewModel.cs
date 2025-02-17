@@ -90,10 +90,6 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     private bool isClassMostPositionsGained;
     [ObservableProperty]
-    private bool isOverallFastest;
-    [ObservableProperty]
-    private bool isClassFastest;
-    [ObservableProperty]
     private int penalityLaps;
     [ObservableProperty]
     private int penalityWarnings;
@@ -238,8 +234,6 @@ public partial class CarViewModel : ObservableObject
         InClassPositionsGained = carPosition.InClassPositionsGained;
         IsOverallMostPositionsGained = carPosition.IsOverallMostPositionsGained;
         IsClassMostPositionsGained = carPosition.IsClassMostPositionsGained;
-        IsOverallFastest = carPosition.IsOverallFastest;
-        IsClassFastest = carPosition.IsClassFastest;
         PenalityLaps = carPosition.PenalityLaps;
         PenalityWarnings = carPosition.PenalityWarnings;
         IsEnteredPit = carPosition.IsEnteredPit;

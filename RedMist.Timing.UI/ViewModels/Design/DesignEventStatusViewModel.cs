@@ -133,8 +133,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             BestTime = "00:01:17.872",
             OverallGap = "00:00:02.872",
             OverallDifference = "00:00:12.872",
-            IsOverallFastest = true,
-            IsClassFastest = true,
+            IsBestTime = true,
         }, out var _);
     }
 }
