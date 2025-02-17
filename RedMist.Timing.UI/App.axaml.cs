@@ -51,8 +51,8 @@ public partial class App : Application
      { "Hub:Url", "http://10.0.0.6:5179/ts-hub" },
      { "Keycloak:AuthServerUrl", "https://sunnywood.redmist.racing/dev/auth/" },
      { "Keycloak:Realm", "redmist" },
-     { "Keycloak:ClientId", "***REMOVED***" },
-     { "Keycloak:ClientSecret", "***REMOVED***" },
+     { "Keycloak:ClientId", "" },
+     { "Keycloak:ClientSecret", "" },
 };
 
         IConfiguration config = new ConfigurationBuilder()
