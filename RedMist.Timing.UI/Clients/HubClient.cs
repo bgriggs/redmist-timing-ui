@@ -63,8 +63,6 @@ public class HubClient : HubClientBase
         hub = StartConnection();
 
         hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
-
-        await hub.InvokeAsync("SubscribeToEvent", eventId);
     }
 
     public async Task UnsubscribeFromEvent(int eventId)

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using System;
 using System.Threading.Tasks;
@@ -8,10 +9,12 @@ namespace RedMist.Timing.UI.ViewModels;
 public class EventsListViewModel : ObservableObject
 {
     private readonly EventClient eventClient;
+    private ILogger Logger { get; }
 
-    public EventsListViewModel(EventClient eventClient)
+    public EventsListViewModel(EventClient eventClient, ILoggerFactory loggerFactory)
     {
         this.eventClient = eventClient;
+        Logger = loggerFactory.CreateLogger(GetType().Name);
     }
 
     public async Task Initialize()
@@ -23,17 +26,17 @@ public class EventsListViewModel : ObservableObject
             {
                 foreach (var e in events)
                 {
-                    Console.WriteLine($"Event: {e.EventName}");
+                    Logger.LogInformation($"Event: {e.EventName}");
                 }
             }
             else
             {
-                Console.WriteLine("No events found.");
+                Logger.LogInformation("No events found.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading events: {ex.Message}");
+            Logger.LogError(ex, $"Error loading events: {ex.Message}");
         }
     }
 }

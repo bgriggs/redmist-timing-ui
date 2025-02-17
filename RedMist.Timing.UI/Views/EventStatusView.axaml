@@ -2,12 +2,212 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
+			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
+			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
              x:Class="RedMist.Timing.UI.Views.EventStatusView">
-	<Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto">
-		<TextBlock Text="{Binding EventName, StringFormat='Event: {0}'}}"/>
-		<TextBlock Text="{Binding Flag, StringFormat='Flag: {0}'}}" Grid.Row="1"/>
-		<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Grid.Row="2"/>
-		<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Grid.Row="3"/>
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<design:DesignEventStatusViewModel />
+	</Design.DataContext>
+	
+	<UserControl.Resources>
+		<conv:FlagToBrushConverter x:Key="FlagToColorConverter" />
+		
+		<ControlTheme x:Key="{x:Type DataGridCell}" TargetType="DataGridCell">
+			<!--<Setter Property="Background" Value="Blue"/>-->
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Panel>
+						<ContentPresenter x:Name="PART_ContentPresenter"
+										  Content="{TemplateBinding Content}"
+										  Margin="{TemplateBinding Padding}"/>
+					</Panel>
+				</ControlTemplate>
+			</Setter>
+			<!--<Style Selector="^:pointerover">
+				<Setter Property="Background" Value="Red"/>
+				<Setter Property="Foreground" Value="White"/>
+			</Style>-->
+		</ControlTheme>
+
+		<ControlTheme x:Key="{x:Type DataGridRow}" TargetType="DataGridRow">
+			<Setter Property="Background" Value="{Binding $parent[DataGrid].RowBackground}" />
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Border x:Name="RowBorder"
+							Background="{TemplateBinding Background}"
+							BorderBrush="{TemplateBinding BorderBrush}"
+							BorderThickness="{TemplateBinding BorderThickness}"
+							CornerRadius="{TemplateBinding CornerRadius}">
+						<DataGridFrozenGrid Name="PART_Root"
+											ColumnDefinitions="Auto,*"
+											RowDefinitions="*,Auto,Auto">
+
+							<Rectangle Name="BackgroundRectangle"
+									   Fill="{DynamicResource DataGridRowBackgroundBrush}"
+									   Grid.RowSpan="2"
+									   Grid.ColumnSpan="2" />
+							<Rectangle x:Name="InvalidVisualElement"
+									   Opacity="0"
+									   Grid.ColumnSpan="2"
+									   Fill="{DynamicResource DataGridRowInvalidBrush}" />
+
+							<DataGridRowHeader Name="PART_RowHeader"
+											   Grid.RowSpan="3"
+											   DataGridFrozenGrid.IsFrozen="True" />
+							<DataGridCellsPresenter Name="PART_CellsPresenter"
+													Grid.Column="1"
+													DataGridFrozenGrid.IsFrozen="True" />
+							<DataGridDetailsPresenter Name="PART_DetailsPresenter"
+													  Grid.Row="1"
+													  Grid.Column="1"
+													  Background="{DynamicResource DataGridDetailsPresenterBackgroundBrush}" />
+							<Rectangle Name="PART_BottomGridLine"
+									   Grid.Row="2"
+									   Grid.Column="1"
+									   Height="1"
+									   HorizontalAlignment="Stretch" />
+
+						</DataGridFrozenGrid>
+					</Border>
+				</ControlTemplate>
+			</Setter>
+
+			<!--<Style Selector="^:invalid">
+				<Style Selector="^ /template/ Rectangle#InvalidVisualElement">
+					<Setter Property="Opacity" Value="0.4" />
+				</Style>
+				<Style Selector="^ /template/ Rectangle#BackgroundRectangle">
+					<Setter Property="Opacity" Value="0" />
+				</Style>
+			</Style>-->
+
+			<!--<Style Selector="^:pointerover /template/ Rectangle#BackgroundRectangle">
+				<Setter Property="Fill" Value="{DynamicResource DataGridRowHoveredBackgroundColor}" />
+			</Style>-->
+
+			<!--<Style Selector="^:selected">
+				<Style Selector="^ /template/ Rectangle#BackgroundRectangle">
+					<Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundBrush}" />
+					<Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedUnfocusedBackgroundOpacity}" />
+				</Style>
+				<Style Selector="^:pointerover /template/ Rectangle#BackgroundRectangle">
+					<Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedHoveredUnfocusedBackgroundBrush}" />
+					<Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedHoveredUnfocusedBackgroundOpacity}" />
+				</Style>
+				<Style Selector="^:focus /template/ Rectangle#BackgroundRectangle">
+					<Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundBrush}" />
+					<Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedBackgroundOpacity}" />
+				</Style>
+				<Style Selector="^:pointerover:focus /template/ Rectangle#BackgroundRectangle">
+					<Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedHoveredBackgroundBrush}" />
+					<Setter Property="Opacity" Value="{DynamicResource DataGridRowSelectedHoveredBackgroundOpacity}" />
+				</Style>
+			</Style>-->
+		</ControlTheme>
+	</UserControl.Resources>
+	
+	<UserControl.Styles>
+		<Style Selector="TextBlock.h1">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="TextBlock.tableheader">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Foreground" Value="Gray"/>
+		</Style>
+		<Style Selector="TextBlock.lg">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="TextBlock.med">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="TextBlock.sm">
+			<Setter Property="FontSize" Value="11"/>
+		</Style>
+		<Style Selector="TextBlock.smb">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+
+	</UserControl.Styles>
+
+	<Grid RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="*" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+		<!--Header-->
+		<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*,Auto" Margin="11,10,11,0">
+			<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1" Grid.Row="0"/>
+			<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1" Grid.Row="1"/>
+			<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}}" Classes="h1" Grid.Row="2"/>
+
+			<Button Grid.Column="2" Grid.RowSpan="3" VerticalAlignment="Center">
+				<StackPanel Orientation="Vertical">
+					<TextBlock Text="Show" FontStyle="Italic" FontSize="12"/>
+					<TextBlock Text="{Binding GroupToggleText}" FontSize="11"/>
+				</StackPanel>
+			</Button>
+		</Grid>
+		
+		<!--Car Position Grid-->
+		<DataGrid Name="dataGrid" Margin="10,5,10,5" ItemsSource="{Binding DataSource}" Grid.Row="4" Background="#f4f2f0"
+				  AutoGenerateColumns="False" IsReadOnly="True" CanUserSortColumns="False"
+				  BorderThickness="1" BorderBrush="Gray" VerticalAlignment="Stretch">
+			<DataGrid.Columns>
+				<DataGridTemplateColumn Width="*">
+					<!--Table Header-->
+					<DataGridTemplateColumn.HeaderTemplate>
+						<DataTemplate>
+							<Grid ColumnDefinitions="Auto,Auto,*">
+								<TextBlock Text="" Grid.Column="0" Width="18"/>
+								<TextBlock Text="LAST LAP        GAP        TO P1" Grid.Column="1" Classes="tableheader"/>
+								<TextBlock Text="BEST LAP" Grid.Column="2" HorizontalAlignment="Right" Classes="tableheader"/>
+							</Grid>
+						</DataTemplate>
+					</DataGridTemplateColumn.HeaderTemplate>
+					<!--Table Content-->
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="model:CarViewModel">
+							<Grid ColumnDefinitions="Auto,*,Auto">
+								<Grid.Transitions>
+									<Transitions>
+										<BrushTransition Property="Background" Duration="0:0:1"/>
+									</Transitions>	
+								</Grid.Transitions>
+								<Grid.Background>
+									<SolidColorBrush Color="{Binding RowBackground}"/>
+								</Grid.Background>
+								<Border Grid.ColumnSpan="3" BorderThickness="0,0,0,1" BorderBrush="Gray" VerticalAlignment="Bottom"/>
+								<TextBlock Text="{Binding OverallPosition}" Classes="lg" Grid.Column="0" Margin="2,0,0,0" VerticalAlignment="Center" Width="18"/>
+								<Grid RowDefinitions="Auto,Auto" Margin="10,0,0,4" Grid.Column="1">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="{Binding Number, StringFormat='#{0}'}}" Classes="smb" VerticalAlignment="Center"/>
+										<TextBlock Text="{Binding Name}" Margin="2,0,0,0" Classes="lg"/>
+									</StackPanel>
+									<StackPanel Orientation="Horizontal" Grid.Row="1">
+										<TextBlock Text="{Binding LastLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+										<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+										<TextBlock Text="{Binding LastTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+									</StackPanel>
+								</Grid>
+								<Grid RowDefinitions="Auto,Auto" Margin="15,0,5,0" Grid.Column="2">
+									<TextBlock Text="{Binding Class}" HorizontalAlignment="Right" Classes="lg"/>
+									<StackPanel Orientation="Horizontal" Grid.Row="1">
+										<TextBlock Text="{Binding BestLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+										<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+										<TextBlock Text="{Binding BestTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+									</StackPanel>
+								</Grid>
+							</Grid>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
 	</Grid>
 </UserControl>

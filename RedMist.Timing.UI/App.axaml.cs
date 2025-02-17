@@ -47,7 +47,12 @@ public partial class App : Application
 
         var tempConfig = new Dictionary<string, string?>
         {
-       
+             { "Server:Url", "http://10.0.0.6:5179/TimingAndScoring" },
+             { "Hub:Url", "http://10.0.0.6:5179/ts-hub" },
+             { "Keycloak:AuthServerUrl", "https://sunnywood.redmist.racing/dev/auth/" },
+             { "Keycloak:Realm", "redmist" },
+             { "Keycloak:ClientId", "***REMOVED***" },
+             { "Keycloak:ClientSecret", "***REMOVED***" },
         };
         IConfiguration config = new ConfigurationBuilder()
             .AddInMemoryCollection(tempConfig)
@@ -62,11 +67,11 @@ public partial class App : Application
         {
             DataContext = service.GetRequiredService<MainViewModel>()
         });
-        
+
 
         _host = builder.Build();
         _cancellationTokenSource = new();
-        
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = _host.Services.GetRequiredService<MainWindow>();
