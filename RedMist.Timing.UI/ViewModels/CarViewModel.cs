@@ -8,6 +8,8 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public partial class CarViewModel : ObservableObject
 {
+    #region Colors
+
     private static readonly Color rowNormalColor = Colors.Transparent;
     private static readonly Color rowUpdateColor = Color.Parse("#fce3cf");
     private static readonly Color rowStaleColor = Color.Parse("#f7d2bb");
@@ -15,6 +17,8 @@ public partial class CarViewModel : ObservableObject
     private static readonly IBrush carNormalLapColor = Brushes.Black;
     private static readonly IBrush carBestLapColor = Brush.Parse("#5da639");
     private static readonly IBrush carOverallBestLapColor = Brushes.Purple;
+
+    #endregion
 
     [ObservableProperty]
     private string number = string.Empty;
@@ -102,6 +106,9 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     private bool isStale;
 
+    /// <summary>
+    /// Used when sorting cars to put the car with no position at the end of the list.
+    /// </summary>
     public int SortablePosition
     {
         get

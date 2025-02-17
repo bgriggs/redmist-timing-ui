@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -45,18 +46,9 @@ public partial class App : Application
         });
         services.AddSingleton(loggerFactory);
 
-        var tempConfig = new Dictionary<string, string?>
-{
-     { "Server:Url", "http://10.0.0.6:5179/TimingAndScoring" },
-     { "Hub:Url", "http://10.0.0.6:5179/ts-hub" },
-     { "Keycloak:AuthServerUrl", "https://sunnywood.redmist.racing/dev/auth/" },
-     { "Keycloak:Realm", "redmist" },
-     { "Keycloak:ClientId", "" },
-     { "Keycloak:ClientSecret", "" },
-};
-
-        IConfiguration config = new ConfigurationBuilder()
-            .AddInMemoryCollection(tempConfig)
+        var config = new ConfigurationBuilder()
+            .AddUserSecrets<App>()
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
         services.AddSingleton(config);
 
