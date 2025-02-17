@@ -59,7 +59,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
         {
             Number = "1x",
             Name = "Team Stale",
-            OverallPosition = 25,
+            OverallPosition = 26,
             LastLap = 1,
             LastTime = "00:02:46.872",
             BestLap = 2,
@@ -73,7 +73,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
         Cars.First(c => c.Number == "1x").ApplyStatus(new CarPosition
         {
             Number = "1x",
-            OverallPosition = 25,
+            OverallPosition = 26,
             LastLap = 1,
             LastTime = "00:02:46.872",
             BestLap = 2,
@@ -86,7 +86,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
         Cars.Add(new CarViewModel
         {
             Number = "111",
-            Name = "Team Car Best Time",
+            Name = "Team Cars Best Time",
             OverallPosition = 25,
             LastLap = 2,
             LastTime = "00:02:17.872",
@@ -107,6 +107,34 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             BestTime = "00:02:17.872",
             Gap = "00:00:02.872",
             Difference = "00:00:12.872",
+        }, out var _);
+
+        Cars.Add(new CarViewModel
+        {
+            Number = "222",
+            Name = "Team Overall Best Time",
+            OverallPosition = 24,
+            LastLap = 3,
+            LastTime = "00:02:17.872",
+            BestLap = 2,
+            BestTime = "00:01:17.872",
+            Gap = "00:00:02.872",
+            Difference = "00:00:12.872",
+            Class = "GP1",
+        });
+
+        Cars.First(c => c.Number == "222").ApplyStatus(new CarPosition
+        {
+            Number = "222",
+            OverallPosition = 24,
+            LastLap = 3,
+            LastTime = "00:02:17.872",
+            BestLap = 2,
+            BestTime = "00:01:17.872",
+            Gap = "00:00:02.872",
+            Difference = "00:00:12.872",
+            IsOverallFastest = true,
+            IsClassFastest = true,
         }, out var _);
     }
 }

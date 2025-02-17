@@ -14,6 +14,7 @@ public partial class CarViewModel : ObservableObject
 
     private static readonly IBrush carNormalLapColor = Brushes.Black;
     private static readonly IBrush carBestLapColor = Brush.Parse("#5da639");
+    private static readonly IBrush carOverallBestLapColor = Brushes.Purple;
 
     [ObservableProperty]
     private string number = string.Empty;
@@ -179,7 +180,12 @@ public partial class CarViewModel : ObservableObject
 
         if (BestLap == LastLap)
         {
-            LapDataColor =  carBestLapColor;
+            LapDataColor = carBestLapColor;
+            LapDataFontWeight = FontWeight.Bold;
+        }
+        else if (IsOverallFastest)
+        {
+            LapDataColor = carOverallBestLapColor;
             LapDataFontWeight = FontWeight.Bold;
         }
         else
