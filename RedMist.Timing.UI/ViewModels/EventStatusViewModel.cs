@@ -17,7 +17,9 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusNotification>
 {
-    private static readonly DataGridComparerSortDescription sortDesc = new DataGridComparerSortDescription(new PositionComparer(), ListSortDirection.Ascending);
+    private static readonly DataGridComparerSortDescription sortDesc = new(new PositionComparer(), ListSortDirection.Ascending);
+    private static readonly DataGridPathGroupDescription classGroupDesc = new("Class");
+
     private readonly HubClient hubClient;
     private ILogger Logger { get; }
     private int eventId;
@@ -64,7 +66,6 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
 
         DataSource = new DataGridCollectionView(Cars);
         DataSource.SortDescriptions.Add(sortDesc);
-        DataSource.GroupDescriptions.Add(new DataGridPathGroupDescription("Class"));
     }
 
 
@@ -192,10 +193,12 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
         if (currentGrouping == GroupMode.Overall)
         {
             currentGrouping = GroupMode.Class;
+            DataSource.GroupDescriptions.Add(classGroupDesc);
         }
         else
         {
             currentGrouping = GroupMode.Overall;
+            DataSource.GroupDescriptions.Clear();
         }
 
         foreach (var car in Cars)
@@ -205,12 +208,11 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
 
         // Update the group toggle text
         OnPropertyChanged(nameof(GroupToggleText));
-        //// Re-sort the cars based on the new grouping
-        //_sourceCache.Connect()
-        //    .SortAndBind(Cars, SortExpressionComparer<CarViewModel>.Ascending(t => t.SortablePosition))
-        //    .Subscribe();
     }
 
+    /// <summary>
+    /// Comparer for sorting car positions. This is used to sort the cars in the DataGrid.
+    /// </summary>
     private class PositionComparer : IComparer
     {
         public int Compare(object? x, object? y)

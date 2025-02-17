@@ -69,6 +69,7 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     private int lastLap;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Position))]
     private int overallPosition;
     [ObservableProperty]
     private int classPosition;
@@ -109,6 +110,21 @@ public partial class CarViewModel : ObservableObject
         }
     }
 
+    public int Position
+    {
+        get
+        {
+            if (CurrentGroupMode == GroupMode.Overall)
+            {
+                return OverallPosition;
+            }
+            else
+            {
+                return ClassPosition;
+            }
+        }
+    }
+
     private Color _rowBackground = rowNormalColor;
     public Color RowBackground
     {
@@ -124,7 +140,19 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     private FontWeight lapDataFontWeight = FontWeight.Normal;
 
-    public GroupMode CurrentGroupMode { get; set; } = GroupMode.Overall;
+    private GroupMode currentGroupMode = GroupMode.Overall;
+    public GroupMode CurrentGroupMode
+    {
+        get { return currentGroupMode; }
+        set
+        {
+            if (value != currentGroupMode)
+            {
+                currentGroupMode = value;
+                OnPropertyChanged(nameof(Position));
+            }
+        }
+    }
 
     //private bool updateChanged = false;
 
@@ -178,15 +206,23 @@ public partial class CarViewModel : ObservableObject
             Observable.Timer(TimeSpan.FromSeconds(1.7)).Subscribe(_ => RowBackground = rowNormalColor);
         }
 
-        if (BestLap == LastLap)
+        if (LastLap > 0)
         {
-            LapDataColor = carBestLapColor;
-            LapDataFontWeight = FontWeight.Bold;
-        }
-        else if (IsOverallFastest)
-        {
-            LapDataColor = carOverallBestLapColor;
-            LapDataFontWeight = FontWeight.Bold;
+            if (IsOverallFastest)
+            {
+                LapDataColor = carOverallBestLapColor;
+                LapDataFontWeight = FontWeight.Bold;
+            }
+            else if (BestLap == LastLap)
+            {
+                LapDataColor = carBestLapColor;
+                LapDataFontWeight = FontWeight.Bold;
+            }
+            else
+            {
+                LapDataColor = carNormalLapColor;
+                LapDataFontWeight = FontWeight.Normal;
+            }
         }
         else
         {
