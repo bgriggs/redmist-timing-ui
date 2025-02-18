@@ -86,12 +86,16 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     private int classPosition;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PositionsGainedLost))]
     private int overallPositionsGained;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PositionsGainedLost))]
     private int inClassPositionsGained;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMostPositionsGained))]
     private bool isOverallMostPositionsGained;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMostPositionsGained))]
     private bool isClassMostPositionsGained;
     [ObservableProperty]
     private int penalityLaps;
@@ -181,6 +185,36 @@ public partial class CarViewModel : ObservableObject
         }
     }
 
+    public int PositionsGainedLost
+    {
+        get
+        {
+            if (CurrentGroupMode == GroupMode.Overall)
+            {
+                return OverallPositionsGained;
+            }
+            else
+            {
+                return InClassPositionsGained;
+            }
+        }
+    }
+
+    public bool IsMostPositionsGained
+    {
+        get
+        {
+            if (CurrentGroupMode == GroupMode.Overall)
+            {
+                return IsOverallMostPositionsGained;
+            }
+            else
+            {
+                return IsClassMostPositionsGained;
+            }
+        }
+    }
+
     private Color _rowBackground = rowNormalColor;
     public Color RowBackground
     {
@@ -209,6 +243,8 @@ public partial class CarViewModel : ObservableObject
                 OnPropertyChanged(nameof(Gap));
                 OnPropertyChanged(nameof(Difference));
                 OnPropertyChanged(nameof(IsBestTime));
+                OnPropertyChanged(nameof(PositionsGainedLost));
+                OnPropertyChanged(nameof(IsMostPositionsGained));
             }
         }
     }
@@ -243,8 +279,8 @@ public partial class CarViewModel : ObservableObject
         IsClassMostPositionsGained = carPosition.IsClassMostPositionsGained;
         PenalityLaps = carPosition.PenalityLaps;
         PenalityWarnings = carPosition.PenalityWarnings;
-        IsEnteredPit = carPosition.IsEnteredPit;
-        IsExistedPit = carPosition.IsExistedPit;
+        //IsEnteredPit = carPosition.IsEnteredPit;
+        //IsExistedPit = carPosition.IsExistedPit;
         IsInPit = carPosition.IsInPit;
         IsStale = carPosition.IsStale;
 
@@ -258,7 +294,7 @@ public partial class CarViewModel : ObservableObject
             RowBackground = rowNormalColor;
         }
 
-        // Flash the background if the lap has changed
+        // Flash the row background if the lap has changed
         if (prevLap != LastLap && RowBackground != rowUpdateColor)
         {
             Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => RowBackground = rowUpdateColor);
@@ -267,6 +303,7 @@ public partial class CarViewModel : ObservableObject
 
         if (LastLap > 0)
         {
+            // Check for best lap overall/in-class and car's fastest lap
             if (IsBestTime)
             {
                 LapDataColor = carOverallBestLapColor;
@@ -277,18 +314,19 @@ public partial class CarViewModel : ObservableObject
                 LapDataColor = carBestLapColor;
                 LapDataFontWeight = FontWeight.Bold;
             }
-            else
+            else // Reset to normal
             {
                 LapDataColor = carNormalLapColor;
                 LapDataFontWeight = FontWeight.Normal;
             }
         }
-        else
+        else // Reset to normal
         {
             LapDataColor = carNormalLapColor;
             LapDataFontWeight = FontWeight.Normal;
         }
 
+        // Note whether the position has changed in order to re-sort the list
         if (prevPos != OverallPosition)
         {
             positionChanged = true;

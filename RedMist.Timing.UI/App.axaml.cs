@@ -11,7 +11,6 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace RedMist.Timing.UI;
@@ -46,12 +45,6 @@ public partial class App : Application
         });
         services.AddSingleton(loggerFactory);
 
-        var config = new ConfigurationBuilder()
-            .AddUserSecrets<App>()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .Build();
-        services.AddSingleton(config);
-
         ConfigureServices(services);
         ConfigureViewModels(services);
         ConfigureViews(services);
@@ -60,7 +53,6 @@ public partial class App : Application
         {
             DataContext = service.GetRequiredService<MainViewModel>()
         });
-
 
         _host = builder.Build();
         _cancellationTokenSource = new();
@@ -91,7 +83,6 @@ public partial class App : Application
     [Singleton(typeof(MainViewModel))]
     [Singleton(typeof(EventsListViewModel))]
     [Singleton(typeof(EventStatusViewModel))]
-    ////[Singleton(typeof(QuarterViewModelFactory), typeof(IQuarterViewModelFactory))]
     internal static partial void ConfigureViewModels(IServiceCollection services);
 
     [Singleton(typeof(MainView))]

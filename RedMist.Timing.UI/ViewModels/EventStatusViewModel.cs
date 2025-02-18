@@ -168,10 +168,7 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
                 carVm = new CarViewModel();
                 Cars.Add(carVm);
             }
-            if (carVm != null)
-            {
-                carVm.ApplyEntry(entry);
-            }
+            carVm?.ApplyEntry(entry);
         }
 
         if (!isDeltaUpdate)
@@ -185,6 +182,7 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
                     //DataSource.Refresh();
                 }
             }
+            DataSource.Refresh();
         }
     }
 

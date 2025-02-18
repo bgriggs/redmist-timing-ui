@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "RedMist.Timing.UI.Desktop": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
