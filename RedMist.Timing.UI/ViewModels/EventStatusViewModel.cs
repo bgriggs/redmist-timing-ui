@@ -58,6 +58,7 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
     public ObservableCollection<CarViewModel> Cars { get; } = [];
     public DataGridCollectionView DataSource { get; set; }
 
+
     public EventStatusViewModel(HubClient hubClient, ILoggerFactory loggerFactory)
     {
         this.hubClient = hubClient;
@@ -93,6 +94,12 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
 
     private void ProcessUpdate(Payload status)
     {
+        if (status.IsReset)
+        {
+            ResetEvent();
+            return;
+        }
+
         if (status.EventName != null)
         {
             EventName = status.EventName;
@@ -136,8 +143,7 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
                     carVm.ApplyStatus(carUpdate, out var positionChanged);
                     if (positionChanged)
                     {
-                        DataSource.SortDescriptions.Clear();
-                        DataSource.SortDescriptions.Add(sortDesc);
+                        DataSource.Refresh();
                     }
                 }
             }
@@ -151,6 +157,17 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
                 TotalLaps = string.Empty;
             }
         }
+    }
+
+    private void ResetEvent()
+    {
+        Cars.Clear();
+        EventName = string.Empty;
+        Flag = string.Empty;
+        TimeToGo = string.Empty;
+        TotalTime = string.Empty;
+        TotalLaps = string.Empty;
+        DataSource.Refresh();
     }
 
     /// <summary>
