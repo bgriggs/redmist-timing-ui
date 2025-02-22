@@ -11,6 +11,8 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
 using System;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace RedMist.Timing.UI;
@@ -39,6 +41,12 @@ public partial class App : Application
         var builder = Host.CreateApplicationBuilder();
         var services = builder.Services;
 
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceName = "RedMist.Timing.UI.appsettings.json";
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream == null) throw new FileNotFoundException("Configuration file not found.");
+        builder.Configuration.AddJsonStream(stream);
+
         var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddDebug();
@@ -65,8 +73,7 @@ public partial class App : Application
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
             var vm = _host.Services.GetRequiredService<MainViewModel>();
-            var mainView = _host.Services.GetRequiredService<MainView>();
-            mainView.DataContext = vm;
+            var mainView = new MainView { DataContext = vm };
             singleViewPlatform.MainView = mainView;
         }
 

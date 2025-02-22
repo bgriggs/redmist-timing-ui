@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Clients;
 
+/// <summary>
+/// Client for communicating with the cloud SignalR hub.
+/// </summary>
 public class HubClient : HubClientBase
 {
     private HubConnection? hub;

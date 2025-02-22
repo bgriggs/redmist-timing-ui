@@ -239,7 +239,7 @@
 
 	<Grid RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="*" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Header-->
-		<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,*,Auto" Margin="11,10,11,0">
+		<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,*,Auto" Margin="4,10,4,0">
 			<Button Grid.RowSpan="3" Margin="0,0,15,0" Command="{Binding Back}">
 				<PathIcon Height="25" Width="25" Foreground="Black" Data="{StaticResource back}" VerticalAlignment="Top" Margin="0,1,0,0"/>
 			</Button>
@@ -257,7 +257,7 @@
 		</Grid>
 
 		<!--Car Position Grid-->
-		<DataGrid Name="dataGrid" Margin="10,5,10,5" ItemsSource="{Binding DataSource}" Grid.Row="4" Background="#f4f2f0"
+		<DataGrid Name="dataGrid" Margin="3,5,3,5" ItemsSource="{Binding DataSource}" Grid.Row="4" Background="#f4f2f0"
 				  AutoGenerateColumns="False" IsReadOnly="True" CanUserSortColumns="False"
 				  BorderThickness="1" BorderBrush="Gray" VerticalAlignment="Stretch">
 			<DataGrid.Columns>
