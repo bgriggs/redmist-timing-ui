@@ -1,4 +1,5 @@
 ﻿using Avalonia.Collections;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -9,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -67,6 +69,8 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
 
         DataSource = new DataGridCollectionView(Cars);
         DataSource.SortDescriptions.Add(sortDesc);
+
+        Cars.CollectionChanged += Cars_CollectionChanged;
     }
 
 
@@ -223,6 +227,17 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
 
         // Update the group toggle text
         OnPropertyChanged(nameof(GroupToggleText));
+    }
+
+    /// <summary>
+    /// Sync new Cars with the current grouping mode. This is called when the collection changes.
+    /// </summary>
+    private void Cars_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var car in Cars)
+        {
+            car.CurrentGroupMode = currentGrouping;
+        }
     }
 
     /// <summary>

@@ -15,8 +15,6 @@
 	</Design.DataContext>
 
 	<Grid RowDefinitions="Auto,Auto,*">
-		<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
 		<v:EventsListView DataContext="{Binding EventsListViewModel}"> </v:EventsListView>
 		<v:EventStatusView DataContext="{Binding EventStatusViewModel}" Grid.Row="2"> </v:EventStatusView>
 	</Grid>

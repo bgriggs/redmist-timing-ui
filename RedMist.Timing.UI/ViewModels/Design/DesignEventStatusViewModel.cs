@@ -138,5 +138,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             IsOverallMostPositionsGained = true,
             IsBestTime = true,
         }, out var _);
+
+        ToggleGroupMode();
     }
 }

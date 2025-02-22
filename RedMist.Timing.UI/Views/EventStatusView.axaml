@@ -5,7 +5,9 @@
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
 			 xmlns:sel="clr-namespace:RedMist.Timing.UI.TemplateSelectors"
+			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
+			 xmlns:collections="using:Avalonia.Collections"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
              x:Class="RedMist.Timing.UI.Views.EventStatusView">
 	<Design.DataContext>
@@ -109,6 +111,95 @@
 				</Style>
 			</Style>-->
 		</ControlTheme>
+
+		<ControlTheme x:Key="{x:Type DataGridRowGroupHeader}" TargetType="DataGridRowGroupHeader">
+			<Setter Property="Foreground" Value="{DynamicResource DataGridRowGroupHeaderForegroundBrush}" />
+			<Setter Property="Background" Value="{DynamicResource DataGridRowGroupHeaderBackgroundBrush}" />
+			<Setter Property="FontSize" Value="15" />
+			<Setter Property="MinHeight" Value="32" />
+			<Setter Property="Template">
+				<ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+					<DataGridFrozenGrid Name="PART_Root"
+										Background="{TemplateBinding Background}"
+										MinHeight="{TemplateBinding MinHeight}"
+										ColumnDefinitions="Auto,Auto,Auto,Auto,*"
+										RowDefinitions="*,Auto">
+
+						<Rectangle Name="PART_IndentSpacer"
+								   Grid.Column="1" />
+						<!--PART_-->
+						<ToggleButton Name="ExpanderButton"
+									  Grid.Column="2"
+									  Width="12"
+									  Height="12"
+									  Margin="12,0,0,0"
+									  Theme="{StaticResource FluentDataGridRowGroupExpanderButtonTheme}"
+									  BorderBrush="{TemplateBinding BorderBrush}"
+									  BorderThickness="{TemplateBinding BorderThickness}"
+									  Background="{TemplateBinding Background}"
+									  CornerRadius="{TemplateBinding CornerRadius}"
+									  IsTabStop="False"
+									  Foreground="{TemplateBinding Foreground}" />
+
+						<StackPanel Grid.Column="3"
+									Orientation="Horizontal"
+									VerticalAlignment="Center"
+									Margin="12,0,0,0">
+							<TextBlock Name="PART_PropertyNameElement"
+									   Margin="4,0,0,0"
+									   IsVisible="{TemplateBinding IsPropertyNameVisible}"
+									   Foreground="{TemplateBinding Foreground}" />
+							<TextBlock Name="txtKey"
+									   Margin="4,0,0,0"
+									   Text="{Binding Key}"
+									   Foreground="{TemplateBinding Foreground}" />
+							<TextBlock Name="PART_ItemCountElement"
+									   Margin="4,0,0,0"
+									   IsVisible="{TemplateBinding IsItemCountVisible}"
+									   Foreground="{TemplateBinding Foreground}" />
+						</StackPanel>
+
+						<Rectangle x:Name="CurrencyVisual"
+								   Grid.ColumnSpan="5"
+								   IsVisible="False"
+								   HorizontalAlignment="Stretch"
+								   VerticalAlignment="Stretch"
+								   Fill="Transparent"
+								   IsHitTestVisible="False"
+								   Stroke="{DynamicResource DataGridCurrencyVisualPrimaryBrush}"
+								   StrokeThickness="1" />
+						<Grid x:Name="FocusVisual"
+							  Grid.ColumnSpan="5"
+							  IsVisible="False"
+							  IsHitTestVisible="False">
+							<Rectangle HorizontalAlignment="Stretch"
+									   VerticalAlignment="Stretch"
+									   Fill="Transparent"
+									   IsHitTestVisible="False"
+									   Stroke="{DynamicResource DataGridCellFocusVisualPrimaryBrush}"
+									   StrokeThickness="2" />
+							<Rectangle Margin="2"
+									   HorizontalAlignment="Stretch"
+									   VerticalAlignment="Stretch"
+									   Fill="Transparent"
+									   IsHitTestVisible="False"
+									   Stroke="{DynamicResource DataGridCellFocusVisualSecondaryBrush}"
+									   StrokeThickness="1" />
+						</Grid>
+
+						<DataGridRowHeader Name="PART_RowHeader"
+										   Grid.RowSpan="2"
+										   DataGridFrozenGrid.IsFrozen="True" />
+
+						<Rectangle x:Name="PART_BottomGridLine"
+								   Grid.Row="1"
+								   Grid.ColumnSpan="5"
+								   Height="1" />
+					</DataGridFrozenGrid>
+				</ControlTemplate>
+			</Setter>
+		</ControlTheme>
+
 
 		<StreamGeometry x:Key="downArrow">M998 352c0 -8 -4 -17 -10 -23l-50 -50c-6 -6 -14 -10 -23 -10c-8 0 -17 4 -23 10l-393 393l-393 -393c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-50 50c-6 6 -10 15 -10 23s4 17 10 23l466 466c6 6 15 10 23 10s17 -4 23 -10l466 -466c6 -6 10 -15 10 -23z</StreamGeometry>
 		<StreamGeometry x:Key="upArrow">M998 800c0 -8 -4 -17 -10 -23l-466 -466c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-466 466c-6 6 -10 15 -10 23s4 17 10 23l50 50c6 6 14 10 23 10c8 0 17 -4 23 -10l393 -393l393 393c6 6 15 10 23 10s17 -4 23 -10l50 -50c6 -6 10 -15 10 -23z</StreamGeometry>
