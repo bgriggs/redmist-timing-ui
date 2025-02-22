@@ -3,8 +3,10 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Collections;
@@ -30,16 +32,16 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
     private string eventName = string.Empty;
 
     [ObservableProperty]
-    public string flag = string.Empty;
+    private string flag = string.Empty;
 
     [ObservableProperty]
-    public string timeToGo = string.Empty;
+    private string timeToGo = string.Empty;
 
     [ObservableProperty]
-    public string totalTime = string.Empty;
+    private string totalTime = string.Empty;
 
     [ObservableProperty]
-    public string totalLaps = string.Empty;
+    private string totalLaps = string.Empty;
 
     private GroupMode currentGrouping = GroupMode.Overall;
     public string GroupToggleText
@@ -74,7 +76,7 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
     }
 
 
-    public async Task Initialize(int eventId)
+    public async Task InitializeAsync(int eventId)
     {
         this.eventId = eventId;
         try
@@ -84,6 +86,18 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
         catch (Exception ex)
         {
             Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
+        }
+    }
+
+    public async Task UnsubscribeAsync()
+    {
+        try
+        {
+            await hubClient.UnsubscribeFromEvent(eventId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error unsubscribing event: {ex.Message}");
         }
     }
 
@@ -238,6 +252,12 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
         {
             car.CurrentGroupMode = currentGrouping;
         }
+    }
+
+    public void Back()
+    {
+        var routerEvent = new RouterEvent { Path = "EventsList" };
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
     }
 
     /// <summary>

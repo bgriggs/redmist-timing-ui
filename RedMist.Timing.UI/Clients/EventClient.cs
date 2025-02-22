@@ -8,7 +8,7 @@ namespace RedMist.Timing.UI.Clients;
 
 public class EventClient
 {
-    private RestClient restClient;
+    private readonly RestClient restClient;
 
     public EventClient(IConfiguration configuration)
     {
@@ -25,7 +25,7 @@ public class EventClient
         restClient = new RestClient(options);
     }
 
-    public async Task<Event[]> LoadEvents() 
+    public virtual async Task<Event[]> LoadEvents() 
     {
         var request = new RestRequest("GetEvents", Method.Get);
         return await restClient.GetAsync<Event[]>(request) ?? [];

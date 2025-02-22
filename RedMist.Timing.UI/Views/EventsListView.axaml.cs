@@ -1,7 +1,5 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using RedMist.Timing.UI.ViewModels;
 
 namespace RedMist.Timing.UI.Views;

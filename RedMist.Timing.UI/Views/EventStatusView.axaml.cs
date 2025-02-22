@@ -18,10 +18,10 @@ public partial class EventStatusView : UserControl
     protected override async void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
-        if (DataContext is EventStatusViewModel vm)
-        {
-            await vm.Initialize(1);
-        }
+        //if (DataContext is EventStatusViewModel vm)
+        //{
+        //    await vm.InitializeAsync(1);
+        //}
         //dataGrid.GetVisualChildren();
         //dataGrid.GetControl<ToggleButton>();
         //dataGrid.

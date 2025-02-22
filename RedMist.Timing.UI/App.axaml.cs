@@ -47,7 +47,7 @@ public partial class App : Application
 
         ConfigureServices(services);
         ConfigureViewModels(services);
-        ConfigureViews(services);
+        //ConfigureViews(services);
 
         services.AddSingleton(service => new MainWindow
         {
@@ -85,7 +85,7 @@ public partial class App : Application
     [Singleton(typeof(EventStatusViewModel))]
     internal static partial void ConfigureViewModels(IServiceCollection services);
 
-    [Singleton(typeof(MainView))]
-    [Singleton(typeof(EventsListView))]
-    internal static partial void ConfigureViews(IServiceCollection services);
+    //[Singleton(typeof(MainView))]
+    //[Singleton(typeof(EventsListView))]
+    //internal static partial void ConfigureViews(IServiceCollection services);
 }

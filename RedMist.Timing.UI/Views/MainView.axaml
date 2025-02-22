@@ -14,8 +14,8 @@
 		<design:DesignMainViewModel />
 	</Design.DataContext>
 
-	<Grid RowDefinitions="Auto,Auto,*">
-		<v:EventsListView DataContext="{Binding EventsListViewModel}"> </v:EventsListView>
-		<v:EventStatusView DataContext="{Binding EventStatusViewModel}" Grid.Row="2"> </v:EventStatusView>
+	<Grid RowDefinitions="*">
+		<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"></v:EventsListView>
+		<v:EventStatusView Name="eventStatusPage" DataContext="{Binding EventStatusViewModel}" Grid.Row="2" IsVisible="False"> </v:EventStatusView>
 	</Grid>
 </UserControl>

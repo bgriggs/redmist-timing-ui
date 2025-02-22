@@ -2,6 +2,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
              x:Class="RedMist.Timing.UI.Views.EventsListView">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<design:DesignEventsListViewModel />
+	</Design.DataContext>
+
+	<UserControl.Resources>
+		<StreamGeometry x:Key="refreshArrow">M463.5 224H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1c-87.5 87.5-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5z</StreamGeometry>
+	</UserControl.Resources>
+
+	<Grid RowDefinitions="Auto,*,Auto">
+		<Border Background="Gray" BorderThickness="0,0,0,2" BorderBrush="DarkGray">
+			<Grid ColumnDefinitions="Auto,*,Auto">
+				<Image Source="avares://RedMist.Timing.UI/Assets/redmist.ico" Width="30" Height="30" Margin="5,4,0,5"/>
+				<TextBlock Text="Red Mist Timing" FontSize="15" FontWeight="DemiBold" Margin="7,-3,0,0" VerticalAlignment="Center" Grid.Column="1" HorizontalAlignment="Center"/>
+				<Button Grid.Column="2" ToolTip.Tip="Reload Events" Margin="7" Command="{Binding RefreshEvents}">
+					<PathIcon Height="12" Width="12" Foreground="Black" Data="{StaticResource refreshArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>
+				</Button>
+			</Grid>
+		</Border>
+
+		<ItemsRepeater ItemsSource="{Binding Events}" Grid.Row="1">
+			<ItemsRepeater.ItemTemplate>
+				<DataTemplate>
+					<Button Background="LightGray" Height="44" CornerRadius="0" BorderThickness="0,0,0,2" 
+							BorderBrush="DarkGray" HorizontalAlignment="Stretch" 
+							Command="{Binding SelectEvent}" CommandParameter="{Binding .}">
+						<TextBlock Text="{Binding Name}" Margin="3" VerticalAlignment="Center"/>
+					</Button>
+				</DataTemplate>
+			</ItemsRepeater.ItemTemplate>
+		</ItemsRepeater>
+
+		<Border Background="Gray" BorderThickness="0,0,0,2" BorderBrush="DarkGray" Grid.Row="2">
+			<Grid ColumnDefinitions="Auto,*,Auto">
+				<TextBlock Text="Version 0.0.1 - Test version only" FontSize="11" Margin="4"/>
+			</Grid>
+	    </Border>
+	</Grid>
 </UserControl>
