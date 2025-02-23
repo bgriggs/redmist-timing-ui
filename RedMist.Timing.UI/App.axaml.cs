@@ -90,6 +90,7 @@ public partial class App : Application
     [Singleton(typeof(MainViewModel))]
     [Singleton(typeof(EventsListViewModel))]
     [Singleton(typeof(EventStatusViewModel))]
+    [Singleton(typeof(LiveTimingViewModel))]
     internal static partial void ConfigureViewModels(IServiceCollection services);
 
     //[Singleton(typeof(MainView))]

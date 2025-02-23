@@ -2,6 +2,7 @@
 using RedMist.TimingCommon.Models;
 using RestSharp;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Clients;
@@ -25,9 +26,19 @@ public class EventClient
         restClient = new RestClient(options);
     }
 
-    public virtual async Task<Event[]> LoadEvents() 
+    public virtual async Task<Event[]> LoadRecentEventsAsync() 
     {
-        var request = new RestRequest("GetEvents", Method.Get);
+        var request = new RestRequest("LoadEvents", Method.Get);
+        var startTime = DateTime.UtcNow - TimeSpan.FromDays(7);
+        request.AddQueryParameter("startDateUtc", startTime.ToString());
         return await restClient.GetAsync<Event[]>(request) ?? [];
+    }
+
+    public virtual async Task<List<CarPosition>> LoadCarLapsAsync(int eventId, string carNumber)
+    {
+        var request = new RestRequest("LoadCarLaps", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("carNumber", carNumber);
+        return await restClient.GetAsync<List<CarPosition>>(request) ?? [];
     }
 }

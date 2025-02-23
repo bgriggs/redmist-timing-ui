@@ -1,12 +1,10 @@
 ﻿using Avalonia.Threading;
+using BigMission.Avalonia.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
-using RedMist.Timing.UI.Models;
-using RedMist.TimingCommon.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
@@ -20,7 +18,7 @@ public class EventsListViewModel : ObservableObject
     private readonly EventClient eventClient;
     private ILogger Logger { get; }
 
-    public ObservableCollection<EventViewModel> Events { get; } = [];
+    public LargeObservableCollection<EventViewModel> Events { get; } = [];
 
 
     public EventsListViewModel(EventClient eventClient, ILoggerFactory loggerFactory)
@@ -34,12 +32,13 @@ public class EventsListViewModel : ObservableObject
     {
         try
         {
-            var events = await eventClient.LoadEvents();
+            var temp = await eventClient.LoadCarLapsAsync(1, "909");
+            var events = await eventClient.LoadRecentEventsAsync();
             if (events != null)
             {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    Events.Clear();
+                    var vms = new List<EventViewModel>();
                     foreach (var e in events)
                     {
                         var vm = new EventViewModel
@@ -47,9 +46,10 @@ public class EventsListViewModel : ObservableObject
                             EventId = e.EventId,
                             Name = e.EventName,
                         };
-                        Events.Add(vm);
+                        vms.Add(vm);
                         Logger.LogInformation($"Event: {e.EventName}");
                     }
+                    Events.SetRange(vms);
                 });
             }
             else

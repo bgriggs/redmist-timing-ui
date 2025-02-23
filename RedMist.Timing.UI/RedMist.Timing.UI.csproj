@@ -61,4 +61,10 @@
 	  <ProjectReference Include="..\bigmission-shared\BigMission.Shared\BigMission.Shared.csproj" />
 	  <ProjectReference Include="..\redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\LiveTimingView.axaml.cs">
+	    <DependentUpon>LiveTimingView.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>

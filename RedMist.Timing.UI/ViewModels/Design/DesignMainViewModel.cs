@@ -3,7 +3,8 @@
 public class DesignMainViewModel : MainViewModel
 {
     public DesignMainViewModel() :
-        base(new EventsListViewModel(new Clients.EventClient(new DesignConfiguration()), new DebugLoggerFactory()), new DesignEventStatusViewModel())
+        base(new EventsListViewModel(new Clients.EventClient(new DesignConfiguration()), new DebugLoggerFactory()), 
+        new DesignEventStatusViewModel(), new DesignLiveTimingViewModel())
     {
     }
 }

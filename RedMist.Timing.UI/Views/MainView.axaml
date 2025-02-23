@@ -16,6 +16,7 @@
 
 	<Grid RowDefinitions="*">
 		<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"></v:EventsListView>
-		<v:EventStatusView Name="eventStatusPage" DataContext="{Binding EventStatusViewModel}" Grid.Row="2" IsVisible="False"> </v:EventStatusView>
+		<!--<v:EventStatusView Name="eventStatusPage" DataContext="{Binding EventStatusViewModel}" Grid.Row="2" IsVisible="False"> </v:EventStatusView>-->
+		<v:LiveTimingView Name="liveTimingPage" DataContext="{Binding LiveTimingViewModel}" IsVisible="False"></v:LiveTimingView>
 	</Grid>
 </UserControl>

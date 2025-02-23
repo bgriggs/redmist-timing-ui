@@ -11,7 +11,7 @@ public class DesignEventClient : EventClient
     {
     }
 
-    public override Task<Event[]> LoadEvents()
+    public override Task<Event[]> LoadRecentEventsAsync()
     {
         var e1 = new Event { EventId = 1, EventName = "World Racing League - Eagles Canyon", EventDate = "2/2/2025" };
         var e2 = new Event { EventId = 2, EventName = "World Racing League - Barber", EventDate = "2/2/2025" };
