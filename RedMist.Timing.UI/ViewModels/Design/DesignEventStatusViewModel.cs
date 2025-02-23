@@ -82,7 +82,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             OverallDifference = "00:00:12.872",
             OverallPositionsGained = -5,
             IsStale = true,
-        }, out var _);
+        });
 
         Cars.Add(new CarViewModel
         {
@@ -108,7 +108,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             BestTime = "00:02:17.872",
             OverallGap = "00:00:02.872",
             OverallDifference = "00:00:12.872",
-        }, out var _);
+        });
 
         Cars.Add(new CarViewModel
         {
@@ -137,7 +137,7 @@ public partial class DesignEventStatusViewModel : EventStatusViewModel
             OverallPositionsGained = 5,
             IsOverallMostPositionsGained = true,
             IsBestTime = true,
-        }, out var _);
+        });
 
         ToggleGroupMode();
     }

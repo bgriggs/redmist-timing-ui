@@ -1,16 +1,23 @@
-﻿using BigMission.Avalonia.Utilities;
-using RedMist.Timing.UI.ViewModels.DataCollections;
+﻿using DynamicData;
+using DynamicData.Binding;
+using System;
+using System.Collections;
+using System.Collections.ObjectModel;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public class GroupHeaderViewModel
+public class GroupHeaderViewModel : ObservableCollection<CarViewModel>
 {
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; } = string.Empty;
 
-    public LargeObservableCollection<CarViewModel> Cars { get; set; } = [];
-
-    public void SortCars()
+    public GroupHeaderViewModel(string name, IObservableCache<CarViewModel, string> observableCache)
     {
-        Cars.Sort();
+        Name = name;
+        observableCache.Connect()
+            .AutoRefresh(t => t.OverallPosition)
+            .SortAndBind(this, SortExpressionComparer<CarViewModel>.Ascending(t => t.OverallPosition))
+            .DisposeMany()
+            .Subscribe();
     }
+
 }

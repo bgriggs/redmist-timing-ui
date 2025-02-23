@@ -158,11 +158,11 @@ public partial class EventStatusViewModel : ObservableObject, IRecipient<StatusN
                 var carVm = Cars.FirstOrDefault(c => c.Number == carUpdate.Number);
                 if (carVm != null)
                 {
-                    carVm.ApplyStatus(carUpdate, out var positionChanged);
-                    if (positionChanged)
-                    {
-                        DataSource.Refresh();
-                    }
+                    //carVm.ApplyStatus(carUpdate, out var positionChanged);
+                    //if (positionChanged)
+                    //{
+                    //    DataSource.Refresh();
+                    //}
                 }
             }
 

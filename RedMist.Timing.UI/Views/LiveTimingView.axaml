@@ -98,6 +98,36 @@
 				</Grid>
 			</Grid>
 		</DataTemplate>
+
+		<ControlTemplate x:Key="groupExpanderTemplate" TargetType="Expander">
+			<DockPanel MinWidth="{TemplateBinding MinWidth}" MaxWidth="{TemplateBinding MaxWidth}">
+				<ToggleButton x:Name="ExpanderHeader"
+							  Height="33"
+							  CornerRadius="{TemplateBinding CornerRadius}"
+							  IsEnabled="{TemplateBinding IsEnabled}"
+							  Content="{TemplateBinding Header}"
+							  ContentTemplate="{TemplateBinding HeaderTemplate}"
+							  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}" 
+							  Background="LightGray" 
+							  BorderBrush="Gray"/>
+				<Border x:Name="ExpanderContent"
+						IsVisible="{TemplateBinding IsExpanded, Mode=TwoWay}"
+						Background="Transparent"
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="{TemplateBinding BorderThickness}"
+						MinHeight="{TemplateBinding MinHeight}"
+						HorizontalAlignment="Stretch"
+						VerticalAlignment="Stretch"
+						Padding="{TemplateBinding Padding}">
+					<ContentPresenter x:Name="PART_ContentPresenter"
+									  Content="{TemplateBinding Content}"
+									  ContentTemplate="{TemplateBinding ContentTemplate}"
+									  Foreground="{TemplateBinding Foreground}"
+									  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+				</Border>
+			</DockPanel>
+		</ControlTemplate>
 	</UserControl.Resources>
 
 	<UserControl.Styles>
@@ -161,14 +191,24 @@
 			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 				<Grid>
 					<!--Flat-->
-					<ItemsRepeater ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carTemplate}">
+					<ItemsRepeater ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carTemplate}" IsVisible="{Binding IsFlat}"/>
 
-					</ItemsRepeater>
-					
 					<!--Grouped Classes-->
-					<!--<ItemsRepeater ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
-
-					</ItemsRepeater>-->
+					<ItemsRepeater ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
+						<ItemsRepeater.ItemTemplate>
+							<DataTemplate>
+								<Expander Header="{Binding Name}" HorizontalAlignment="Stretch" Padding="0" CornerRadius="0" MinHeight="0"
+										  Template="{StaticResource groupExpanderTemplate}">
+									<Expander.HeaderTemplate>
+										<DataTemplate>
+											<TextBlock Text="{Binding .}" Classes="lg"/>
+										</DataTemplate>
+									</Expander.HeaderTemplate>
+									<ItemsRepeater ItemsSource="{Binding .}" ItemTemplate="{StaticResource carTemplate}"/>
+								</Expander>
+							</DataTemplate>
+						</ItemsRepeater.ItemTemplate>
+					</ItemsRepeater>
 				</Grid>
 			</ScrollViewer>
 		</Border>

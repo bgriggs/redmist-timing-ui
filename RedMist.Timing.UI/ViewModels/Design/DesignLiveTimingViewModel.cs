@@ -82,7 +82,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallDifference = "00:00:12.872",
             OverallPositionsGained = -5,
             IsStale = true,
-        }, out var _);
+        });
 
         carCache.AddOrUpdate(new CarViewModel
         {
@@ -108,7 +108,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             BestTime = "00:02:17.872",
             OverallGap = "00:00:02.872",
             OverallDifference = "00:00:12.872",
-        }, out var _);
+        });
 
         carCache.AddOrUpdate(new CarViewModel
         {
@@ -137,8 +137,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallPositionsGained = 5,
             IsOverallMostPositionsGained = true,
             IsBestTime = true,
-        }, out var _);
+        });
 
-        //ToggleGroupMode();
+        ToggleGroupMode();
     }
 }

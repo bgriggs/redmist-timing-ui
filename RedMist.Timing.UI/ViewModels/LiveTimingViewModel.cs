@@ -1,5 +1,4 @@
 ﻿using Avalonia.Threading;
-using BigMission.Avalonia.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -8,7 +7,6 @@ using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
-using RedMist.Timing.UI.ViewModels.DataCollections;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
@@ -22,10 +20,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 {
     private readonly ObservableCollection<CarViewModel> cars = [];
     public ObservableCollection<CarViewModel> Cars => cars;
+    public ObservableCollection<GroupHeaderViewModel> GroupedCars { get; } = [];
     protected readonly SourceCache<CarViewModel, string> carCache = new(car => car.Number);
-
-    //public CarPositionCollection CarPositions { get; }
-    //public GroupedCarPositionCollection GroupedCarPositions { get; }
 
     private readonly HubClient hubClient;
     private ILogger Logger { get; }
@@ -68,10 +64,16 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
-        //CarPositions = new CarPositionCollection(cars);
-        //GroupedCarPositions = new GroupedCarPositionCollection(cars);
-        carCache.Connect().AutoRefresh(t => t.OverallPosition)
+        carCache.Connect()
+            .AutoRefresh(t => t.OverallPosition)
             .SortAndBind(cars, SortExpressionComparer<CarViewModel>.Ascending(t => t.OverallPosition))
+            .DisposeMany()
+            .Subscribe();
+
+        carCache.Connect()
+            .GroupOnProperty(c => c.Class)
+            .Transform(g => new GroupHeaderViewModel(g.Key, g.Cache), true)
+            .SortAndBind(GroupedCars, SortExpressionComparer<GroupHeaderViewModel>.Ascending(t => t.Name))
             .DisposeMany()
             .Subscribe();
     }
@@ -166,7 +168,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
             }
-            else
+            else if (carVm.HasValue)
             {
                 carVm.Value.ApplyEntry(entry);
             }
@@ -175,11 +177,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         if (!isDeltaUpdate)
         {
             // Remove cars not in entries
-            foreach (var carVm in carCache.Items)
+            foreach (var num in carCache.Keys)
             {
-                if (!entries.Any(e => e.Number == carVm.Number))
+                if (!entries.Any(e => e.Number == num))
                 {
-                    carCache.Remove(carVm);
+                    carCache.RemoveKey(num);
                 }
             }
         }
@@ -195,7 +197,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             var carVm = carCache.Lookup(carUpdate.Number);
             if (carVm.HasValue)
             {
-                carVm.Value.ApplyStatus(carUpdate, out var positionChanged);
+                carVm.Value.ApplyStatus(carUpdate);
             }
         }
     }
@@ -227,7 +229,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             CurrentGrouping = GroupMode.Overall;
         }
 
-        foreach (var car in cars)
+        foreach (var car in carCache.Items)
         {
             car.CurrentGroupMode = CurrentGrouping;
         }

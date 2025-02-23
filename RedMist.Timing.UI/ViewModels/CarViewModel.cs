@@ -249,15 +249,10 @@ public partial class CarViewModel : ObservableObject
         }
     }
 
-    //private bool updateChanged = false;
-
-
-    public void ApplyStatus(CarPosition carPosition, out bool positionChanged)
+    public void ApplyStatus(CarPosition carPosition)
     {
-        //PropertyChanged += CarViewModel_PropertyChanged;
         var prevLap = LastLap;
         var prevPos = OverallPosition;
-        positionChanged = false;
 
         Number = carPosition.Number ?? string.Empty;
         BestTime = carPosition.BestTime ?? string.Empty;
@@ -325,36 +320,13 @@ public partial class CarViewModel : ObservableObject
             LapDataColor = carNormalLapColor;
             LapDataFontWeight = FontWeight.Normal;
         }
-
-        // Note whether the position has changed in order to re-sort the list
-        if (prevPos != OverallPosition)
-        {
-            positionChanged = true;
-        }
-
-        //PropertyChanged -= CarViewModel_PropertyChanged;
-        //var changed = updateChanged;
-        //updateChanged = false;
-        //return changed;
     }
 
     public void ApplyEntry(EventEntry entry)
     {
-        //PropertyChanged += CarViewModel_PropertyChanged;
-
         Number = entry.Number;
         Name = entry.Name.ToUpperInvariant();
         Team = entry.Team;
         Class = entry.Class;
-
-        //PropertyChanged -= CarViewModel_PropertyChanged;
-        //var changed = updateChanged;
-        //updateChanged = false;
-        //return changed;
     }
-
-    //private void CarViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    //{
-    //    updateChanged = true;
-    //}
 }
