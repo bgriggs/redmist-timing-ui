@@ -21,11 +21,6 @@ public partial class MainView : UserControl, IRecipient<ValueChangedMessage<Rout
         if (router.Path == "EventStatus")
         {
             eventsPage.IsVisible = false;
-            //if (eventStatusPage.DataContext is EventStatusViewModel esVm && router.Data is int eventId)
-            //{
-            //    _ = Task.Run(() => esVm.InitializeAsync(eventId));
-            //    eventStatusPage.IsVisible = true;
-            //}
             if (liveTimingPage.DataContext is LiveTimingViewModel ltVm && router.Data is int eventId)
             {
                 _ = Task.Run(() => ltVm.InitializeAsync(eventId));
@@ -34,23 +29,17 @@ public partial class MainView : UserControl, IRecipient<ValueChangedMessage<Rout
         }
         else if (router.Path == "EventsList")
         {
-            //if (eventStatusPage.DataContext is EventStatusViewModel esVm)
-            //{
-            //    _ = Task.Run(esVm.UnsubscribeAsync);
-            //}
             if (liveTimingPage.DataContext is LiveTimingViewModel ltVm)
             {
                 _ = Task.Run(ltVm.UnsubscribeAsync);
             }
 
             eventsPage.IsVisible = true;
-            //eventStatusPage.IsVisible = false;
             liveTimingPage.IsVisible = false;
         }
         else
         {
             eventsPage.IsVisible = false;
-            //eventStatusPage.IsVisible = false;
             liveTimingPage.IsVisible = false;
         }
     }
