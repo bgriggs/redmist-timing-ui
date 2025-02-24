@@ -19,6 +19,7 @@ public partial class DetailsViewModel : ObservableObject
     [ObservableProperty]
     private bool isLoading = false;
 
+    public ChartViewModel Chart { get; } = new ChartViewModel();
     public LapsListViewModel LapList { get; } = new LapsListViewModel();
 
     public DetailsViewModel(int eventId, string carNumber, EventClient serverClient)
@@ -34,6 +35,7 @@ public partial class DetailsViewModel : ObservableObject
         {
             Dispatcher.UIThread.Post(() => IsLoading = true);
             var carPositions = await serverClient.LoadCarLapsAsync(eventId, carNumber);
+            Chart.UpdateLaps(carPositions);
             LapList.UpdateLaps(carPositions);
             Debug.WriteLine($"Car positions loaded: {carPositions.Count}");
         }
@@ -49,6 +51,7 @@ public partial class DetailsViewModel : ObservableObject
 
     public void UpdateLaps(List<CarPosition> carPositions)
     {
+        Chart.UpdateLaps(carPositions);
         LapList.UpdateLaps(carPositions);
     }
 }

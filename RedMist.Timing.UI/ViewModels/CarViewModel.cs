@@ -1,4 +1,5 @@
 ﻿using Avalonia.Media;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RedMist.Timing.UI.Clients;
 using RedMist.TimingCommon.Models;
@@ -366,7 +367,10 @@ public partial class CarViewModel : ObservableObject
     public void ApplyEntry(EventEntry entry)
     {
         Number = entry.Number;
-        Name = entry.Name.ToUpperInvariant();
+        var n = entry.Name.ToUpperInvariant();
+        if (n.Length > 21)
+            n = n[..21];
+        Name = n;
         Team = entry.Team;
         Class = entry.Class;
     }

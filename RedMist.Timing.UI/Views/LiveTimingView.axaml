@@ -6,6 +6,7 @@
 			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
 			 xmlns:sel="clr-namespace:RedMist.Timing.UI.TemplateSelectors"
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
+			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
              x:Class="RedMist.Timing.UI.Views.LiveTimingView">
@@ -22,8 +23,6 @@
 		<StreamGeometry x:Key="lightning">M 52.2573,19.0027L 38.0053,33.2546L 50.6737,33.2546L 25.3369,57.008L 35.4716,38.0053L 23.7533,38.0053L 36.4217,19.0027L 52.2573,19.0027 Z </StreamGeometry>
 		<StreamGeometry x:Key="doubleLightning">M7.96,24.51h0.39l6.88-10.18c0.09-0.18,0.04-0.27-0.15-0.27h-2.84l2.99-5.45c0.09-0.18,0.02-0.27-0.2-0.27h-3.81  c-0.11,0-0.2,0.06-0.29,0.18l-2.78,7.4c-0.02,0.18,0.04,0.27,0.19,0.27h2.75L7.96,24.51z M16.46,18.18h0.27l5.22-7.67  c0.05-0.08,0.06-0.15,0.04-0.2s-0.08-0.07-0.17-0.07h-2.1l2.18-4.03c0.12-0.2,0.06-0.3-0.18-0.3h-2.74c-0.13,0-0.23,0.06-0.3,0.19  l-2.08,5.48c-0.03,0.09-0.03,0.16,0.01,0.21c0.04,0.05,0.1,0.07,0.19,0.07h2.04L16.46,18.18z</StreamGeometry>
 		<StreamGeometry x:Key="back">M1017 1235l-531 -531l531 -531c25 -25 25 -65 0 -90l-166 -166c-25 -25 -65 -25 -90 0l-742 742c-25 25 -25 65 0 90l742 742c25 25 65 25 90 0l166 -166c25 -25 25 -65 0 -90z</StreamGeometry>
-
-
 
 		<!--Car Row Template-->
 		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
@@ -82,7 +81,7 @@
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
 					</StackPanel>
 					<Grid ColumnDefinitions="Auto,Auto,Auto" Grid.Row="1">
-						<StackPanel Orientation="Horizontal" Width="100">
+						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="{Binding LastLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 							<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 							<TextBlock Text="{Binding LastTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
@@ -102,7 +101,7 @@
 			</Grid>
 		</DataTemplate>
 
-
+		<!--Car Row Toggle Button-->
 		<ControlTemplate x:Key="rowToggleButtonTemplate" TargetType="ToggleButton">
 			<Border x:Name="ToggleButtonBackground"
 					CornerRadius="{TemplateBinding CornerRadius}"
@@ -142,6 +141,7 @@
 			</Border>
 		</ControlTemplate>
 
+		<!--Car Row Expander-->
 		<ControlTemplate x:Key="rowExpanderTemplate" TargetType="Expander">
 			<DockPanel MinWidth="{TemplateBinding MinWidth}" MaxWidth="{TemplateBinding MaxWidth}">
 				<ToggleButton x:Name="ExpanderHeader"
@@ -174,18 +174,22 @@
 			</DockPanel>
 		</ControlTemplate>
 
+		<!--Car Expander Data Template-->
 		<DataTemplate x:Key="carExpanderTemplate">
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
-				<TabControl DataContext="{Binding CarDetailsViewModel}">
+				<TabControl DataContext="{Binding CarDetailsViewModel}" Padding="0">
 					<!--Positions Chart-->
 					<TabItem Header="Positions">
-						<TextBlock Text="{Binding IsLoading}"/>
+						<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
+											Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
+											ZoomMode="X" Padding="0"/>-->
+						<ContentControl Content="{Binding Chart.Chart}"/>
 					</TabItem>
 
 					<!--Laps-->
 					<TabItem Header="Laps">
-						<Grid RowDefinitions="Auto,*">
+						<Grid RowDefinitions="Auto,*" Margin="10,3">
 							<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS  TIME          PIT     FLAG"/>
 							<ScrollViewer MaxHeight="250" Grid.Row="1">
 								<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
@@ -213,7 +217,6 @@
 				</TabControl>
 			</Expander>
 		</DataTemplate>
-
 
 		<!--Class header expander-->
 		<ControlTemplate x:Key="groupExpanderTemplate" TargetType="Expander">
@@ -322,7 +325,8 @@
 					<ItemsRepeater ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
 						<ItemsRepeater.ItemTemplate>
 							<DataTemplate>
-								<Expander Header="{Binding Name}" HorizontalAlignment="Stretch" Padding="0" CornerRadius="0" MinHeight="0"
+								<Expander Header="{Binding Name}" HorizontalAlignment="Stretch"
+										  Padding="0" CornerRadius="0" MinHeight="0"
 										  Template="{StaticResource groupExpanderTemplate}">
 									<Expander.HeaderTemplate>
 										<DataTemplate>

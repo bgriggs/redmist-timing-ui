@@ -26,6 +26,7 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
     }
     public bool GainedPosition { get; set; }
     public bool LostPosition { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeColor))]
     [NotifyPropertyChangedFor(nameof(TimeFontWeight))]
