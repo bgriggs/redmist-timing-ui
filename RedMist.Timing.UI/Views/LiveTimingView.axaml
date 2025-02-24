@@ -23,6 +23,9 @@
 		<StreamGeometry x:Key="doubleLightning">M7.96,24.51h0.39l6.88-10.18c0.09-0.18,0.04-0.27-0.15-0.27h-2.84l2.99-5.45c0.09-0.18,0.02-0.27-0.2-0.27h-3.81  c-0.11,0-0.2,0.06-0.29,0.18l-2.78,7.4c-0.02,0.18,0.04,0.27,0.19,0.27h2.75L7.96,24.51z M16.46,18.18h0.27l5.22-7.67  c0.05-0.08,0.06-0.15,0.04-0.2s-0.08-0.07-0.17-0.07h-2.1l2.18-4.03c0.12-0.2,0.06-0.3-0.18-0.3h-2.74c-0.13,0-0.23,0.06-0.3,0.19  l-2.08,5.48c-0.03,0.09-0.03,0.16,0.01,0.21c0.04,0.05,0.1,0.07,0.19,0.07h2.04L16.46,18.18z</StreamGeometry>
 		<StreamGeometry x:Key="back">M1017 1235l-531 -531l531 -531c25 -25 25 -65 0 -90l-166 -166c-25 -25 -65 -25 -90 0l-742 742c-25 25 -25 65 0 90l742 742c25 25 65 25 90 0l166 -166c25 -25 25 -65 0 -90z</StreamGeometry>
 
+
+
+		<!--Car Row Template-->
 		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
 			<Grid ColumnDefinitions="Auto,*,Auto">
 				<!--Row update flash animation-->
@@ -99,6 +102,120 @@
 			</Grid>
 		</DataTemplate>
 
+
+		<ControlTemplate x:Key="rowToggleButtonTemplate" TargetType="ToggleButton">
+			<Border x:Name="ToggleButtonBackground"
+					CornerRadius="{TemplateBinding CornerRadius}"
+					Background="{TemplateBinding Background}"
+					BorderBrush="{TemplateBinding BorderBrush}"
+					BorderThickness="{TemplateBinding BorderThickness}">
+				<Grid x:Name="ToggleButtonGrid" ColumnDefinitions="*,Auto">
+					<ContentPresenter x:Name="PART_ContentPresenter"
+									  Content="{TemplateBinding Content}"
+									  ContentTemplate="{TemplateBinding ContentTemplate}"
+									  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+									  Foreground="{TemplateBinding Foreground}"
+									  Margin="{TemplateBinding Padding}"/>
+					<!--<Border x:Name="ExpandCollapseChevronBorder"
+							Grid.Column="1"
+							Width="{DynamicResource ExpanderChevronButtonSize}"
+							Height="{DynamicResource ExpanderChevronButtonSize}"
+							Margin="{DynamicResource ExpanderChevronMargin}"
+							CornerRadius="{DynamicResource ControlCornerRadius}"
+							BorderBrush="{DynamicResource ExpanderChevronBorderBrush}"
+							BorderThickness="{DynamicResource ExpanderChevronBorderThickness}"
+							Background="{DynamicResource ExpanderChevronBackground}">
+						<Path x:Name="ExpandCollapseChevron"
+							  HorizontalAlignment="Center"
+							  VerticalAlignment="Center"
+							  RenderTransformOrigin="50%,50%"
+							  Stretch="None"
+							  Stroke="{DynamicResource ExpanderChevronForeground}"
+							  StrokeThickness="1">
+							<Path.RenderTransform>
+								<RotateTransform />
+							</Path.RenderTransform>
+						</Path>
+					</Border>-->
+				</Grid>
+			</Border>
+		</ControlTemplate>
+
+		<ControlTemplate x:Key="rowExpanderTemplate" TargetType="Expander">
+			<DockPanel MinWidth="{TemplateBinding MinWidth}" MaxWidth="{TemplateBinding MaxWidth}">
+				<ToggleButton x:Name="ExpanderHeader"
+							  Template="{StaticResource rowToggleButtonTemplate}"
+							  Height="33"
+							  CornerRadius="{TemplateBinding CornerRadius}"
+							  IsEnabled="{TemplateBinding IsEnabled}"
+							  Content="{TemplateBinding Header}"
+							  ContentTemplate="{TemplateBinding HeaderTemplate}"
+							  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+							  Background="Transparent"
+							  BorderBrush="Gray"
+							  Padding="0"/>
+				<Border x:Name="ExpanderContent"
+						IsVisible="{TemplateBinding IsExpanded, Mode=TwoWay}"
+						Background="Transparent"
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="{TemplateBinding BorderThickness}"
+						MinHeight="{TemplateBinding MinHeight}"
+						HorizontalAlignment="Stretch"
+						VerticalAlignment="Stretch"
+						Padding="{TemplateBinding Padding}">
+					<ContentPresenter x:Name="PART_ContentPresenter"
+									  Content="{TemplateBinding Content}"
+									  ContentTemplate="{TemplateBinding ContentTemplate}"
+									  Foreground="{TemplateBinding Foreground}"
+									  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+				</Border>
+			</DockPanel>
+		</ControlTemplate>
+
+		<DataTemplate x:Key="carExpanderTemplate">
+			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
+					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
+				<TabControl DataContext="{Binding CarDetailsViewModel}">
+					<!--Positions Chart-->
+					<TabItem Header="Positions">
+						<TextBlock Text="{Binding IsLoading}"/>
+					</TabItem>
+
+					<!--Laps-->
+					<TabItem Header="Laps">
+						<Grid RowDefinitions="Auto,*">
+							<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS  TIME          PIT     FLAG"/>
+							<ScrollViewer MaxHeight="250" Grid.Row="1">
+								<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
+									<ItemsRepeater.ItemTemplate>
+										<DataTemplate>
+											<StackPanel Orientation="Horizontal">
+												<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
+												<TextBlock Text="{Binding OverallPosition}" Classes="sm" Width="32"/>
+												<TextBlock Text="{Binding ClassPosition}" Classes="sm" Width="58"/>
+												<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
+												<TextBlock Text="{Binding InPit}" Classes="sm" Width="35"/>
+												<TextBlock Text="{Binding Flag}" Classes="sm" Width="55"/>
+											</StackPanel>
+										</DataTemplate>
+									</ItemsRepeater.ItemTemplate>
+								</ItemsRepeater>
+							</ScrollViewer>
+						</Grid>
+					</TabItem>
+
+					<!--Penalties-->
+					<TabItem Header="Penalties">
+						<TextBlock Text="{Binding IsLoading}"/>
+					</TabItem>
+				</TabControl>
+			</Expander>
+		</DataTemplate>
+
+
+		<!--Class header expander-->
 		<ControlTemplate x:Key="groupExpanderTemplate" TargetType="Expander">
 			<DockPanel MinWidth="{TemplateBinding MinWidth}" MaxWidth="{TemplateBinding MaxWidth}">
 				<ToggleButton x:Name="ExpanderHeader"
@@ -107,8 +224,8 @@
 							  IsEnabled="{TemplateBinding IsEnabled}"
 							  Content="{TemplateBinding Header}"
 							  ContentTemplate="{TemplateBinding HeaderTemplate}"
-							  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}" 
-							  Background="LightGray" 
+							  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+							  Background="LightGray"
 							  BorderBrush="Gray"/>
 				<Border x:Name="ExpanderContent"
 						IsVisible="{TemplateBinding IsExpanded, Mode=TwoWay}"
@@ -128,6 +245,7 @@
 				</Border>
 			</DockPanel>
 		</ControlTemplate>
+
 	</UserControl.Resources>
 
 	<UserControl.Styles>
@@ -155,6 +273,13 @@
 			<Setter Property="FontSize" Value="11"/>
 			<Setter Property="FontWeight" Value="Bold"/>
 			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+
+		<Style Selector="TabItem">
+			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="MinHeight" Value="20"/>
+			<Setter Property="Height" Value="20"/>
+			<Setter Property="Margin" Value="3,5"/>
 		</Style>
 	</UserControl.Styles>
 
@@ -191,7 +316,7 @@
 			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 				<Grid>
 					<!--Flat-->
-					<ItemsRepeater ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carTemplate}" IsVisible="{Binding IsFlat}"/>
+					<ItemsRepeater ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carExpanderTemplate}" IsVisible="{Binding IsFlat}"/>
 
 					<!--Grouped Classes-->
 					<ItemsRepeater ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
@@ -204,7 +329,7 @@
 											<TextBlock Text="{Binding .}" Classes="lg"/>
 										</DataTemplate>
 									</Expander.HeaderTemplate>
-									<ItemsRepeater ItemsSource="{Binding .}" ItemTemplate="{StaticResource carTemplate}"/>
+									<ItemsRepeater ItemsSource="{Binding .}" ItemTemplate="{StaticResource carExpanderTemplate}"/>
 								</Expander>
 							</DataTemplate>
 						</ItemsRepeater.ItemTemplate>

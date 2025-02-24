@@ -1,19 +1,21 @@
 ﻿using DynamicData;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.ViewModels.CarDetails;
 using RedMist.TimingCommon.Models;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignLiveTimingViewModel : LiveTimingViewModel
 {
-    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DebugLoggerFactory())
+    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory())
     {
+        var ec = new DesignEventClient(new DesignConfiguration());
         EventName = "Design Event";
         Flag = "Green";
         TimeToGo = "03:45:00";
         TotalTime = "01:00:00";
 
-        carCache.AddOrUpdate(new CarViewModel
+        carCache.AddOrUpdate(new CarViewModel(1, ec)
         {
             Number = "34",
             Name = "Team Awesome 1",
@@ -27,7 +29,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP3",
         });
 
-        carCache.AddOrUpdate(new CarViewModel
+        carCache.AddOrUpdate(new CarViewModel(1, ec)
         {
             Number = "14",
             Name = "Team Awesome 2",
@@ -41,7 +43,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP3",
         });
 
-        carCache.AddOrUpdate(new CarViewModel
+        carCache.AddOrUpdate(new CarViewModel(1, ec)
         {
             Number = "12",
             Name = "Team Awesome 3",
@@ -55,7 +57,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP3",
         });
 
-        carCache.AddOrUpdate(new CarViewModel
+        carCache.AddOrUpdate(new CarViewModel(1, ec)
         {
             Number = "1x",
             Name = "Team Stale",
@@ -84,7 +86,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsStale = true,
         });
 
-        carCache.AddOrUpdate(new CarViewModel
+        carCache.AddOrUpdate(new CarViewModel(1, ec)
         {
             Number = "111",
             Name = "Team Cars Best Time",
@@ -110,7 +112,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallDifference = "00:00:12.872",
         });
 
-        carCache.AddOrUpdate(new CarViewModel
+        carCache.AddOrUpdate(new CarViewModel(1, ec)
         {
             Number = "222",
             Name = "Team Overall Best Time",
@@ -124,6 +126,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP1",
         });
 
+        carCache.Lookup("222").Value.CarDetailsViewModel = new DetailsViewModel(1, "222", new DesignEventClient(new DesignConfiguration())); ;
         carCache.Lookup("222").Value.ApplyStatus(new CarPosition
         {
             Number = "222",
@@ -137,8 +140,9 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallPositionsGained = 5,
             IsOverallMostPositionsGained = true,
             IsBestTime = true,
+            IsInPit = true,
         });
 
-        ToggleGroupMode();
+        //ToggleGroupMode();
     }
 }

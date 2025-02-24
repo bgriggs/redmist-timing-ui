@@ -1,7 +1,9 @@
 ﻿using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using RedMist.Timing.UI.Clients;
 using RedMist.TimingCommon.Models;
 using System;
+using System.Diagnostics;
 using System.Reactive.Linq;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -14,11 +16,13 @@ public partial class CarViewModel : ObservableObject
     private static readonly Color rowUpdateColor = Color.Parse("#fce3cf");
     private static readonly Color rowStaleColor = Color.Parse("#f7d2bb");
 
-    private static readonly IBrush carNormalLapColor = Brushes.Black;
-    private static readonly IBrush carBestLapColor = Brush.Parse("#5da639");
-    private static readonly IBrush carOverallBestLapColor = Brushes.Purple;
+    public static readonly IBrush carNormalLapColor = Brushes.Black;
+    public static readonly IBrush carBestLapColor = Brush.Parse("#5da639");
+    public static readonly IBrush carOverallBestLapColor = Brushes.Purple;
 
     #endregion
+
+    #region Car Properties
 
     [ObservableProperty]
     private string number = string.Empty;
@@ -109,6 +113,8 @@ public partial class CarViewModel : ObservableObject
     private bool isInPit;
     [ObservableProperty]
     private bool isStale;
+
+    #endregion
 
     /// <summary>
     /// Used when sorting cars to put the car with no position at the end of the list.
@@ -249,6 +255,39 @@ public partial class CarViewModel : ObservableObject
         }
     }
 
+    #region Car Details
+
+    private bool isDetailsExpanded = false;
+    public bool IsDetailsExpanded
+    {
+        get { return isDetailsExpanded; }
+        set
+        {
+            if (value != isDetailsExpanded)
+            {
+                isDetailsExpanded = value;
+                OnPropertyChanged(nameof(IsDetailsExpanded));
+                UpdateCarDetails(value);
+            }
+        }
+    }
+
+    private readonly int eventId;
+    private readonly EventClient serverClient;
+
+    [ObservableProperty]
+    private DetailsViewModel? carDetailsViewModel;
+
+    #endregion
+
+
+    public CarViewModel(int eventId, EventClient serverClient)
+    {
+        this.eventId = eventId;
+        this.serverClient = serverClient;
+    }
+
+
     public void ApplyStatus(CarPosition carPosition)
     {
         var prevLap = LastLap;
@@ -320,6 +359,8 @@ public partial class CarViewModel : ObservableObject
             LapDataColor = carNormalLapColor;
             LapDataFontWeight = FontWeight.Normal;
         }
+
+        CarDetailsViewModel?.UpdateLaps([carPosition]);
     }
 
     public void ApplyEntry(EventEntry entry)
@@ -328,5 +369,18 @@ public partial class CarViewModel : ObservableObject
         Name = entry.Name.ToUpperInvariant();
         Team = entry.Team;
         Class = entry.Class;
+    }
+
+    private void UpdateCarDetails(bool isEnabled)
+    {
+        if (isEnabled && CarDetailsViewModel == null)
+        {
+            CarDetailsViewModel = new DetailsViewModel(eventId, Number, serverClient);
+            _ = CarDetailsViewModel.Initialize();
+        }
+        else if (!isEnabled && CarDetailsViewModel != null)
+        {
+            CarDetailsViewModel = null;
+        }
     }
 }

@@ -18,12 +18,15 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>
 {
-    private readonly ObservableCollection<CarViewModel> cars = [];
-    public ObservableCollection<CarViewModel> Cars => cars;
+    // Flat collection for the view
+    public ObservableCollection<CarViewModel> Cars { get; } = [];
+    // Grouped by class collection for the view
     public ObservableCollection<GroupHeaderViewModel> GroupedCars { get; } = [];
     protected readonly SourceCache<CarViewModel, string> carCache = new(car => car.Number);
 
     private readonly HubClient hubClient;
+    private readonly EventClient serverClient;
+
     private ILogger Logger { get; }
     private int eventId;
 
@@ -58,18 +61,21 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public bool IsFlat => CurrentGrouping == GroupMode.Overall;
 
 
-    public LiveTimingViewModel(HubClient hubClient, ILoggerFactory loggerFactory)
+    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory)
     {
         this.hubClient = hubClient;
+        this.serverClient = serverClient;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
+        // Flat
         carCache.Connect()
             .AutoRefresh(t => t.OverallPosition)
-            .SortAndBind(cars, SortExpressionComparer<CarViewModel>.Ascending(t => t.OverallPosition))
+            .SortAndBind(Cars, SortExpressionComparer<CarViewModel>.Ascending(t => t.SortablePosition))
             .DisposeMany()
             .Subscribe();
 
+        // Grouped by class
         carCache.Connect()
             .GroupOnProperty(c => c.Class)
             .Transform(g => new GroupHeaderViewModel(g.Key, g.Cache), true)
@@ -164,7 +170,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel();
+                var vm = new CarViewModel(eventId, serverClient);
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
             }
@@ -218,6 +224,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
     }
 
+    /// <summary>
+    /// Command to toggle between flat and grouped by class view.
+    /// </summary>
     public void ToggleGroupMode()
     {
         if (CurrentGrouping == GroupMode.Overall)
