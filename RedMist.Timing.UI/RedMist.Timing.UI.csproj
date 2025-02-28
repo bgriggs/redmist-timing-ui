@@ -8,6 +8,7 @@
 		<Company>Big Mission Motorsports</Company>
 		<Description></Description>
 		<Copyright>2025</Copyright>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<UserSecretsId>9bace759-d6d1-47df-90f1-261d075ec518</UserSecretsId>
 	</PropertyGroup>
 

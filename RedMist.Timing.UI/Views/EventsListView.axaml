@@ -3,8 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
+			 xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
-             x:Class="RedMist.Timing.UI.Views.EventsListView">
+             x:Class="RedMist.Timing.UI.Views.EventsListView"
+			 x:DataType="vm:EventsListViewModel">
 	<Design.DataContext>
 		<!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->

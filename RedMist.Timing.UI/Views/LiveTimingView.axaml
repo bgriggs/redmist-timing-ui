@@ -9,7 +9,8 @@
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
-             x:Class="RedMist.Timing.UI.Views.LiveTimingView">
+             x:Class="RedMist.Timing.UI.Views.LiveTimingView"
+			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
 		<!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
@@ -46,19 +47,19 @@
 					<ContentControl Content="{Binding .}" Grid.Row="1" HorizontalAlignment="Left" Margin="3,0">
 						<ContentControl.DataTemplates>
 							<sel:PositionsGainedLostTemplateSelector>
-								<DataTemplate x:Key="PositionsGained">
+								<DataTemplate x:Key="PositionsGained" DataType="model:CarViewModel">
 									<Grid ColumnDefinitions="Auto,Auto">
 										<PathIcon Height="8" Width="8" Foreground="Green" Data="{StaticResource upArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>
 										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="Green" Grid.Column="1"/>
 									</Grid>
 								</DataTemplate>
-								<DataTemplate x:Key="PositionsLost">
+								<DataTemplate x:Key="PositionsLost" DataType="model:CarViewModel">
 									<Grid ColumnDefinitions="Auto,Auto">
 										<PathIcon Height="8" Width="8" Foreground="Red" Data="{StaticResource downArrow}"/>
 										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="Red" Grid.Column="1"/>
 									</Grid>
 								</DataTemplate>
-								<DataTemplate x:Key="PositionsNeutral">
+								<DataTemplate x:Key="PositionsNeutral" DataType="model:CarViewModel">
 									<Grid ColumnDefinitions="Auto,Auto">
 										<StackPanel Orientation="Vertical">
 											<PathIcon Height="8" Width="8" Foreground="Gray" Data="{StaticResource upArrow}"/>
@@ -175,7 +176,7 @@
 		</ControlTemplate>
 
 		<!--Car Expander Data Template-->
-		<DataTemplate x:Key="carExpanderTemplate">
+		<DataTemplate x:Key="carExpanderTemplate" DataType="model:CarViewModel">
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
 				<TabControl DataContext="{Binding CarDetailsViewModel}" Padding="0">
@@ -324,7 +325,7 @@
 					<!--Grouped Classes-->
 					<ItemsRepeater ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
 						<ItemsRepeater.ItemTemplate>
-							<DataTemplate>
+							<DataTemplate DataType="model:GroupHeaderViewModel">
 								<Expander Header="{Binding Name}" HorizontalAlignment="Stretch"
 										  Padding="0" CornerRadius="0" MinHeight="0"
 										  Template="{StaticResource groupExpanderTemplate}">
