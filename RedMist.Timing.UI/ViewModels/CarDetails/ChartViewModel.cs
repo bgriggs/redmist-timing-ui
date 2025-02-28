@@ -141,9 +141,15 @@ public partial class ChartViewModel : ObservableObject
         if (classPositions.Count == 0)
             classPositions.Add(0);
 
-        Series[0].Values = lapSeconds;
-        Series[1].Values = overallPositions;
-        Series[2].Values = classPositions;
-        XAxes[0].Labels = lapLabels;
+        if (Series[0].Values?.Cast<object>().Count() != lapSeconds.Count ||
+           Series[1].Values?.Cast<object>().Count() != overallPositions.Count ||
+           Series[2].Values?.Cast<object>().Count() != classPositions.Count ||
+           XAxes[0].Labels?.Count != lapLabels.Count)
+        {
+            Series[0].Values = lapSeconds;
+            Series[1].Values = overallPositions;
+            Series[2].Values = classPositions;
+            XAxes[0].Labels = lapLabels;
+        }
     }
 }
