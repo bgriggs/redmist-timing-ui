@@ -32,7 +32,6 @@ public class EventsListViewModel : ObservableObject
     {
         try
         {
-            var temp = await eventClient.LoadCarLapsAsync(1, "909");
             var events = await eventClient.LoadRecentEventsAsync();
             if (events != null)
             {
