@@ -332,8 +332,8 @@ public partial class CarViewModel : ObservableObject
         // Flash the row background if the lap has changed
         if (prevLap != LastLap && RowBackground != rowUpdateColor)
         {
-            Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => RowBackground = rowUpdateColor);
-            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => RowBackground = rowNormalColor);
+            Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackground = rowUpdateColor));
+            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackground = rowNormalColor));
         }
 
         if (LastLap > 0)
@@ -373,6 +373,9 @@ public partial class CarViewModel : ObservableObject
         Name = n;
         Team = entry.Team;
         Class = entry.Class;
+
+        // Force reset once loaded
+        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackground = rowNormalColor, DispatcherPriority.Send));
     }
 
     private void UpdateCarDetails(bool isEnabled)
