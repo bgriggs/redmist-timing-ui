@@ -1,16 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
-  <PropertyGroup>
-    <TargetFramework>net9.0-browser</TargetFramework>
-    <OutputType>Exe</OutputType>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0-browser</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>enable</Nullable>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Content Remove="wwwroot\favicon.ico" />
+	</ItemGroup>
+	<ItemGroup>
+	  <AvaloniaResource Include="wwwroot\favicon.ico" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Avalonia.Browser" Version="11.2.4" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Browser" Version="11.2.4" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\RedMist.Timing.UI\RedMist.Timing.UI.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\RedMist.Timing.UI\RedMist.Timing.UI.csproj" />
+	</ItemGroup>
 </Project>
