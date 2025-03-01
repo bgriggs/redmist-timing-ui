@@ -22,10 +22,20 @@ class KeycloakServiceAuthenticator : AuthenticatorBase
 
     protected override async ValueTask<Parameter> GetAuthenticationParameter(string accessToken)
     {
-        if (string.IsNullOrEmpty(Token))
+        if (string.IsNullOrEmpty(Token) || !IsTokenValid())
         {
             Token = await KeycloakServiceToken.RequestClientToken(authUrl, realm, clientId, clientSecret) ?? string.Empty;
         }
         return new HeaderParameter(KnownHeaders.Authorization, $"Bearer {Token}");
+    }
+
+    private bool IsTokenValid()
+    {
+        try
+        {
+            return KeycloakServiceToken.CheckTokenIsValid(Token);
+        }
+        catch { }
+        return false;
     }
 }
