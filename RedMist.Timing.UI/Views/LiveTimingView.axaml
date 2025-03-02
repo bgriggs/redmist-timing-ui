@@ -218,12 +218,12 @@
 							<DataGrid.Columns>
 								<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="55"/>
 								<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
-								<DataGridTextColumn Header="Car1" Binding="{Binding Car1}"/>
-								<DataGridTextColumn Header="Car2" Binding="{Binding Car2}"/>
+								<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
+								<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
 								<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
 								<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-								<DataGridTextColumn Header="PenalityAction" Binding="{Binding PenalityAction}"/>
-								<DataGridTextColumn Header="OtherNotes" Binding="{Binding OtherNotes}"/>
+								<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenalityAction}"/>
+								<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
 							</DataGrid.Columns>
 						</DataGrid>
 					</TabItem>
