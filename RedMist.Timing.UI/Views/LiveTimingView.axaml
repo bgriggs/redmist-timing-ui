@@ -213,7 +213,19 @@
 
 					<!--Penalties-->
 					<TabItem Header="Penalties">
-						<TextBlock Text="Coming Soon"/>
+						<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
+								  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
+							<DataGrid.Columns>
+								<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="55"/>
+								<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
+								<DataGridTextColumn Header="Car1" Binding="{Binding Car1}"/>
+								<DataGridTextColumn Header="Car2" Binding="{Binding Car2}"/>
+								<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
+								<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+								<DataGridTextColumn Header="PenalityAction" Binding="{Binding PenalityAction}"/>
+								<DataGridTextColumn Header="OtherNotes" Binding="{Binding OtherNotes}"/>
+							</DataGrid.Columns>
+						</DataGrid>
 					</TabItem>
 				</TabControl>
 			</Expander>
@@ -250,6 +262,7 @@
 			</DockPanel>
 		</ControlTemplate>
 
+		<x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
 	</UserControl.Resources>
 
 	<UserControl.Styles>
@@ -284,6 +297,17 @@
 			<Setter Property="MinHeight" Value="20"/>
 			<Setter Property="Height" Value="20"/>
 			<Setter Property="Margin" Value="3,5"/>
+		</Style>
+
+		<Style Selector="DataGridCell">
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="MinHeight" Value="20" />
+		</Style>
+
+		<Style Selector="DataGridColumnHeader">
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="MinHeight" Value="20" />
+			<Setter Property="Padding" Value="3,0,0,0" />
 		</Style>
 	</UserControl.Styles>
 
