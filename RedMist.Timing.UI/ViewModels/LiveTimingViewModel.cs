@@ -210,12 +210,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private void ResetEvent()
     {
-        carCache.Clear();
-        EventName = string.Empty;
-        Flag = string.Empty;
-        TimeToGo = string.Empty;
-        TotalTime = string.Empty;
-        TotalLaps = string.Empty;
+        // Allow for reset when the event is initializing. Once it has started,
+        // suppress the resets to reduce user confusion
+        if (string.IsNullOrWhiteSpace(Flag))
+        {
+            carCache.Clear();
+            EventName = string.Empty;
+            Flag = string.Empty;
+            TimeToGo = string.Empty;
+            TotalTime = string.Empty;
+            TotalLaps = string.Empty;
+        }
     }
 
     public void Back()
