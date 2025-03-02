@@ -24,6 +24,7 @@ public partial class CarViewModel : ObservableObject
     #endregion
 
     #region Car Properties
+    private CarPosition? lastCarPosition;
 
     [ObservableProperty]
     private string number = string.Empty;
@@ -275,17 +276,18 @@ public partial class CarViewModel : ObservableObject
 
     private readonly int eventId;
     private readonly EventClient serverClient;
-
+    private readonly HubClient hubClient;
     [ObservableProperty]
     private DetailsViewModel? carDetailsViewModel;
 
     #endregion
 
 
-    public CarViewModel(int eventId, EventClient serverClient)
+    public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient)
     {
         this.eventId = eventId;
         this.serverClient = serverClient;
+        this.hubClient = hubClient;
     }
 
 
@@ -362,6 +364,7 @@ public partial class CarViewModel : ObservableObject
         }
 
         CarDetailsViewModel?.UpdateLaps([carPosition]);
+        lastCarPosition = carPosition;
     }
 
     public void ApplyEntry(EventEntry entry)
@@ -382,11 +385,12 @@ public partial class CarViewModel : ObservableObject
     {
         if (isEnabled && CarDetailsViewModel == null)
         {
-            CarDetailsViewModel = new DetailsViewModel(eventId, Number, serverClient);
+            CarDetailsViewModel = new DetailsViewModel(eventId, Number, serverClient, hubClient);
             _ = CarDetailsViewModel.Initialize();
         }
         else if (!isEnabled && CarDetailsViewModel != null)
         {
+            CarDetailsViewModel.Dispose();
             CarDetailsViewModel = null;
         }
     }

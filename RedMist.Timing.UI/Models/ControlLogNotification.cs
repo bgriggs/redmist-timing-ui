@@ -3,6 +3,6 @@ using RedMist.TimingCommon.Models;
 
 namespace RedMist.Timing.UI.Models;
 
-public class StatusNotification(Payload p) : ValueChangedMessage<Payload>(p)
+public class ControlLogNotification(CarControlLogs ce) : ValueChangedMessage<CarControlLogs>(ce)
 {
 }

@@ -170,7 +170,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(eventId, serverClient);
+                var vm = new CarViewModel(eventId, serverClient, hubClient);
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
             }
