@@ -43,8 +43,7 @@ public partial class App : Application
 
         var assembly = Assembly.GetExecutingAssembly();
         var resourceName = "RedMist.Timing.UI.appsettings.json";
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null) throw new FileNotFoundException("Configuration file not found.");
+        using var stream = assembly.GetManifestResourceStream(resourceName) ?? throw new FileNotFoundException("Configuration file not found.");
         builder.Configuration.AddJsonStream(stream);
 
         var loggerFactory = LoggerFactory.Create(builder =>
