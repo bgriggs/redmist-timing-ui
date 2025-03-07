@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -60,6 +61,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     }
     public bool IsFlat => CurrentGrouping == GroupMode.Overall;
 
+    private IDisposable? consistencyCheckInterval;
+
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory)
     {
@@ -96,6 +99,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         {
             Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
         }
+
+        if (consistencyCheckInterval != null)
+        {
+            try
+            {
+                consistencyCheckInterval.Dispose();
+            }
+            catch { }
+            consistencyCheckInterval = null;
+        }
+        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(10)).Subscribe(_ => ConsistencyCheck());
     }
 
     public async Task UnsubscribeAsync()
@@ -223,6 +237,76 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         }
     }
 
+    private void ConsistencyCheck()
+    {
+        bool duplicates = false;
+
+        // Check the overall positions are unique
+        var positions = carCache.Items.GroupBy(g => g.OverallPosition)
+            .Select(g => g.ToDictionary(c => c.OverallPosition, c => c.Number))
+            .ToList();
+        foreach (var pos in positions)
+        {
+            if (pos.Count > 1)
+            {
+                duplicates = true;
+                break;
+            }
+        }
+
+        if (!duplicates)
+        {
+            // Check the class positions
+            // Group by class then group by class position with each var in that position in a list
+            var classPositions = carCache.Items
+                .GroupBy(car => car.Class)
+                .Select(classGroup => new
+                {
+                    Class = classGroup.Key,
+                    Positions = classGroup
+                        .GroupBy(car => car.ClassPosition)
+                        .Select(positionGroup => new
+                        {
+                            ClassPosition = positionGroup.Key,
+                            Cars = positionGroup.ToList()
+                        })
+                        .ToList()
+                })
+                .ToList();
+
+            foreach (var classPos in classPositions)
+            {
+                foreach (var pos in classPos.Positions)
+                {
+                    if (pos.Cars.Count > 1)
+                    {
+                        duplicates = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (duplicates)
+        {
+            Logger.LogWarning("Consistency check duplicate positions found");
+            // Reset the event
+            carCache.Clear();
+
+            // Send request to server to get the latest car positions
+            try
+            {
+                _ = hubClient.SubscribeToEvent(eventId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
+            }
+        }
+    }
+
+    #region Commands
+
     public void Back()
     {
         var routerEvent = new RouterEvent { Path = "EventsList" };
@@ -248,4 +332,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             car.CurrentGroupMode = CurrentGrouping;
         }
     }
+
+    #endregion
 }
