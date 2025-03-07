@@ -377,7 +377,7 @@ public partial class CarViewModel : ObservableObject
         Team = entry.Team;
         Class = entry.Class;
 
-        // Force reset once loaded
+        // Force reset once loaded - prevents color from getting stuck on update color
         Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackground = rowNormalColor, DispatcherPriority.Send));
     }
 
