@@ -7,7 +7,7 @@ using Avalonia.Android;
 namespace RedMist.Timing.UI.Android;
 
 [Activity(
-    Label = "RedMist.Timing.UI.Android",
+    Label = "Red Mist Timing",
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
