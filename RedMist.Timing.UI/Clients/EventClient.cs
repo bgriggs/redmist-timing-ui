@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using BigMission.Shared.Auth;
+using Microsoft.Extensions.Configuration;
 using RedMist.TimingCommon.Models;
 using RestSharp;
 using System;
