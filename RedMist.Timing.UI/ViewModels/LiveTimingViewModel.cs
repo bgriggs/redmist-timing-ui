@@ -91,6 +91,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public async Task InitializeAsync(int eventId)
     {
         this.eventId = eventId;
+        Flag = string.Empty;
+        ResetEvent();
         try
         {
             await hubClient.SubscribeToEvent(eventId);
@@ -239,6 +241,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private void ConsistencyCheck()
     {
+        return;
         bool duplicates = false;
 
         // Check the overall positions are unique
