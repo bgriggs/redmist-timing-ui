@@ -96,7 +96,8 @@ public class HubClient : HubClientBase
             var payload = JsonSerializer.Deserialize<Payload>(message);
             if (payload == null)
                 return;
-            Logger.LogInformation("RX: {0}", payload.EventName);
+
+            Logger.LogInformation("RX: {len} bytes, CPos: {c}", message.Length * 8, payload.CarPositions.Count + payload.CarPositionUpdates.Count);
             WeakReferenceMessenger.Default.Send(new StatusNotification(payload));
         }
         catch (Exception)
