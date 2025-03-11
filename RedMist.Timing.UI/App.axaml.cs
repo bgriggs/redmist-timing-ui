@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
-using System;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -45,6 +44,7 @@ public partial class App : Application
         var resourceName = "RedMist.Timing.UI.appsettings.json";
         using var stream = assembly.GetManifestResourceStream(resourceName) ?? throw new FileNotFoundException("Configuration file not found.");
         builder.Configuration.AddJsonStream(stream);
+        builder.Configuration.AddUserSecrets(assembly);
 
         var loggerFactory = LoggerFactory.Create(builder =>
         {
