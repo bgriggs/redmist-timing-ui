@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using RedMist.Timing.UI.Clients;
 using RedMist.TimingCommon.Models;
 using System;
-using System.Diagnostics;
 using System.Reactive.Linq;
 
 namespace RedMist.Timing.UI.ViewModels;

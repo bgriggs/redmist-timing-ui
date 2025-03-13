@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
