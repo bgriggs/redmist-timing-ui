@@ -241,16 +241,23 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private void ConsistencyCheck()
     {
-        return;
         bool duplicates = false;
 
         // Check the overall positions are unique
-        var positions = carCache.Items.GroupBy(g => g.OverallPosition)
-            .Select(g => g.ToDictionary(c => c.OverallPosition, c => c.Number))
-            .ToList();
+        var positions = new Dictionary<int, List<string>>();
+        foreach (var c in carCache.Items)
+        {
+            if (!positions.TryGetValue(c.OverallPosition, out var cars))
+            {
+                cars = [];
+                positions[c.OverallPosition] = cars;
+            }
+            cars.Add(c.Number);
+        }
+
         foreach (var pos in positions)
         {
-            if (pos.Count > 1)
+            if (pos.Value.Count > 1)
             {
                 duplicates = true;
                 break;
@@ -261,27 +268,27 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         {
             // Check the class positions
             // Group by class then group by class position with each var in that position in a list
-            var classPositions = carCache.Items
-                .GroupBy(car => car.Class)
-                .Select(classGroup => new
-                {
-                    Class = classGroup.Key,
-                    Positions = classGroup
-                        .GroupBy(car => car.ClassPosition)
-                        .Select(positionGroup => new
-                        {
-                            ClassPosition = positionGroup.Key,
-                            Cars = positionGroup.ToList()
-                        })
-                        .ToList()
-                })
-                .ToList();
-
-            foreach (var classPos in classPositions)
+            var classGroups = new Dictionary<string, Dictionary<int, List<string>>>();
+            foreach (var c in carCache.Items)
             {
-                foreach (var pos in classPos.Positions)
+                if (!classGroups.TryGetValue(c.Class, out var classPositions))
                 {
-                    if (pos.Cars.Count > 1)
+                    classPositions = [];
+                    classGroups[c.Class] = classPositions;
+                }
+                if (!classPositions.TryGetValue(c.ClassPosition, out var cars))
+                {
+                    cars = [];
+                    classPositions[c.ClassPosition] = cars;
+                }
+                cars.Add(c.Number);
+            }
+
+            foreach (var classPos in classGroups)
+            {
+                foreach (var pos in classPos.Value)
+                {
+                    if (pos.Value.Count > 1)
                     {
                         duplicates = true;
                         break;
