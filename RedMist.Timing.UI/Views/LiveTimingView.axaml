@@ -23,7 +23,6 @@
 		<StreamGeometry x:Key="upArrow">M998 800c0 -8 -4 -17 -10 -23l-466 -466c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-466 466c-6 6 -10 15 -10 23s4 17 10 23l50 50c6 6 14 10 23 10c8 0 17 -4 23 -10l393 -393l393 393c6 6 15 10 23 10s17 -4 23 -10l50 -50c6 -6 10 -15 10 -23z</StreamGeometry>
 		<StreamGeometry x:Key="lightning">M 52.2573,19.0027L 38.0053,33.2546L 50.6737,33.2546L 25.3369,57.008L 35.4716,38.0053L 23.7533,38.0053L 36.4217,19.0027L 52.2573,19.0027 Z </StreamGeometry>
 		<StreamGeometry x:Key="doubleLightning">M7.96,24.51h0.39l6.88-10.18c0.09-0.18,0.04-0.27-0.15-0.27h-2.84l2.99-5.45c0.09-0.18,0.02-0.27-0.2-0.27h-3.81  c-0.11,0-0.2,0.06-0.29,0.18l-2.78,7.4c-0.02,0.18,0.04,0.27,0.19,0.27h2.75L7.96,24.51z M16.46,18.18h0.27l5.22-7.67  c0.05-0.08,0.06-0.15,0.04-0.2s-0.08-0.07-0.17-0.07h-2.1l2.18-4.03c0.12-0.2,0.06-0.3-0.18-0.3h-2.74c-0.13,0-0.23,0.06-0.3,0.19  l-2.08,5.48c-0.03,0.09-0.03,0.16,0.01,0.21c0.04,0.05,0.1,0.07,0.19,0.07h2.04L16.46,18.18z</StreamGeometry>
-		<StreamGeometry x:Key="back">M1017 1235l-531 -531l531 -531c25 -25 25 -65 0 -90l-166 -166c-25 -25 -65 -25 -90 0l-742 742c-25 25 -25 65 0 90l742 742c25 25 65 25 90 0l166 -166c25 -25 25 -65 0 -90z</StreamGeometry>
 
 		<!--Car Row Template-->
 		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
@@ -266,32 +265,6 @@
 	</UserControl.Resources>
 
 	<UserControl.Styles>
-		<Style Selector="TextBlock.h1">
-			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Foreground" Value="Black"/>
-		</Style>
-		<Style Selector="TextBlock.tableheader">
-			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Foreground" Value="Gray"/>
-		</Style>
-		<Style Selector="TextBlock.lg">
-			<Setter Property="FontSize" Value="14"/>
-			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="Foreground" Value="Black"/>
-		</Style>
-		<Style Selector="TextBlock.med">
-			<Setter Property="FontSize" Value="13"/>
-			<Setter Property="Foreground" Value="Black"/>
-		</Style>
-		<Style Selector="TextBlock.sm">
-			<Setter Property="FontSize" Value="11"/>
-		</Style>
-		<Style Selector="TextBlock.smb">
-			<Setter Property="FontSize" Value="11"/>
-			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="Foreground" Value="Black"/>
-		</Style>
-
 		<Style Selector="TabItem">
 			<Setter Property="FontSize" Value="16"/>
 			<Setter Property="MinHeight" Value="20"/>
@@ -314,9 +287,7 @@
 	<Grid RowDefinitions="Auto,Auto,*" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
 		<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,*,Auto" Margin="4,10,4,0">
-			<Button Grid.RowSpan="3" Margin="0,0,15,0" Command="{Binding Back}">
-				<PathIcon Height="25" Width="25" Foreground="Black" Data="{StaticResource back}" VerticalAlignment="Top" Margin="0,1,0,0"/>
-			</Button>
+			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,15,0" Command="{Binding Back}"/>
 
 			<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1" Grid.Row="0" Grid.Column="1"/>
 			<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1" Grid.Row="1" Grid.Column="1"/>

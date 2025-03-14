@@ -1,11 +1,69 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
              x:Class="RedMist.Timing.UI.App"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
-    <Application.Styles>
-        <FluentTheme />
+	<Application.Resources>
+		<StreamGeometry x:Key="flaggeom">M 14.4,6 14,4 H 5 v 17 h 2 v -7 h 5.6 l 0.4,2 h 7 V 6 Z</StreamGeometry>
+		<StreamGeometry x:Key="trophygeom">M458 653c-42 92 -74 214 -74 371h-256v-96c0 -98 133 -234 330 -275zM1536 928v96h-256c0 -157 -32 -279 -74 -371c197 41 330 177 330 275zM1664 1056v-128c0 -190 -230 -400 -542 -415c-40 -51 -77 -81 -95 -95c-53 -48 -67 -98 -67 -162s32 -128 128 -128 s192 -64 192 -160v-64c0 -18 -14 -32 -32 -32h-832c-18 0 -32 14 -32 32v64c0 96 96 160 192 160s128 64 128 128s-14 114 -67 162c-18 14 -55 44 -95 95c-312 15 -542 225 -542 415v128c0 53 43 96 96 96h288v96c0 88 72 160 160 160h576c88 0 160 -72 160 -160v-96h288 c53 0 96 -43 96 -96z</StreamGeometry>
+		<StreamGeometry x:Key="infogeom">M12.432,0c1.34,0,2.01,0.912,2.01,1.957c0,1.305-1.164,2.512-2.679,2.512c-1.269,0-2.009-0.75-1.974-1.99  C9.789,1.436,10.67,0,12.432,0z M8.309,20c-1.058,0-1.833-0.652-1.093-3.524l1.214-5.092c0.211-0.814,0.246-1.141,0-1.141  c-0.317,0-1.689,0.562-2.502,1.117L5.4,10.48c2.572-2.186,5.531-3.467,6.801-3.467c1.057,0,1.233,1.273,0.705,3.23l-1.391,5.352  c-0.246,0.945-0.141,1.271,0.106,1.271c0.317,0,1.357-0.392,2.379-1.207l0.6,0.814C12.098,19.02,9.365,20,8.309,20z</StreamGeometry>
+		<StreamGeometry x:Key="back">M1017 1235l-531 -531l531 -531c25 -25 25 -65 0 -90l-166 -166c-25 -25 -65 -25 -90 0l-742 742c-25 25 -25 65 0 90l742 742c25 25 65 25 90 0l166 -166c25 -25 25 -65 0 -90z</StreamGeometry>
+		<StreamGeometry x:Key="extlinkgeom">M1408 608v-320c0 -159 -129 -288 -288 -288h-832c-159 0 -288 129 -288 288v832c0 159 129 288 288 288h704c18 0 32 -14 32 -32v-64c0 -18 -14 -32 -32 -32h-704c-88 0 -160 -72 -160 -160v-832c0 -88 72 -160 160 -160h832c88 0 160 72 160 160v320c0 18 14 32 32 32 h64c18 0 32 -14 32 -32zM1792 1472v-512c0 -35 -29 -64 -64 -64c-17 0 -33 7 -45 19l-176 176l-652 -652c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-114 114c-6 6 -10 15 -10 23s4 17 10 23l652 652l-176 176c-12 12 -19 28 -19 45c0 35 29 64 64 64h512c35 0 64 -29 64 -64z</StreamGeometry>
+	</Application.Resources>
+
+	<Application.Styles>
+		<FluentTheme/>
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-    </Application.Styles>
+
+		<Style Selector="TextBlock.title">
+			<Setter Property="FontSize" Value="15"/>
+			<Setter Property="FontWeight" Value="DemiBold"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="TextBlock.h1">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="TextBlock.tableheader">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Foreground" Value="Gray"/>
+		</Style>
+		<Style Selector="TextBlock.lg">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="TextBlock.med">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="TextBlock.sm">
+			<Setter Property="FontSize" Value="11"/>
+		</Style>
+		<Style Selector="TextBlock.smb">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		
+		<Style Selector="Button.back">
+			<Setter Property="Content">
+				<Setter.Value>
+					<Template>
+						<PathIcon Height="25" Width="25" Foreground="Black" Data="{StaticResource back}" VerticalAlignment="Top" Margin="0,1,0,0"/>
+					</Template>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		
+		<Style Selector="Button.icon">
+			<Setter Property="Height" Value="20"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Padding" Value="3"/>
+		</Style>
+	</Application.Styles>
+
+
 </Application>

@@ -5,7 +5,7 @@
              xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:v="clr-namespace:RedMist.Timing.UI.Views"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="RedMist.Timing.UI.Views.MainView"
              x:DataType="vm:MainViewModel">
 	<Design.DataContext>
@@ -14,8 +14,51 @@
 		<design:DesignMainViewModel />
 	</Design.DataContext>
 
+	<UserControl.Resources>
+		<x:Double x:Key="TabItemHeaderFontSize">13</x:Double>
+		<!--<Thickness x:Key="TabItemHeaderMargin">5,1,1,1</Thickness>-->
+	</UserControl.Resources>
+
+	<UserControl.Styles>
+		
+	</UserControl.Styles>
+
 	<Grid RowDefinitions="*">
-		<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"></v:EventsListView>
-		<v:LiveTimingView Name="liveTimingPage" DataContext="{Binding LiveTimingViewModel}" IsVisible="False"></v:LiveTimingView>
+		<ContentControl IsVisible="{Binding IsEventsListVisible}">
+			<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"/>
+		</ContentControl>
+		<TabControl Padding="0" TabStripPlacement="Bottom" IsVisible="{Binding IsEventVisible}">
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Width="60">
+						<PathIcon Height="15" Foreground="Black" Data="{StaticResource flaggeom}"/>
+						<TextBlock Text="Live" HorizontalAlignment="Center"/>
+					</StackPanel>
+				</TabItem.Header>
+				<v:LiveTimingView Name="liveTimingPage" DataContext="{Binding LiveTimingViewModel}"></v:LiveTimingView>
+			</TabItem>
+			<TabItem Header="Results">
+				<TabItem.Header>
+					<StackPanel Width="60">
+						<PathIcon Height="15" Margin="0,2,0,0" Foreground="Black" Data="{StaticResource trophygeom}">
+							<PathIcon.RenderTransform>
+								<RotateTransform Angle="180"/>
+							</PathIcon.RenderTransform>
+						</PathIcon>
+						<TextBlock Text="Results" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+					</StackPanel>
+				</TabItem.Header>
+				<v:ResultsView DataContext="{Binding ResultsViewModel}"/>
+			</TabItem>
+			<TabItem Header="Information">
+				<TabItem.Header>
+					<StackPanel Width="60">
+						<PathIcon Height="15" Margin="0,3,0,0" Foreground="Black" Data="{StaticResource infogeom}"/>
+						<TextBlock Text="Info" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+					</StackPanel>
+				</TabItem.Header>
+				<v:EventInformationView DataContext="{Binding EventInformationViewModel}"/>
+			</TabItem>
+		</TabControl>
 	</Grid>
 </UserControl>
