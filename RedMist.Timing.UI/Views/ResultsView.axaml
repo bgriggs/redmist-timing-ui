@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
+             x:Class="RedMist.Timing.UI.Views.ResultsView"
+			 x:DataType="model:ResultsViewModel">
+
+	<Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="Auto,*">
+
+		<Button Classes="back" Grid.Column="0" Margin="0,0,15,0" Command="{Binding Back}"/>
+		
+		<StackPanel Grid.Column="1">
+			<TextBlock Text="Provisional Results for " Classes="theme-text-heading" HorizontalAlignment="Center" />
+			<TextBlock Text="Organization " Classes="theme-text-heading size-xs" Grid.Row="1" />
+
+			<Border BorderThickness="1" Background="{actipro:ThemeResource Container3BackgroundBrush}" Grid.Row="1"
+					BorderBrush="{actipro:ThemeResource Container2BorderBrush}" Margin="0,5,0,0"
+					CornerRadius="{actipro:ScaledCornerRadius 1.5}"	Padding="{actipro:ScaledThickness 0.5}">
+				<TextBlock Text="Track..."/>
+			</Border>
+		</StackPanel>
+
+		<ItemsRepeater Grid.Row="2">
+			<ItemsRepeater.DataTemplates>
+				<DataTemplate DataType="model:SessionViewModel">
+					<StackPanel>
+						<TextBlock Text="Event Name" Classes="theme-text-heading size-xs"/>
+						<TextBlock Text="Date"/>
+						<StackPanel Orientation="Horizontal">
+							<PathIcon Height="15" Foreground="Black" Data="{StaticResource flaggeom}"/>
+							<TextBlock Text="Provisional Results" Classes="theme-text-heading size-xs"/>
+						</StackPanel>
+					</StackPanel>
+				</DataTemplate>
+			</ItemsRepeater.DataTemplates>
+		</ItemsRepeater>
+	</Grid>
+</UserControl>

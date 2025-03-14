@@ -39,13 +39,8 @@ public class EventsListViewModel : ObservableObject
                     var vms = new List<EventViewModel>();
                     foreach (var e in events)
                     {
-                        var vm = new EventViewModel
-                        {
-                            EventId = e.EventId,
-                            Name = e.EventName,
-                        };
-                        vms.Add(vm);
-                        Logger.LogInformation($"Event: {e.EventName}");
+                        vms.Add(new EventViewModel(e));
+                        //Logger.LogInformation($"Event: {e.EventName}");
                     }
                     Events.SetRange(vms);
                 });
