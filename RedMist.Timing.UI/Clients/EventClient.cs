@@ -42,4 +42,19 @@ public class EventClient
         request.AddQueryParameter("carNumber", carNumber);
         return await restClient.GetAsync<List<CarPosition>>(request) ?? [];
     }
+
+    public virtual async Task<List<Session>> LoadSessionsAsync(int eventId)
+    {
+        var request = new RestRequest("LoadSessions", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        return await restClient.GetAsync<List<Session>>(request) ?? [];
+    }
+
+    public virtual async Task<Payload?> LoadSessionResultsAsync(int eventId, int sessionId)
+    {
+        var request = new RestRequest("LoadSessionResults", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("sessionId", sessionId);
+        return await restClient.GetAsync<Payload>(request);
+    }
 }

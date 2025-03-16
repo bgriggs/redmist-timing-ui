@@ -4,38 +4,54 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
+			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
+			 xmlns:v="clr-namespace:RedMist.Timing.UI.Views"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
              x:Class="RedMist.Timing.UI.Views.ResultsView"
 			 x:DataType="model:ResultsViewModel">
 
-	<Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="Auto,*">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<design:DesignResultsViewModel/>
+	</Design.DataContext>
+	<Grid>
+		<ContentControl IsVisible="{Binding IsLiveTimingVisible}">
+			<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"/>
+		</ContentControl>
+		<Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="Auto,*" IsVisible="{Binding !IsLiveTimingVisible}">
 
-		<Button Classes="back" Grid.Column="0" Margin="0,0,15,0" Command="{Binding Back}"/>
-		
-		<StackPanel Grid.Column="1">
-			<TextBlock Text="Provisional Results for " Classes="theme-text-heading" HorizontalAlignment="Center" />
-			<TextBlock Text="Organization " Classes="theme-text-heading size-xs" Grid.Row="1" />
+			<Button Classes="back" Margin="4,12,15,0" Command="{Binding Back}" VerticalAlignment="Top"/>
 
-			<Border BorderThickness="1" Background="{actipro:ThemeResource Container3BackgroundBrush}" Grid.Row="1"
-					BorderBrush="{actipro:ThemeResource Container2BorderBrush}" Margin="0,5,0,0"
-					CornerRadius="{actipro:ScaledCornerRadius 1.5}"	Padding="{actipro:ScaledThickness 0.5}">
-				<TextBlock Text="Track..."/>
-			</Border>
-		</StackPanel>
+			<StackPanel Grid.Column="1">
+				<TextBlock Text="{Binding Name, StringFormat='Provisional Results for {0}'}" Classes="theme-text-heading" TextWrapping="Wrap" Margin="0,15,10,0"/>
 
-		<ItemsRepeater Grid.Row="2">
-			<ItemsRepeater.DataTemplates>
-				<DataTemplate DataType="model:SessionViewModel">
-					<StackPanel>
-						<TextBlock Text="Event Name" Classes="theme-text-heading size-xs"/>
-						<TextBlock Text="Date"/>
-						<StackPanel Orientation="Horizontal">
-							<PathIcon Height="15" Foreground="Black" Data="{StaticResource flaggeom}"/>
-							<TextBlock Text="Provisional Results" Classes="theme-text-heading size-xs"/>
-						</StackPanel>
-					</StackPanel>
-				</DataTemplate>
-			</ItemsRepeater.DataTemplates>
-		</ItemsRepeater>
+				<TextBlock Text="{Binding OrganizationName}" Classes="theme-text-heading size-xs" Margin="0,17,0,0" />
+				<TextBlock Text="{Binding Dates}"/>
+				<TextBlock Text="{Binding TrackName}"/>
+			</StackPanel>
+
+			<TextBlock Text="Sessions" FontSize="16" FontWeight="Bold" Grid.Row="2" Grid.ColumnSpan="2" Margin="4,15,4,0"/>
+			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" Grid.Row="3" Grid.ColumnSpan="2">
+				<ItemsRepeater ItemsSource="{Binding Sessions}" Margin="4,2,4,4">
+					<ItemsRepeater.ItemTemplate>
+						<DataTemplate DataType="model:SessionViewModel">
+							<Button Padding="0" HorizontalAlignment="Stretch" Command="{Binding SelectSession}" CommandParameter="{Binding .}">
+								<Border BorderThickness="1" BorderBrush="Black" Padding="5">
+									<StackPanel>
+										<TextBlock Text="{Binding Name}" Classes="theme-text-heading size-xs"/>
+										<TextBlock Text="{Binding StartTime}" FontSize="10"/>
+										<StackPanel Orientation="Horizontal">
+											<PathIcon Height="12" Foreground="Black" Data="{StaticResource flaggeom}"/>
+											<TextBlock Text="Provisional Results" FontStyle="Italic" FontSize="10"/>
+										</StackPanel>
+									</StackPanel>
+								</Border>
+							</Button>
+						</DataTemplate>
+					</ItemsRepeater.ItemTemplate>
+				</ItemsRepeater>
+			</ScrollViewer>
+		</Grid>
 	</Grid>
 </UserControl>

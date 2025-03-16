@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Logging;
+using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -15,17 +18,39 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private bool isEventsListVisible = true;
     [ObservableProperty]
-    private bool isEventVisible = false;
+    private bool isTimingVisible = false;
     [ObservableProperty]
     private ResultsViewModel? resultsViewModel;
     [ObservableProperty]
     private EventInformationViewModel? eventInformationViewModel;
+    private readonly HubClient hubClient;
+    private readonly EventClient eventClient;
+    private readonly ILoggerFactory loggerFactory;
+
+    [ObservableProperty]
+    private bool isLiveTimingTabVisible;
+
+    private bool isResultsTabVisible;
+    public bool IsResultsTabVisible
+    {
+        get => isResultsTabVisible;
+        set
+        {
+            if (SetProperty(ref isResultsTabVisible, value))
+            {
+                WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(new RouterEvent { Path = "ResultsTab", Data = value }));
+            }
+        }
+    }
 
 
-    public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel)
+    public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
+        this.hubClient = hubClient;
+        this.eventClient = eventClient;
+        this.loggerFactory = loggerFactory;
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -38,23 +63,28 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             IsEventsListVisible = false;
             if (router.Data is Event eventModel)
             {
-                _ = Task.Run(() => LiveTimingViewModel.InitializeAsync(eventModel.EventId));
-                ResultsViewModel = new ResultsViewModel(eventModel);
+                var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
+                if (hasLiveSession)
+                {
+                    _ = Task.Run(() => LiveTimingViewModel.InitializeLiveAsync(eventModel.EventId));
+                }
+
+                ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory);
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
-                IsEventVisible = true;
+                IsTimingVisible = true;
+
+                // Set active tab
+                IsResultsTabVisible = !hasLiveSession;
+                IsLiveTimingTabVisible = hasLiveSession;
             }
         }
         else if (router.Path == "EventsList")
         {
-            _ = Task.Run(LiveTimingViewModel.UnsubscribeAsync);
+            _ = Task.Run(EventsListViewModel.Initialize);
+            _ = Task.Run(LiveTimingViewModel.UnsubscribeLiveAsync);
 
             IsEventsListVisible = true;
-            IsEventVisible = false;
-        }
-        else
-        {
-            IsEventsListVisible = false;
-            IsEventVisible = false;
+            IsTimingVisible = false;
         }
     }
 }

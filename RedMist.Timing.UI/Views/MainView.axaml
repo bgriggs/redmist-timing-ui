@@ -19,25 +19,21 @@
 		<!--<Thickness x:Key="TabItemHeaderMargin">5,1,1,1</Thickness>-->
 	</UserControl.Resources>
 
-	<UserControl.Styles>
-		
-	</UserControl.Styles>
-
 	<Grid RowDefinitions="*">
 		<ContentControl IsVisible="{Binding IsEventsListVisible}">
 			<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"/>
 		</ContentControl>
-		<TabControl Padding="0" TabStripPlacement="Bottom" IsVisible="{Binding IsEventVisible}">
-			<TabItem>
+		<TabControl Padding="0" TabStripPlacement="Bottom" IsVisible="{Binding IsTimingVisible}">
+			<TabItem IsVisible="{Binding IsLiveTimingTabVisible}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Foreground="Black" Data="{StaticResource flaggeom}"/>
 						<TextBlock Text="Live" HorizontalAlignment="Center"/>
 					</StackPanel>
 				</TabItem.Header>
-				<v:LiveTimingView Name="liveTimingPage" DataContext="{Binding LiveTimingViewModel}"></v:LiveTimingView>
+				<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"></v:LiveTimingView>
 			</TabItem>
-			<TabItem Header="Results">
+			<TabItem Header="Results" IsSelected="{Binding IsResultsTabVisible}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="Black" Data="{StaticResource trophygeom}">
