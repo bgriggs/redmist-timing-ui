@@ -1,9 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -22,6 +26,18 @@ public class EventInformationViewModel : ObservableObject
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
     public string? BroadcastUrl => EventModel.Broadcast?.Url;
     public bool IsBroadcastVisible => EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url);
+    public Bitmap? OrganizationLogo
+    {
+        get
+        {
+            if (EventModel.OrganizationLogo is not null)
+            {
+                using MemoryStream ms = new(EventModel.OrganizationLogo);
+                return Bitmap.DecodeToWidth(ms, 55);
+            }
+            return null;
+        }
+    }
 
 
     public EventInformationViewModel(Event eventModel)
@@ -44,6 +60,15 @@ public class EventInformationViewModel : ObservableObject
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
     }
 
-    public void LaunchDetailsUrl() { }
-    public void LaunchBroadcastUrl() { }
+    public void LaunchDetailsUrl()
+    {
+        WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.EventUrl));
+    }
+    public void LaunchBroadcastUrl()
+    {
+        if (EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url))
+        {
+            WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.Broadcast.Url));
+        }
+    }
 }
