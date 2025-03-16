@@ -1,4 +1,5 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -7,6 +8,7 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,6 +32,19 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
     private readonly ILoggerFactory loggerFactory;
+
+    public Bitmap? OrganizationLogo
+    {
+        get
+        {
+            if (EventModel.OrganizationLogo is not null)
+            {
+                using MemoryStream ms = new(EventModel.OrganizationLogo);
+                return Bitmap.DecodeToWidth(ms, 55);
+            }
+            return null;
+        }
+    }
 
 
     public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory)
@@ -75,7 +90,12 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 //logger.LogError(ex, "Error loading session results");
             }
 
-            LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory) { BackRouterPath = "SessionResultsList" };
+            LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory) 
+            { 
+                BackRouterPath = "SessionResultsList",
+                EventModel = EventModel,
+            };
+
             if (results != null)
             {
                 LiveTimingViewModel.ProcessUpdate(results);

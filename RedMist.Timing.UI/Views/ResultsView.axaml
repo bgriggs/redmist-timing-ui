@@ -19,10 +19,10 @@
 		<ContentControl IsVisible="{Binding IsLiveTimingVisible}">
 			<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"/>
 		</ContentControl>
-		<Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="Auto,*" IsVisible="{Binding !IsLiveTimingVisible}">
+		<Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding !IsLiveTimingVisible}">
 
-			<Button Classes="back" Margin="4,12,15,0" Command="{Binding Back}" VerticalAlignment="Top"/>
-
+			<Button Classes="back" Margin="4,12,10,0" Command="{Binding Back}" VerticalAlignment="Top"/>
+			
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="{Binding Name, StringFormat='Provisional Results for {0}'}" Classes="theme-text-heading" TextWrapping="Wrap" Margin="0,15,10,0"/>
 
@@ -30,9 +30,11 @@
 				<TextBlock Text="{Binding Dates}"/>
 				<TextBlock Text="{Binding TrackName}"/>
 			</StackPanel>
+			
+			<Image Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="55" MaxWidth="55" VerticalAlignment="Top" Margin="5,17,10,1"/>
 
 			<TextBlock Text="Sessions" FontSize="16" FontWeight="Bold" Grid.Row="2" Grid.ColumnSpan="2" Margin="4,15,4,0"/>
-			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" Grid.Row="3" Grid.ColumnSpan="2">
+			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" Grid.Row="3" Grid.ColumnSpan="3">
 				<ItemsRepeater ItemsSource="{Binding Sessions}" Margin="4,2,4,4">
 					<ItemsRepeater.ItemTemplate>
 						<DataTemplate DataType="model:SessionViewModel">
