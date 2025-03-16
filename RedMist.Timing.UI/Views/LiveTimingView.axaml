@@ -284,16 +284,26 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid RowDefinitions="Auto,Auto,*" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+	<Grid RowDefinitions="Auto,Auto,*,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
-		<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,*,Auto" Margin="4,10,4,0">
-			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,15,0" Command="{Binding Back}"/>
+		<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="4,5,4,0">
+			<Button Classes="back" Margin="0,0,15,0" Command="{Binding Back}"/>
 
-			<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1" Grid.Row="0" Grid.Column="1"/>
-			<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1" Grid.Row="1" Grid.Column="1"/>
-			<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}}" Classes="h1" Grid.Row="2" Grid.Column="1"/>
+			<StackPanel Grid.Column="1">
+				<TextBlock Text="{Binding EventName}" Classes="h1"/>
+				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1"/>
+				<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1" />
+				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}}" Classes="h1"/>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="Watch Along: " Classes="h1" IsVisible="{Binding IsBroadcastVisible}"/>
+					<Button IsVisible="{Binding IsBroadcastVisible}" Classes="link" Command="{Binding LaunchBroadcast}">
+						<TextBlock Text="{Binding BroadcastCompanyName}" FontSize="12"/>
+					</Button>
+				</StackPanel>
+			</StackPanel>
 
-			<Button Grid.Column="3" Grid.RowSpan="3" VerticalAlignment="Center" Command="{Binding ToggleGroupMode}">
+			<Image Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
+			<Button Grid.Column="4" VerticalAlignment="Center" Command="{Binding ToggleGroupMode}">
 				<StackPanel Orientation="Vertical">
 					<TextBlock Text="Show" FontStyle="Italic" FontSize="12"/>
 					<TextBlock Text="{Binding GroupToggleText}" FontSize="11"/>

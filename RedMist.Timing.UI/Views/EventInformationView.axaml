@@ -16,61 +16,64 @@
 
 	<StackPanel>
 		<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
-			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,15,0" Command="{Binding Back}"/>
+			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}"/>
+			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
 			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
 		</Grid>
-		<StackPanel Margin="20,15,5,0">
-			<TextBlock Text="{Binding Dates}"/>
-			<TextBlock Text="{Binding OrganizationName}"/>
-			<StackPanel Orientation="Horizontal">
-				<TextBlock Text="Details:" VerticalAlignment="Center"/>
-				<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchDetailsUrl}">
-					<PathIcon Foreground="Black" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
-						<PathIcon.RenderTransform>
-							<RotateTransform Angle="-90"/>
-						</PathIcon.RenderTransform>
-					</PathIcon>
-				</Button>
-			</StackPanel>
-			<TextBlock Text="{Binding TrackName, StringFormat='Track: {0}'}"/>
-			<TextBlock Text="{Binding CourseConfiguration, StringFormat='Configuration: {0}'}"/>
-			<TextBlock Text="{Binding Distance, StringFormat='Distance: {0}'}"/>
+		<Border Background="{StaticResource lightAppBackground}" Margin="15,15,15,0" Padding="8" CornerRadius="4">
+			<StackPanel>
+				<TextBlock Text="{Binding Dates}"/>
+				<TextBlock Text="{Binding OrganizationName}"/>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="Details:" VerticalAlignment="Center"/>
+					<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchDetailsUrl}">
+						<PathIcon Foreground="Black" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
+							<PathIcon.RenderTransform>
+								<RotateTransform Angle="-90"/>
+							</PathIcon.RenderTransform>
+						</PathIcon>
+					</Button>
+				</StackPanel>
+				<TextBlock Text="{Binding TrackName, StringFormat='Track: {0}'}"/>
+				<TextBlock Text="{Binding CourseConfiguration, StringFormat='Configuration: {0}'}"/>
+				<TextBlock Text="{Binding Distance, StringFormat='Distance: {0}'}"/>
 
-			<WrapPanel Orientation="Horizontal" IsVisible="{Binding IsBroadcastVisible}">
-				<TextBlock Text="{Binding BroadcastCompanyName, StringFormat='Broadcast by: {0}'}" VerticalAlignment="Center"/>
-				<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchBroadcastUrl}">
-					<PathIcon Foreground="Black" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
-						<PathIcon.RenderTransform>
-							<RotateTransform Angle="-90"/>
-						</PathIcon.RenderTransform>
-					</PathIcon>
-				</Button>
-			</WrapPanel>
+				<WrapPanel Orientation="Horizontal" IsVisible="{Binding IsBroadcastVisible}">
+					<TextBlock Text="{Binding BroadcastCompanyName, StringFormat='Broadcast by: {0}'}" VerticalAlignment="Center"/>
+					<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchBroadcastUrl}">
+						<PathIcon Foreground="Black" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
+							<PathIcon.RenderTransform>
+								<RotateTransform Angle="-90"/>
+							</PathIcon.RenderTransform>
+						</PathIcon>
+					</Button>
+				</WrapPanel>
 
-			<StackPanel IsVisible="{Binding IsScheduleVisible}" Margin="0,12,0,0">
-				<TextBlock Classes="theme-text-heading size-xs" Text="Schedule" FontWeight="Bold"/>
-				<ItemsRepeater ItemsSource="{Binding ScheduleDays}">
-					<ItemsRepeater.ItemTemplate>
-						<DataTemplate DataType="model:ScheduleDayViewModel">
-							<StackPanel>
-								<TextBlock Text="{Binding DayString}" Classes="theme-text-body size-sm"/>
-								<ItemsRepeater ItemsSource="{Binding EntryViewModels}">
-									<ItemsRepeater.ItemTemplate>
-										<DataTemplate DataType="model:ScheduleEntryViewModel">
-											<StackPanel Orientation="Horizontal" Margin="11,0,0,0">
-												<TextBlock Text="{Binding StartTime}"/>
-												<TextBlock Text="-"/>
-												<TextBlock Text="{Binding EndTime}"/>
-												<TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="6,0,0,0"/>
-											</StackPanel>
-										</DataTemplate>
-									</ItemsRepeater.ItemTemplate>
-								</ItemsRepeater>
-							</StackPanel>
-						</DataTemplate>
-					</ItemsRepeater.ItemTemplate>
-				</ItemsRepeater>
+				<StackPanel IsVisible="{Binding IsScheduleVisible}" Margin="0,12,0,5">
+					<TextBlock Classes="theme-text-heading size-xs" Text="Schedule" FontWeight="Bold"/>
+					<ItemsRepeater ItemsSource="{Binding ScheduleDays}">
+						<ItemsRepeater.ItemTemplate>
+							<DataTemplate DataType="model:ScheduleDayViewModel">
+								<StackPanel>
+									<TextBlock Text="{Binding DayString}" Classes="theme-text-body size-sm"/>
+									<ItemsRepeater ItemsSource="{Binding EntryViewModels}">
+										<ItemsRepeater.ItemTemplate>
+											<DataTemplate DataType="model:ScheduleEntryViewModel">
+												<StackPanel Orientation="Horizontal" Margin="11,0,0,0">
+													<TextBlock Text="{Binding StartTime}"/>
+													<TextBlock Text="-"/>
+													<TextBlock Text="{Binding EndTime}"/>
+													<TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="6,0,0,0"/>
+												</StackPanel>
+											</DataTemplate>
+										</ItemsRepeater.ItemTemplate>
+									</ItemsRepeater>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsRepeater.ItemTemplate>
+					</ItemsRepeater>
+				</StackPanel>
 			</StackPanel>
-		</StackPanel>
+		</Border>
 	</StackPanel>
 </UserControl>

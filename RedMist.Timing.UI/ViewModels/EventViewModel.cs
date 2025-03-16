@@ -6,7 +6,6 @@ using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 
@@ -27,13 +26,24 @@ public partial class EventViewModel : ObservableObject
             {
                 using MemoryStream ms = new(EventModel.OrganizationLogo);
                 return Bitmap.DecodeToWidth(ms, 55);
-                //return new Bitmap(ms);
             }
             return null;
         }
     }
 
     public ObservableCollection<ScheduleDayViewModel> ScheduleDays { get; } = [];
+
+    public bool IsLive
+    {
+        get
+        {
+            if (EventModel.Sessions is not null)
+            {
+                return EventModel.Sessions.Any(s => s.IsLive);
+            }
+            return false;
+        }
+    }
 
 
     public EventViewModel(Event eventModel)
@@ -47,6 +57,11 @@ public partial class EventViewModel : ObservableObject
                 if (today == day.Key.Day)
                 {
                     ScheduleDays.Add(new ScheduleDayViewModel(day.Key, [.. day]));
+                }
+
+                if (ScheduleDays.Count >= 3)
+                {
+                    break;
                 }
             }
         }

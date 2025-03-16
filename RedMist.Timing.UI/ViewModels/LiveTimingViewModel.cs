@@ -1,4 +1,6 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -11,6 +13,7 @@ using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -29,7 +32,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private readonly EventClient serverClient;
 
     private ILogger Logger { get; }
-    private int eventId;
+    public Event EventModel { get; set; } = new();
 
     [ObservableProperty]
     private string eventName = string.Empty;
@@ -65,6 +68,26 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     public string BackRouterPath { get; set; } = "EventsList";
 
+    public Bitmap? OrganizationLogo
+    {
+        get
+        {
+            if (EventModel.OrganizationLogo is not null)
+            {
+                using MemoryStream ms = new(EventModel.OrganizationLogo);
+                return Bitmap.DecodeToWidth(ms, 55);
+            }
+            return null;
+        }
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsBroadcastVisible))]
+    private bool isLive = false;
+
+    public bool IsBroadcastVisible => IsLive && EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url);
+    public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
+
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory)
     {
@@ -90,14 +113,15 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     }
 
 
-    public async Task InitializeLiveAsync(int eventId)
+    public async Task InitializeLiveAsync(Event eventModel)
     {
-        this.eventId = eventId;
+        EventModel = eventModel;
         Flag = string.Empty;
         ResetEvent();
         try
         {
-            await hubClient.SubscribeToEvent(eventId);
+            await hubClient.SubscribeToEvent(EventModel.EventId);
+            IsLive = true;
         }
         catch (Exception ex)
         {
@@ -120,7 +144,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     {
         try
         {
-            await hubClient.UnsubscribeFromEvent(eventId);
+            await hubClient.UnsubscribeFromEvent(EventModel.EventId);
         }
         catch (Exception ex)
         {
@@ -131,7 +155,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public void Receive(StatusNotification message)
     {
         var status = message.Value;
-        if (status.EventId != eventId)
+        if (!IsLive || status.EventId != EventModel.EventId)
             return;
 
         Dispatcher.UIThread.Post(() => ProcessUpdate(status));
@@ -188,7 +212,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(eventId, serverClient, hubClient);
+                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient);
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
             }
@@ -308,7 +332,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             // Send request to server to get the latest car positions
             try
             {
-                _ = hubClient.SubscribeToEvent(eventId);
+                _ = hubClient.SubscribeToEvent(EventModel.EventId);
             }
             catch (Exception ex)
             {
@@ -342,6 +366,14 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         foreach (var car in carCache.Items)
         {
             car.CurrentGroupMode = CurrentGrouping;
+        }
+    }
+
+    public void LaunchBroadcast()
+    {
+        if (EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url))
+        {
+            WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.Broadcast.Url));
         }
     }
 

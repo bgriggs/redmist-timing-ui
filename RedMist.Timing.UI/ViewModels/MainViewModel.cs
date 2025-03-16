@@ -66,7 +66,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
                 if (hasLiveSession)
                 {
-                    _ = Task.Run(() => LiveTimingViewModel.InitializeLiveAsync(eventModel.EventId));
+                    _ = Task.Run(() => LiveTimingViewModel.InitializeLiveAsync(eventModel));
                 }
 
                 ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory);
