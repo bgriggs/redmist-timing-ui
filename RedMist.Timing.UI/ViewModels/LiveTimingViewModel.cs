@@ -63,6 +63,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private IDisposable? consistencyCheckInterval;
 
+    public string BackRouterPath { get; set; } = "EventsList";
+
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory)
     {
@@ -88,7 +90,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     }
 
 
-    public async Task InitializeAsync(int eventId)
+    public async Task InitializeLiveAsync(int eventId)
     {
         this.eventId = eventId;
         Flag = string.Empty;
@@ -114,7 +116,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(10)).Subscribe(_ => ConsistencyCheck());
     }
 
-    public async Task UnsubscribeAsync()
+    public async Task UnsubscribeLiveAsync()
     {
         try
         {
@@ -135,7 +137,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         Dispatcher.UIThread.Post(() => ProcessUpdate(status));
     }
 
-    private void ProcessUpdate(Payload status)
+    public void ProcessUpdate(Payload status)
     {
         if (status.IsReset)
         {
@@ -319,7 +321,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     public void Back()
     {
-        var routerEvent = new RouterEvent { Path = "EventsList" };
+        var routerEvent = new RouterEvent { Path = BackRouterPath };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
     }
 

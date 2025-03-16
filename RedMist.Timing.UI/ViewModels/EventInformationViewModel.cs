@@ -3,12 +3,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
