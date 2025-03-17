@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
+public enum TabTypes { LiveTiming, Results, ControlLog, EventInformation }
+
 public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>
 {
     public EventsListViewModel EventsListViewModel { get; }
@@ -23,6 +25,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private ResultsViewModel? resultsViewModel;
     [ObservableProperty]
     private EventInformationViewModel? eventInformationViewModel;
+    [ObservableProperty]
+    private ControlLogViewModel? controlLogViewModel;
+
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
     private readonly ILoggerFactory loggerFactory;
@@ -43,8 +48,28 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
     }
 
+    private bool isControlLogTabVisible;
+    public bool IsControlLogTabVisible
+    {
+        get => isControlLogTabVisible;
+        set
+        {
+            if (SetProperty(ref isControlLogTabVisible, value))
+            {
+                if (value)
+                {
+                    _ = ControlLogViewModel?.SubscribeToControlLogs();
+                }
+                else
+                {
+                    _ = ControlLogViewModel?.UnsubscribeFromControlLogs();
+                }
+            }
+        }
+    }
 
-    public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory)
+    public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient, 
+        EventClient eventClient, ILoggerFactory loggerFactory)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -71,6 +96,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
                 ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory);
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
+                ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient);
                 IsTimingVisible = true;
 
                 // Set active tab
@@ -86,5 +112,12 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             IsEventsListVisible = true;
             IsTimingVisible = false;
         }
+    }
+
+    public void SetActiveTab(TabTypes tab)
+    {
+        IsResultsTabVisible = tab == TabTypes.Results;
+        IsLiveTimingTabVisible = tab == TabTypes.LiveTiming;
+        IsControlLogTabVisible = tab == TabTypes.ControlLog;
     }
 }

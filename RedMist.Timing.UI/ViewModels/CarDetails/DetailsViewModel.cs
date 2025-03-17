@@ -44,7 +44,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             Dispatcher.UIThread.Post(() => IsLoading = true);
             // Subscribe to get control logs
-            _ = hubClient.SubscribeToControlLogs(eventId, carNumber);
+            _ = hubClient.SubscribeToCarControlLogs(eventId, carNumber);
 
             var carPositions = await serverClient.LoadCarLapsAsync(eventId, carNumber);
             Chart.UpdateLaps(carPositions);
@@ -91,7 +91,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     {
         try
         {
-            _ = hubClient.UnsubscribeFromControlLogs(eventId, carNumber);
+            _ = hubClient.UnsubscribeFromCarControlLogs(eventId, carNumber);
         }
         catch { }
     }
