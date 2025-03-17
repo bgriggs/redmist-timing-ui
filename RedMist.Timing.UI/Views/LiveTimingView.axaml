@@ -179,14 +179,6 @@
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
 				<TabControl DataContext="{Binding CarDetailsViewModel}" Padding="0">
-					<!--Positions Chart-->
-					<TabItem Header="Positions">
-						<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
-											Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
-											ZoomMode="X" Padding="0"/>-->
-						<ContentControl Content="{Binding Chart.Chart}"/>
-					</TabItem>
-
 					<!--Laps-->
 					<TabItem Header="Laps">
 						<Grid RowDefinitions="Auto,*" Margin="10,3">
@@ -208,6 +200,14 @@
 								</ItemsRepeater>
 							</ScrollViewer>
 						</Grid>
+					</TabItem>
+					
+					<!--Positions Chart-->
+					<TabItem Header="Positions">
+						<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
+											Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
+											ZoomMode="X" Padding="0"/>-->
+						<ContentControl Content="{Binding Chart.Chart}"/>
 					</TabItem>
 
 					<!--Penalties-->
@@ -290,7 +290,7 @@
 			<Button Classes="back" Margin="0,0,15,0" Command="{Binding Back}"/>
 
 			<StackPanel Grid.Column="1">
-				<TextBlock Text="{Binding EventName}" Classes="h1"/>
+				<TextBlock Text="{Binding EventName}" Classes="h1" FontWeight="Bold"/>
 				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1"/>
 				<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1" />
 				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}}" Classes="h1"/>

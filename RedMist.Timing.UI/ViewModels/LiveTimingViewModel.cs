@@ -88,6 +88,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public bool IsBroadcastVisible => IsLive && EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url);
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
 
+    private int consistencyCheckFailures;
+
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory)
     {
@@ -137,7 +139,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             catch { }
             consistencyCheckInterval = null;
         }
-        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(10)).Subscribe(_ => ConsistencyCheck());
+        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(_ => ConsistencyCheck());
     }
 
     public async Task UnsubscribeLiveAsync()
@@ -268,6 +270,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private void ConsistencyCheck()
     {
         bool duplicates = false;
+        int duplicatePos = 0;
+        string duplicateClass = "";
 
         // Check the overall positions are unique
         var positions = new Dictionary<int, List<string>>();
@@ -286,6 +290,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             if (pos.Value.Count > 1)
             {
                 duplicates = true;
+                duplicatePos = pos.Key;
                 break;
             }
         }
@@ -317,6 +322,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
                     if (pos.Value.Count > 1)
                     {
                         duplicates = true;
+                        duplicatePos = pos.Key;
+                        duplicateClass = classPos.Key;
                         break;
                     }
                 }
@@ -325,19 +332,32 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
         if (duplicates)
         {
-            Logger.LogWarning("Consistency check duplicate positions found");
-            // Reset the event
-            carCache.Clear();
+            Logger.LogWarning($"Consistency check duplicate positions found. Position {duplicatePos} Class {duplicateClass}");
+            consistencyCheckFailures++;
 
-            // Send request to server to get the latest car positions
-            try
+            if (consistencyCheckFailures > 3)
             {
-                _ = hubClient.SubscribeToEvent(EventModel.EventId);
+                Logger.LogWarning("Consistency check failures exceeded, resetting event");
+                consistencyCheckFailures = 0;
+
+                // Reset the event
+                carCache.Clear();
+
+                // Send request to server to get the latest car positions
+                try
+                {
+                    _ = hubClient.SubscribeToEvent(EventModel.EventId);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
-            }
+        }
+        else if (consistencyCheckFailures > 0)
+        {
+            Logger.LogInformation("Consistency check passed, resetting counter");
+            consistencyCheckFailures = 0;
         }
     }
 
