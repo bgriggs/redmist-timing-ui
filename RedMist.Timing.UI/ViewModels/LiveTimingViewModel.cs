@@ -139,7 +139,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             catch { }
             consistencyCheckInterval = null;
         }
-        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(_ => ConsistencyCheck());
+        //consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(_ => ConsistencyCheck());
     }
 
     public async Task UnsubscribeLiveAsync()
