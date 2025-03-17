@@ -33,7 +33,7 @@
 				</TabItem.Header>
 				<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"></v:LiveTimingView>
 			</TabItem>
-			<TabItem Header="Results" IsSelected="{Binding IsResultsTabVisible}">
+			<TabItem Header="Results" IsSelected="{Binding IsResultsTabSelected}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="Black" Data="{StaticResource trophygeom}">
@@ -46,7 +46,7 @@
 				</TabItem.Header>
 				<v:ResultsView DataContext="{Binding ResultsViewModel}"/>
 			</TabItem>
-			<TabItem Header="Control Log" IsSelected="{Binding IsControlLogTabVisible}">
+			<TabItem Header="Control Log" IsSelected="{Binding IsControlLogTabSelected}" IsVisible="{Binding IsControlLogTabVisible}">
 				<TabItem.Header>
 					<StackPanel Width="70">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="Black" Data="{StaticResource warninggeom}"/>

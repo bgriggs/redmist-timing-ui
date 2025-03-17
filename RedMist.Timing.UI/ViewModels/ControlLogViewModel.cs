@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -21,6 +22,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 {
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
     protected readonly SourceCache<ControlLogEntryViewModel, string> logCache = new(ToKey);
+    private readonly Debouncer debouncer = new(TimeSpan.FromSeconds(1));
 
     public Event EventModel { get; }
     private readonly HubClient hubClient;
@@ -57,6 +59,11 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 
     public void Receive(ControlLogNotification message)
     {
+        _ = debouncer.ExecuteAsync(() => ProcessControlLogs(message));
+    }
+
+    private Task ProcessControlLogs(ControlLogNotification message)
+    {
         Dispatcher.UIThread.Post(() =>
         {
             try
@@ -86,6 +93,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
             }
             catch { }
         }, DispatcherPriority.Background);
+        return Task.CompletedTask;
     }
 
     public void Back()
@@ -96,12 +104,26 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 
     public async Task SubscribeToControlLogs()
     {
-        await hubClient.SubscribeToControlLogs(EventModel.EventId);
+        try
+        {
+            await hubClient.SubscribeToControlLogs(EventModel.EventId);
+        }
+        catch (Exception)
+        {
+            // Handle exceptions
+        }
     }
 
     public async Task UnsubscribeFromControlLogs()
     {
-        await hubClient.UnsubscribeFromControlLogs(EventModel.EventId);
+        try
+        {
+            await hubClient.UnsubscribeFromControlLogs(EventModel.EventId);
+        }
+        catch (Exception)
+        {
+            // Handle exceptions
+        }
     }
 
     private static string ToKey(ControlLogEntryViewModel entry)
