@@ -109,19 +109,34 @@ public class HubClient : HubClientBase
 
     #region Control Logs
 
-    public async Task SubscribeToControlLogs(int eventId, string carNum)
+    public async Task SubscribeToControlLogs(int eventId)
     {
         if (hub == null)
             return;
-        await hub.InvokeAsync("SubscribeToControlLogs", eventId, carNum);
+        await hub.InvokeAsync("SubscribeToControlLogs", eventId);
         hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
     }
 
-    public async Task UnsubscribeFromControlLogs(int eventId, string carNum)
+    public async Task UnsubscribeFromControlLogs(int eventId)
     {
         if (hub == null)
             return;
-        await hub.InvokeAsync("UnsubscribeFromControlLogs", eventId, carNum);
+        await hub.InvokeAsync("UnsubscribeFromControlLogs", eventId);
+    }
+
+    public async Task SubscribeToCarControlLogs(int eventId, string carNum)
+    {
+        if (hub == null)
+            return;
+        await hub.InvokeAsync("SubscribeToCarControlLogs", eventId, carNum);
+        hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
+    }
+
+    public async Task UnsubscribeFromCarControlLogs(int eventId, string carNum)
+    {
+        if (hub == null)
+            return;
+        await hub.InvokeAsync("UnsubscribeFromCarControlLogs", eventId, carNum);
     }
 
     private void ProcessControlLogs(CarControlLogs ccl)
