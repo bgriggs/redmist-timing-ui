@@ -116,27 +116,6 @@
 									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
 									  Foreground="{TemplateBinding Foreground}"
 									  Margin="{TemplateBinding Padding}"/>
-					<!--<Border x:Name="ExpandCollapseChevronBorder"
-							Grid.Column="1"
-							Width="{DynamicResource ExpanderChevronButtonSize}"
-							Height="{DynamicResource ExpanderChevronButtonSize}"
-							Margin="{DynamicResource ExpanderChevronMargin}"
-							CornerRadius="{DynamicResource ControlCornerRadius}"
-							BorderBrush="{DynamicResource ExpanderChevronBorderBrush}"
-							BorderThickness="{DynamicResource ExpanderChevronBorderThickness}"
-							Background="{DynamicResource ExpanderChevronBackground}">
-						<Path x:Name="ExpandCollapseChevron"
-							  HorizontalAlignment="Center"
-							  VerticalAlignment="Center"
-							  RenderTransformOrigin="50%,50%"
-							  Stretch="None"
-							  Stroke="{DynamicResource ExpanderChevronForeground}"
-							  StrokeThickness="1">
-							<Path.RenderTransform>
-								<RotateTransform />
-							</Path.RenderTransform>
-						</Path>
-					</Border>-->
 				</Grid>
 			</Border>
 		</ControlTemplate>
@@ -215,7 +194,7 @@
 						<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
 								  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
 							<DataGrid.Columns>
-								<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="55"/>
+								<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
 								<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
 								<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
 								<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
@@ -292,7 +271,7 @@
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="{Binding EventName}" Classes="h1" FontWeight="Bold"/>
 				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1"/>
-				<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1" />
+				<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1"/>
 				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}}" Classes="h1"/>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock Text="Watch Along: " Classes="h1" IsVisible="{Binding IsBroadcastVisible}"/>

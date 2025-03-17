@@ -35,26 +35,26 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private bool isLiveTimingTabVisible;
 
-    private bool isResultsTabVisible;
-    public bool IsResultsTabVisible
+    private bool isResultsTabSelected;
+    public bool IsResultsTabSelected
     {
-        get => isResultsTabVisible;
+        get => isResultsTabSelected;
         set
         {
-            if (SetProperty(ref isResultsTabVisible, value))
+            if (SetProperty(ref isResultsTabSelected, value))
             {
                 WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(new RouterEvent { Path = "ResultsTab", Data = value }));
             }
         }
     }
 
-    private bool isControlLogTabVisible;
-    public bool IsControlLogTabVisible
+    private bool isControlLogTabSelected;
+    public bool IsControlLogTabSelected
     {
-        get => isControlLogTabVisible;
+        get => isControlLogTabSelected;
         set
         {
-            if (SetProperty(ref isControlLogTabVisible, value))
+            if (SetProperty(ref isControlLogTabSelected, value))
             {
                 if (value)
                 {
@@ -67,6 +67,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             }
         }
     }
+    [ObservableProperty]
+    private bool isControlLogTabVisible;
+
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient, 
         EventClient eventClient, ILoggerFactory loggerFactory)
@@ -98,9 +101,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
                 ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient);
                 IsTimingVisible = true;
+                IsControlLogTabVisible = eventModel.HasControlLog;
 
-                // Set active tab
-                IsResultsTabVisible = !hasLiveSession;
+                IsResultsTabSelected = !hasLiveSession;
                 IsLiveTimingTabVisible = hasLiveSession;
             }
         }
@@ -108,16 +111,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         {
             _ = Task.Run(EventsListViewModel.Initialize);
             _ = Task.Run(LiveTimingViewModel.UnsubscribeLiveAsync);
+            _ = ControlLogViewModel?.UnsubscribeFromControlLogs();
 
             IsEventsListVisible = true;
             IsTimingVisible = false;
         }
-    }
-
-    public void SetActiveTab(TabTypes tab)
-    {
-        IsResultsTabVisible = tab == TabTypes.Results;
-        IsLiveTimingTabVisible = tab == TabTypes.LiveTiming;
-        IsControlLogTabVisible = tab == TabTypes.ControlLog;
     }
 }
