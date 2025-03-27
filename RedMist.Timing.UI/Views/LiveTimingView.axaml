@@ -79,6 +79,34 @@
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
 						<PathIcon Height="12" Width="12" Foreground="Orange" Data="{StaticResource doubleLightning}"
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
+						<ContentControl Content="{Binding PitState}">
+							<ContentControl.DataTemplates>
+								<sel:PitIconTemplateSelector>
+									<DataTemplate x:Key="InPitTemplate">
+										<Border Width="45" Margin="1" CornerRadius="4" Background="#075aa1">
+											<TextBlock Text="PIT" Classes="pit"/>
+										</Border>
+									</DataTemplate>
+									<DataTemplate x:Key="EnteredPitTemplate">
+										<Border Width="68" Margin="1" CornerRadius="4" Background="#ff6743">
+											<TextBlock Text="ENTERED PIT" Classes="pit"/>
+										</Border>
+									</DataTemplate>
+									<DataTemplate x:Key="ExitedPitTemplate">
+										<Border Width="63" Margin="1" CornerRadius="4" Background="#9ad337">
+											<TextBlock Text="EXITED PIT" Classes="pit"/>
+										</Border>
+									</DataTemplate>
+									<DataTemplate x:Key="PitSfTemplate">
+										<Border Width="50" Margin="1" CornerRadius="4" Background="#475e1e" ToolTip.Tip="Passed Pit Start / Finish">
+											<TextBlock Text="PIT S/F" Classes="pit"/>
+										</Border>
+									</DataTemplate>
+									<DataTemplate x:Key="NoPit">
+									</DataTemplate>
+								</sel:PitIconTemplateSelector>
+							</ContentControl.DataTemplates>
+						</ContentControl>
 					</StackPanel>
 					<Grid ColumnDefinitions="Auto,Auto,Auto" Grid.Row="1">
 						<StackPanel Orientation="Horizontal" Width="107">
@@ -180,7 +208,7 @@
 							</ScrollViewer>
 						</Grid>
 					</TabItem>
-					
+
 					<!--Positions Chart-->
 					<TabItem Header="Positions">
 						<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
@@ -260,6 +288,14 @@
 			<Setter Property="FontSize" Value="12" />
 			<Setter Property="MinHeight" Value="20" />
 			<Setter Property="Padding" Value="3,0,0,0" />
+		</Style>
+
+		<Style Selector="TextBlock.pit">
+			<Setter Property="FontSize" Value="9"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
 	</UserControl.Styles>
 

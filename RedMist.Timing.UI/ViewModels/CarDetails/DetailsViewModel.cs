@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels.CarDetails;
 using RedMist.TimingCommon.Models;
 using System;
@@ -21,6 +22,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     private readonly string carNumber;
     private readonly EventClient serverClient;
     private readonly HubClient hubClient;
+    private readonly PitTracking pitTracking;
     [ObservableProperty]
     private bool isLoading = false;
 
@@ -28,13 +30,13 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     public LapsListViewModel LapList { get; } = new LapsListViewModel();
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
 
-    public DetailsViewModel(int eventId, string carNumber, EventClient serverClient, HubClient hubClient)
+    public DetailsViewModel(int eventId, string carNumber, EventClient serverClient, HubClient hubClient, PitTracking pitTracking)
     {
         this.eventId = eventId;
         this.carNumber = carNumber;
         this.serverClient = serverClient;
         this.hubClient = hubClient;
-
+        this.pitTracking = pitTracking;
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -63,10 +65,14 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
 
     public void UpdateLaps(List<CarPosition> carPositions)
     {
+        pitTracking.ApplyPitStop(carPositions);
         Chart.UpdateLaps(carPositions);
         LapList.UpdateLaps(carPositions);
     }
 
+    /// <summary>
+    /// Control log data.
+    /// </summary>
     public void Receive(ControlLogNotification message)
     {
         if (message.Value.CarNumber == carNumber)

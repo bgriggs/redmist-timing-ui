@@ -9,6 +9,7 @@ using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
@@ -89,6 +90,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
 
     private int consistencyCheckFailures;
+    private PitTracking pitTracking = new();
 
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory)
@@ -119,6 +121,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     {
         EventModel = eventModel;
         Flag = string.Empty;
+        pitTracking.Clear();
         ResetEvent();
         try
         {
@@ -214,7 +217,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient);
+                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking);
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
             }
