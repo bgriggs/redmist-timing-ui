@@ -2,6 +2,7 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Reactive.Linq;
@@ -107,13 +108,9 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     private int penalityWarnings;
     [ObservableProperty]
-    private bool isEnteredPit;
-    [ObservableProperty]
-    private bool isExistedPit;
-    [ObservableProperty]
-    private bool isInPit;
-    [ObservableProperty]
     private bool isStale;
+    [ObservableProperty]
+    private PitStates pitState;
 
     #endregion
 
@@ -276,17 +273,19 @@ public partial class CarViewModel : ObservableObject
     private readonly int eventId;
     private readonly EventClient serverClient;
     private readonly HubClient hubClient;
+    private readonly PitTracking pitTracking;
     [ObservableProperty]
     private DetailsViewModel? carDetailsViewModel;
 
     #endregion
 
 
-    public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient)
+    public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient, PitTracking pitTracking)
     {
         this.eventId = eventId;
         this.serverClient = serverClient;
         this.hubClient = hubClient;
+        this.pitTracking = pitTracking;
     }
 
 
@@ -315,10 +314,23 @@ public partial class CarViewModel : ObservableObject
         IsClassMostPositionsGained = carPosition.IsClassMostPositionsGained;
         PenalityLaps = carPosition.PenalityLaps;
         PenalityWarnings = carPosition.PenalityWarnings;
-        //IsEnteredPit = carPosition.IsEnteredPit;
-        //IsExistedPit = carPosition.IsExistedPit;
-        IsInPit = carPosition.IsInPit;
         IsStale = carPosition.IsStale;
+
+        // Pit state
+        if (carPosition.IsEnteredPit)
+            PitState = PitStates.EnteredPit;
+        else if (carPosition.IsPitStartFinish)
+            PitState = PitStates.PitSF;
+        else if (carPosition.IsExitedPit)
+            PitState = PitStates.ExitedPit;
+        else if (carPosition.IsInPit)
+            PitState = PitStates.InPit;
+        else
+            PitState = PitStates.None;
+
+        // Record the pit stop
+        if (carPosition.IsInPit && !string.IsNullOrEmpty(carPosition.Number))
+            pitTracking.AddPitStop(carPosition.Number, carPosition.LastLap);
 
         // Change to stale color to show car has not updated in a while
         if (IsStale)
@@ -384,7 +396,7 @@ public partial class CarViewModel : ObservableObject
     {
         if (isEnabled && CarDetailsViewModel == null)
         {
-            CarDetailsViewModel = new DetailsViewModel(eventId, Number, serverClient, hubClient);
+            CarDetailsViewModel = new DetailsViewModel(eventId, Number, serverClient, hubClient, pitTracking);
             _ = CarDetailsViewModel.Initialize();
         }
         else if (!isEnabled && CarDetailsViewModel != null)
