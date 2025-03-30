@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>
+public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>, IRecipient<SizeChangedNotification>
 {
     // Flat collection for the view
     public ObservableCollection<CarViewModel> Cars { get; } = [];
@@ -31,6 +31,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private readonly HubClient hubClient;
     private readonly EventClient serverClient;
+    private readonly ViewSizeService viewSizeService;
 
     private ILogger Logger { get; }
     public Event EventModel { get; set; } = new();
@@ -90,13 +91,18 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
 
     private int consistencyCheckFailures;
-    private PitTracking pitTracking = new();
+    private readonly PitTracking pitTracking = new();
+
+    [ObservableProperty]
+    private bool showPenaltyColumn = false;
+    public const int PenaltyColumnWidth = 470;
 
 
-    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory)
+    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
     {
         this.hubClient = hubClient;
         this.serverClient = serverClient;
+        this.viewSizeService = viewSizeService;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -114,6 +120,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             .SortAndBind(GroupedCars, SortExpressionComparer<GroupHeaderViewModel>.Ascending(t => t.Name))
             .DisposeMany()
             .Subscribe();
+
+        Receive(new SizeChangedNotification(Avalonia.Size.Infinity));
     }
 
 
@@ -157,6 +165,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         }
     }
 
+    /// <summary>
+    /// Handles incoming status notifications and processes updates if certain conditions are met.
+    /// </summary>
     public void Receive(StatusNotification message)
     {
         var status = message.Value;
@@ -164,6 +175,14 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             return;
 
         Dispatcher.UIThread.Post(() => ProcessUpdate(status));
+    }
+
+    /// <summary>
+    /// Handles notifications related to size changes.
+    /// </summary>
+    public void Receive(SizeChangedNotification message)
+    {
+        ShowPenaltyColumn = viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
     }
 
     public void ProcessUpdate(Payload status)
@@ -217,7 +236,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking);
+                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService);
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
             }
