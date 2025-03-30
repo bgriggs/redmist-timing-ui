@@ -1,7 +1,9 @@
 ﻿using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
@@ -9,7 +11,7 @@ using System.Reactive.Linq;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class CarViewModel : ObservableObject
+public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNotification>
 {
     #region Colors
 
@@ -104,9 +106,17 @@ public partial class CarViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsMostPositionsGained))]
     private bool isClassMostPositionsGained;
     [ObservableProperty]
-    private int penalityLaps;
+    [NotifyPropertyChangedFor(nameof(HasPenaltyLaps))]
+    [NotifyPropertyChangedFor(nameof(PenaltyLapTerm))]
+    private int penaltyLaps;
+    public bool HasPenaltyLaps => PenaltyLaps > 0;
+    public string PenaltyLapTerm => PenaltyLaps == 1 ? "Lap" : "Laps";
     [ObservableProperty]
-    private int penalityWarnings;
+    [NotifyPropertyChangedFor(nameof(HasPenaltyWarnings))]
+    private int penaltyWarnings;
+    public bool HasPenaltyWarnings => PenaltyWarnings > 0;
+    [ObservableProperty]
+    private bool showPenaltyColumn = false;
     [ObservableProperty]
     private bool isStale;
     [ObservableProperty]
@@ -274,18 +284,22 @@ public partial class CarViewModel : ObservableObject
     private readonly EventClient serverClient;
     private readonly HubClient hubClient;
     private readonly PitTracking pitTracking;
+    private readonly ViewSizeService viewSizeService;
     [ObservableProperty]
     private DetailsViewModel? carDetailsViewModel;
 
     #endregion
 
 
-    public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient, PitTracking pitTracking)
+    public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService)
     {
         this.eventId = eventId;
         this.serverClient = serverClient;
         this.hubClient = hubClient;
         this.pitTracking = pitTracking;
+        this.viewSizeService = viewSizeService;
+        WeakReferenceMessenger.Default.RegisterAll(this);
+        Receive(new SizeChangedNotification(Avalonia.Size.Infinity));
     }
 
 
@@ -312,8 +326,11 @@ public partial class CarViewModel : ObservableObject
         InClassPositionsGained = carPosition.InClassPositionsGained;
         IsOverallMostPositionsGained = carPosition.IsOverallMostPositionsGained;
         IsClassMostPositionsGained = carPosition.IsClassMostPositionsGained;
-        PenalityLaps = carPosition.PenalityLaps;
-        PenalityWarnings = carPosition.PenalityWarnings;
+        if (carPosition.PenalityLaps > 0 || carPosition.PenalityWarnings > 0)
+        {
+        }
+        PenaltyLaps = carPosition.PenalityLaps;
+        PenaltyWarnings = carPosition.PenalityWarnings;
         IsStale = carPosition.IsStale;
 
         // Pit state
@@ -404,5 +421,13 @@ public partial class CarViewModel : ObservableObject
             CarDetailsViewModel.Dispose();
             CarDetailsViewModel = null;
         }
+    }
+
+    /// <summary>
+    /// Handles notifications related to size changes.
+    /// </summary>
+    public void Receive(SizeChangedNotification message)
+    {
+        ShowPenaltyColumn = viewSizeService.CurrentSize.Width > LiveTimingViewModel.PenaltyColumnWidth;
     }
 }

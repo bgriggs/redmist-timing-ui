@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -32,6 +33,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
     private readonly ILoggerFactory loggerFactory;
+    private readonly ViewSizeService viewSizeService;
 
     public Bitmap? OrganizationLogo
     {
@@ -47,13 +49,13 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     }
 
 
-    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory)
+    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
     {
         EventModel = eventModel;
         this.hubClient = hubClient;
         this.eventClient = eventClient;
         this.loggerFactory = loggerFactory;
-
+        this.viewSizeService = viewSizeService;
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         InitializeSessions(eventModel.Sessions);
@@ -90,7 +92,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 //logger.LogError(ex, "Error loading session results");
             }
 
-            LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory) 
+            LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService) 
             { 
                 BackRouterPath = "SessionResultsList",
                 EventModel = EventModel,

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
 using System.IO;
@@ -84,6 +85,7 @@ public partial class App : Application
 
     [Transient(typeof(EventClient))]
     [Singleton(typeof(HubClient))]
+    [Singleton(typeof(ViewSizeService))]
     internal static partial void ConfigureServices(IServiceCollection services);
 
     [Singleton(typeof(MainViewModel))]

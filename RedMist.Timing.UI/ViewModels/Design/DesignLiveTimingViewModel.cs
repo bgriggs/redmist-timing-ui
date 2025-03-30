@@ -9,9 +9,10 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignLiveTimingViewModel : LiveTimingViewModel
 {
-    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory())
+    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService())
     {
         var pitTracking = new PitTracking();
+        var viewSizeService = new ViewSizeService();
         var ec = new DesignEventClient(new DesignConfiguration());
         var hc = new DesignHubClient();
         EventName = "Design Event";
@@ -19,7 +20,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         TimeToGo = "03:45:00";
         TotalTime = "01:00:00";
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking)
+        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "34",
             Name = "Team Awesome 1",
@@ -28,13 +29,13 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             Class = "GP3",
             PitState = PitStates.ExitedPit
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking)
+        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "14",
             Name = "Team Awesome 2",
@@ -43,12 +44,12 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             Class = "GP3",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking)
+        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "12",
             Name = "Team Awesome 3",
@@ -57,12 +58,14 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
+            PenaltyWarnings = 1,
+            PenaltyLaps = 2,
             Class = "GP3",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking)
+        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "1x",
             Name = "Team Stale",
@@ -71,8 +74,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             Class = "GP1",
             IsStale = false,
         });
@@ -85,14 +88,14 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             OverallPositionsGained = -5,
             IsStale = true,
             IsPitStartFinish = true,
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking)
+        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "111",
             Name = "Team Cars Best Time",
@@ -101,9 +104,10 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             Class = "GP1",
+            PenaltyLaps = 1,
         });
 
         carCache.Lookup("111").Value.ApplyStatus(new CarPosition
@@ -114,12 +118,12 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             IsEnteredPit = true,
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking)
+        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "222",
             Name = "Team Overall Best Time",
@@ -128,8 +132,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:01:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             Class = "GP1",
         });
 
@@ -142,8 +146,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             LastTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:01:17.872",
-            OverallGap = "00:00:02.872",
-            OverallDifference = "00:00:12.872",
+            OverallGap = "00:02.872",
+            OverallDifference = "00:12.872",
             OverallPositionsGained = 5,
             IsOverallMostPositionsGained = true,
             IsBestTime = true,

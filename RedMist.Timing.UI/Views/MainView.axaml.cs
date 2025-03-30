@@ -27,4 +27,10 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
            // Logger.LogError(ex, "Failed to launch URI");
         }
     }
+
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        WeakReferenceMessenger.Default.Send(new SizeChangedNotification(e.NewSize));
+    }
 }

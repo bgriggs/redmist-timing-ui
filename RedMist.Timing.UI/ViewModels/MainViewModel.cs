@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
     private readonly ILoggerFactory loggerFactory;
-
+    private readonly ViewSizeService viewSizeService;
     [ObservableProperty]
     private bool isLiveTimingTabVisible;
 
@@ -72,13 +73,14 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient, 
-        EventClient eventClient, ILoggerFactory loggerFactory)
+        EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
         this.hubClient = hubClient;
         this.eventClient = eventClient;
         this.loggerFactory = loggerFactory;
+        this.viewSizeService = viewSizeService;
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -97,7 +99,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     _ = Task.Run(() => LiveTimingViewModel.InitializeLiveAsync(eventModel));
                 }
 
-                ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory);
+                ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService);
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
                 ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient);
                 IsTimingVisible = true;
