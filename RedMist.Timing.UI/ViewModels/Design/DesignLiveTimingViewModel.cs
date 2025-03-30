@@ -22,7 +22,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "34",
-            Name = "Team Awesome 1",
+            OriginalName = "Team Awesome 1",
             OverallPosition = 13,
             LastLap = 33,
             LastTime = "00:02:46.872",
@@ -37,7 +37,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "14",
-            Name = "Team Awesome 2",
+            OriginalName = "Team Awesome 2",
             OverallPosition = 11,
             LastLap = 33,
             LastTime = "00:02:46.872",
@@ -51,7 +51,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "12",
-            Name = "Team Awesome 3",
+            OriginalName = "Team Awesome Really Long Team Name 12345678",
             OverallPosition = 2,
             LastLap = 33,
             LastTime = "00:02:46.872",
@@ -67,7 +67,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "1x",
-            Name = "Team Stale",
+            OriginalName = "Team Stale",
             OverallPosition = 26,
             LastLap = 1,
             LastTime = "00:02:46.872",
@@ -97,7 +97,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "111",
-            Name = "Team Cars Best Time",
+            OriginalName = "Team Cars Best Time",
             OverallPosition = 25,
             LastLap = 2,
             LastTime = "00:02:17.872",
@@ -125,7 +125,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "222",
-            Name = "Team Overall Best Time",
+            OriginalName = "Team Overall Best Time",
             OverallPosition = 24,
             LastLap = 3,
             LastTime = "00:02:17.872",
