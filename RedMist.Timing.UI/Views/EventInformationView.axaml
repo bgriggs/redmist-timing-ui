@@ -20,14 +20,14 @@
 			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
 			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
 		</Grid>
-		<Border Background="{StaticResource lightAppBackground}" Margin="15,15,15,0" Padding="8" CornerRadius="4">
+		<Border Background="{DynamicResource lightAppBackground}" Margin="15,15,15,0" Padding="8" CornerRadius="4">
 			<StackPanel>
 				<TextBlock Text="{Binding Dates}"/>
 				<TextBlock Text="{Binding OrganizationName}"/>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock Text="Details:" VerticalAlignment="Center"/>
 					<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchDetailsUrl}">
-						<PathIcon Foreground="Black" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
+						<PathIcon Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
 							<PathIcon.RenderTransform>
 								<RotateTransform Angle="-90"/>
 							</PathIcon.RenderTransform>
@@ -41,7 +41,7 @@
 				<WrapPanel Orientation="Horizontal" IsVisible="{Binding IsBroadcastVisible}">
 					<TextBlock Text="{Binding BroadcastCompanyName, StringFormat='Broadcast by: {0}'}" VerticalAlignment="Center"/>
 					<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchBroadcastUrl}">
-						<PathIcon Foreground="Black" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
+						<PathIcon Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
 							<PathIcon.RenderTransform>
 								<RotateTransform Angle="-90"/>
 							</PathIcon.RenderTransform>

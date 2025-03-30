@@ -2,27 +2,119 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
              x:Class="RedMist.Timing.UI.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Dark">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Resources>
-		<StreamGeometry x:Key="flaggeom">M 14.4,6 14,4 H 5 v 17 h 2 v -7 h 5.6 l 0.4,2 h 7 V 6 Z</StreamGeometry>
-		<StreamGeometry x:Key="trophygeom">M458 653c-42 92 -74 214 -74 371h-256v-96c0 -98 133 -234 330 -275zM1536 928v96h-256c0 -157 -32 -279 -74 -371c197 41 330 177 330 275zM1664 1056v-128c0 -190 -230 -400 -542 -415c-40 -51 -77 -81 -95 -95c-53 -48 -67 -98 -67 -162s32 -128 128 -128 s192 -64 192 -160v-64c0 -18 -14 -32 -32 -32h-832c-18 0 -32 14 -32 32v64c0 96 96 160 192 160s128 64 128 128s-14 114 -67 162c-18 14 -55 44 -95 95c-312 15 -542 225 -542 415v128c0 53 43 96 96 96h288v96c0 88 72 160 160 160h576c88 0 160 -72 160 -160v-96h288 c53 0 96 -43 96 -96z</StreamGeometry>
-		<StreamGeometry x:Key="infogeom">M12.432,0c1.34,0,2.01,0.912,2.01,1.957c0,1.305-1.164,2.512-2.679,2.512c-1.269,0-2.009-0.75-1.974-1.99  C9.789,1.436,10.67,0,12.432,0z M8.309,20c-1.058,0-1.833-0.652-1.093-3.524l1.214-5.092c0.211-0.814,0.246-1.141,0-1.141  c-0.317,0-1.689,0.562-2.502,1.117L5.4,10.48c2.572-2.186,5.531-3.467,6.801-3.467c1.057,0,1.233,1.273,0.705,3.23l-1.391,5.352  c-0.246,0.945-0.141,1.271,0.106,1.271c0.317,0,1.357-0.392,2.379-1.207l0.6,0.814C12.098,19.02,9.365,20,8.309,20z</StreamGeometry>
-		<StreamGeometry x:Key="back">M1017 1235l-531 -531l531 -531c25 -25 25 -65 0 -90l-166 -166c-25 -25 -65 -25 -90 0l-742 742c-25 25 -25 65 0 90l742 742c25 25 65 25 90 0l166 -166c25 -25 25 -65 0 -90z</StreamGeometry>
-		<StreamGeometry x:Key="extlinkgeom">M1408 608v-320c0 -159 -129 -288 -288 -288h-832c-159 0 -288 129 -288 288v832c0 159 129 288 288 288h704c18 0 32 -14 32 -32v-64c0 -18 -14 -32 -32 -32h-704c-88 0 -160 -72 -160 -160v-832c0 -88 72 -160 160 -160h832c88 0 160 72 160 160v320c0 18 14 32 32 32 h64c18 0 32 -14 32 -32zM1792 1472v-512c0 -35 -29 -64 -64 -64c-17 0 -33 7 -45 19l-176 176l-652 -652c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-114 114c-6 6 -10 15 -10 23s4 17 10 23l652 652l-176 176c-12 12 -19 28 -19 45c0 35 29 64 64 64h512c35 0 64 -29 64 -64z</StreamGeometry>
-		<StreamGeometry x:Key="warninggeom">M22.7,17.5l-8.1-14c-0.8-1.4-2.7-1.9-4.1-1.1C10,2.7,9.6,3.1,9.4,3.5l-8.1,14c-0.8,1.4-0.3,3.3,1.1,4.1c0.5,0.3,1,0.4,1.5,0.4h16.1c1.7,0,3-1.4,3-3C23.1,18.4,22.9,17.9,22.7,17.5z M12,18c-0.6,0-1-0.4-1-1s0.4-1,1-1s1,0.4,1,1S12.6,18,12,18z M13,13c0,0.6-0.4,1-1,1s-1-0.4-1-1V9c0-0.6,0.4-1,1-1s1,0.4,1,1V13z</StreamGeometry>
-		<StreamGeometry x:Key="warningopengeom">M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z</StreamGeometry>
+		<ResourceDictionary>
+			<StreamGeometry x:Key="flaggeom">M 14.4,6 14,4 H 5 v 17 h 2 v -7 h 5.6 l 0.4,2 h 7 V 6 Z</StreamGeometry>
+			<StreamGeometry x:Key="trophygeom">M458 653c-42 92 -74 214 -74 371h-256v-96c0 -98 133 -234 330 -275zM1536 928v96h-256c0 -157 -32 -279 -74 -371c197 41 330 177 330 275zM1664 1056v-128c0 -190 -230 -400 -542 -415c-40 -51 -77 -81 -95 -95c-53 -48 -67 -98 -67 -162s32 -128 128 -128 s192 -64 192 -160v-64c0 -18 -14 -32 -32 -32h-832c-18 0 -32 14 -32 32v64c0 96 96 160 192 160s128 64 128 128s-14 114 -67 162c-18 14 -55 44 -95 95c-312 15 -542 225 -542 415v128c0 53 43 96 96 96h288v96c0 88 72 160 160 160h576c88 0 160 -72 160 -160v-96h288 c53 0 96 -43 96 -96z</StreamGeometry>
+			<StreamGeometry x:Key="infogeom">M12.432,0c1.34,0,2.01,0.912,2.01,1.957c0,1.305-1.164,2.512-2.679,2.512c-1.269,0-2.009-0.75-1.974-1.99  C9.789,1.436,10.67,0,12.432,0z M8.309,20c-1.058,0-1.833-0.652-1.093-3.524l1.214-5.092c0.211-0.814,0.246-1.141,0-1.141  c-0.317,0-1.689,0.562-2.502,1.117L5.4,10.48c2.572-2.186,5.531-3.467,6.801-3.467c1.057,0,1.233,1.273,0.705,3.23l-1.391,5.352  c-0.246,0.945-0.141,1.271,0.106,1.271c0.317,0,1.357-0.392,2.379-1.207l0.6,0.814C12.098,19.02,9.365,20,8.309,20z</StreamGeometry>
+			<StreamGeometry x:Key="back">M1017 1235l-531 -531l531 -531c25 -25 25 -65 0 -90l-166 -166c-25 -25 -65 -25 -90 0l-742 742c-25 25 -25 65 0 90l742 742c25 25 65 25 90 0l166 -166c25 -25 25 -65 0 -90z</StreamGeometry>
+			<StreamGeometry x:Key="extlinkgeom">M1408 608v-320c0 -159 -129 -288 -288 -288h-832c-159 0 -288 129 -288 288v832c0 159 129 288 288 288h704c18 0 32 -14 32 -32v-64c0 -18 -14 -32 -32 -32h-704c-88 0 -160 -72 -160 -160v-832c0 -88 72 -160 160 -160h832c88 0 160 72 160 160v320c0 18 14 32 32 32 h64c18 0 32 -14 32 -32zM1792 1472v-512c0 -35 -29 -64 -64 -64c-17 0 -33 7 -45 19l-176 176l-652 -652c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-114 114c-6 6 -10 15 -10 23s4 17 10 23l652 652l-176 176c-12 12 -19 28 -19 45c0 35 29 64 64 64h512c35 0 64 -29 64 -64z</StreamGeometry>
+			<StreamGeometry x:Key="warninggeom">M22.7,17.5l-8.1-14c-0.8-1.4-2.7-1.9-4.1-1.1C10,2.7,9.6,3.1,9.4,3.5l-8.1,14c-0.8,1.4-0.3,3.3,1.1,4.1c0.5,0.3,1,0.4,1.5,0.4h16.1c1.7,0,3-1.4,3-3C23.1,18.4,22.9,17.9,22.7,17.5z M12,18c-0.6,0-1-0.4-1-1s0.4-1,1-1s1,0.4,1,1S12.6,18,12,18z M13,13c0,0.6-0.4,1-1,1s-1-0.4-1-1V9c0-0.6,0.4-1,1-1s1,0.4,1,1V13z</StreamGeometry>
+			<StreamGeometry x:Key="warningopengeom">M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z</StreamGeometry>
+			<StreamGeometry x:Key="refreshArrow">M463.5 224H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1c-87.5 87.5-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5z</StreamGeometry>
 
-		<SolidColorBrush x:Key="lightAppBackground">#FFEBEB</SolidColorBrush>
-		<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
-		<SolidColorBrush x:Key="strongAppBackground">#D7412C</SolidColorBrush>
-		<SolidColorBrush x:Key="boldItemBorder">#D7412C</SolidColorBrush>
-		<SolidColorBrush x:Key="medItemBorder">#FFCDCD</SolidColorBrush>
-		<SolidColorBrush x:Key="btnPointerOver">While</SolidColorBrush>
+			<!--<SolidColorBrush x:Key="lightAppBackground">#FFEBEB</SolidColorBrush>-->
+			<!--<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
+			<SolidColorBrush x:Key="strongAppBackground">#D7412C</SolidColorBrush>-->
+			<SolidColorBrush x:Key="boldItemBorder">#D7412C</SolidColorBrush>
+			<SolidColorBrush x:Key="medItemBorder">#FFCDCD</SolidColorBrush>
+			<!--<SolidColorBrush x:Key="btnPointerOver">White</SolidColorBrush>-->
 
-		<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
-		<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>
+			<!--<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
+			<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>-->
+
+			<ResourceDictionary.ThemeDictionaries>
+				<ResourceDictionary x:Key="Light">
+					<SolidColorBrush x:Key="TextTitleForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="TextH1ForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">Gray</SolidColorBrush>
+					<SolidColorBrush x:Key="TextLGForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="TextMedForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="TextSmbForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="IconButtonForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">Green</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsLostForegroundBrush">Red</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">Gray</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">#e0e0e0</SolidColorBrush>
+
+					<SolidColorBrush x:Key="EventRowBackgroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="btnPointerOver">White</SolidColorBrush>
+					<SolidColorBrush x:Key="lightAppBackground">#FFEBEB</SolidColorBrush>
+					<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
+					<SolidColorBrush x:Key="strongAppBackground">#D7412C</SolidColorBrush>
+
+					<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
+					<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>
+					
+					<!--Timing - Car Row-->
+					<Color x:Key="carRowNormalBackgroundBrush">Transparent</Color>
+					<Color x:Key="carRowUpdatedBackgroundBrush">#fce3cf</Color>
+					<Color x:Key="carRowStaleBackgroundBrush">#f7d2bb</Color>
+					<SolidColorBrush x:Key="carRowLapTextForegroundNormalBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowLapTextForegroundBestBrush">#5da639</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowLapTextForegroundOverallBestBrush">Purple</SolidColorBrush>
+					
+					<!--Flag Background-->
+					<SolidColorBrush x:Key="timingFlagGreenBackground">#8be08c</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagYellowBackground">#fefda2</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagRedBackground">#ff5252</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagBlackBackground">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagWhiteBackground">WhiteSmoke</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagPurpleBackground">#e685ff</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagCheckeredBackground">White</SolidColorBrush>
+					
+					<!--Event-->
+					<SolidColorBrush x:Key="eventLiveBackground">Yellow</SolidColorBrush>
+					<SolidColorBrush x:Key="eventLiveForeground">Black</SolidColorBrush>
+				</ResourceDictionary>
+				<ResourceDictionary x:Key="Dark">
+					<SolidColorBrush x:Key="TextTitleForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextH1ForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextLGForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextMedForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="IconButtonForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="EventRowBackgroundBrush">Gray</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">#78d44b</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsLostForegroundBrush">Red</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">Gray</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">Gray</SolidColorBrush>
+					
+					<SolidColorBrush x:Key="btnPointerOver">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="lightAppBackground">#D7412C</SolidColorBrush>
+					<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
+					<SolidColorBrush x:Key="strongAppBackground">#FFEBEB</SolidColorBrush>
+
+					<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
+					<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>
+
+					<!--Timing - Car Row-->
+					<Color x:Key="carRowNormalBackgroundBrush">Transparent</Color>
+					<Color x:Key="carRowUpdatedBackgroundBrush">#fec292</Color>
+					<Color x:Key="carRowStaleBackgroundBrush">#f7d2bb</Color>
+					<SolidColorBrush x:Key="carRowLapTextForegroundNormalBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowLapTextForegroundBestBrush">#78d44b</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowLapTextForegroundOverallBestBrush">#d3a2ff</SolidColorBrush>
+
+					<!--Flag Background-->
+					<SolidColorBrush x:Key="timingFlagGreenBackground">#27951b</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagYellowBackground">#dbda10</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagRedBackground">#db4949</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagBlackBackground">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagWhiteBackground">#b7b7b7</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagPurpleBackground">Purple</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagCheckeredBackground">#616161</SolidColorBrush>
+
+					<!--Event-->
+					<SolidColorBrush x:Key="eventLiveBackground">#dbda10</SolidColorBrush>
+					<SolidColorBrush x:Key="eventLiveForeground">#878787</SolidColorBrush>
+				</ResourceDictionary>
+			</ResourceDictionary.ThemeDictionaries>
+		</ResourceDictionary>
 	</Application.Resources>
 
 	<Application.Styles>
@@ -33,28 +125,28 @@
 				<ColorPaletteResources x:Key="Dark" Accent="#ffd7412c" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ffd7412c" BaseMedium="#fff49e92" BaseMediumHigh="#fffbb5ab" BaseMediumLow="#ffe56f5f" ChromeAltLow="#fffbb5ab" ChromeBlackHigh="Black" ChromeBlackLow="#fffbb5ab" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ffd7412c" ChromeDisabledLow="#fff49e92" ChromeGray="#ffed8778" ChromeHigh="#ffed8778" ChromeLow="#ff890d09" ChromeMedium="#ff9d1a12" ChromeMediumLow="#ffc43423" ChromeWhite="White" ListLow="#ff9d1a12" ListMedium="#ffd7412c" RegionColor="Black" />
 			</FluentTheme.Palettes>
 		</FluentTheme>
-		
+
 		<Style Selector="TextBlock.title">
 			<Setter Property="FontSize" Value="15"/>
 			<Setter Property="FontWeight" Value="DemiBold"/>
-			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextTitleForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.h1">
 			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextH1ForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.tableheader">
 			<Setter Property="FontSize" Value="12"/>
-			<Setter Property="Foreground" Value="Gray"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextTableHeaderForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.lg">
 			<Setter Property="FontSize" Value="14"/>
 			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextLGForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.med">
 			<Setter Property="FontSize" Value="13"/>
-			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextMedForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.sm">
 			<Setter Property="FontSize" Value="11"/>
@@ -62,19 +154,22 @@
 		<Style Selector="TextBlock.smb">
 			<Setter Property="FontSize" Value="11"/>
 			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextSmbForegroundBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.sch">
+			<Setter Property="FontSize" Value="9"/>
 		</Style>
 		
 		<Style Selector="Button.back">
 			<Setter Property="Content">
 				<Setter.Value>
 					<Template>
-						<PathIcon Height="25" Width="25" Foreground="Black" Data="{StaticResource back}" VerticalAlignment="Top" Margin="0,1,0,0"/>
+						<PathIcon Height="25" Width="25" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource back}" VerticalAlignment="Top" Margin="0,1,0,0"/>
 					</Template>
 				</Setter.Value>
 			</Setter>
 		</Style>
-		
+
 		<Style Selector="Button.icon">
 			<Setter Property="Height" Value="20"/>
 			<Setter Property="BorderThickness" Value="0"/>

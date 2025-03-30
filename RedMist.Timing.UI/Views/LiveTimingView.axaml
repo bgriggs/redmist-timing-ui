@@ -48,23 +48,23 @@
 							<sel:PositionsGainedLostTemplateSelector>
 								<DataTemplate x:Key="PositionsGained" DataType="model:CarViewModel">
 									<Grid ColumnDefinitions="Auto,Auto">
-										<PathIcon Height="8" Width="8" Foreground="Green" Data="{StaticResource upArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>
-										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="Green" Grid.Column="1"/>
+										<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource upArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>
+										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Grid.Column="1"/>
 									</Grid>
 								</DataTemplate>
 								<DataTemplate x:Key="PositionsLost" DataType="model:CarViewModel">
 									<Grid ColumnDefinitions="Auto,Auto">
-										<PathIcon Height="8" Width="8" Foreground="Red" Data="{StaticResource downArrow}"/>
-										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="Red" Grid.Column="1"/>
+										<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downArrow}"/>
+										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="{DynamicResource PositionsLostForegroundBrush}" Grid.Column="1"/>
 									</Grid>
 								</DataTemplate>
 								<DataTemplate x:Key="PositionsNeutral" DataType="model:CarViewModel">
 									<Grid ColumnDefinitions="Auto,Auto">
 										<StackPanel Orientation="Vertical">
-											<PathIcon Height="8" Width="8" Foreground="Gray" Data="{StaticResource upArrow}"/>
-											<PathIcon Height="8" Width="8" Foreground="Gray" Data="{StaticResource downArrow}" Margin="0,-2,0,0"/>
+											<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource upArrow}"/>
+											<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource downArrow}" Margin="0,-2,0,0"/>
 										</StackPanel>
-										<TextBlock Text="0" Classes="sm" Foreground="Gray" Grid.Column="1" Margin="1,0,0,0" VerticalAlignment=""/>
+										<TextBlock Text="0" Classes="sm" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Grid.Column="1" Margin="1,0,0,0" VerticalAlignment=""/>
 									</Grid>
 								</DataTemplate>
 							</sel:PositionsGainedLostTemplateSelector>
@@ -334,20 +334,20 @@
 		</Grid>
 
 		<!--Table Header-->
-		<Border Grid.Row="1" Background="White" Margin="3,6,3,0" BorderThickness="1" BorderBrush="Gray">
+		<Border Grid.Row="1" Background="{DynamicResource TimingTableHeaderBackgroundBrush}" Margin="3,6,3,0" BorderThickness="1" BorderBrush="Gray">
 			<Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="0,2,0,0">
 				<TextBlock Text="" Grid.Column="0" Width="35"/>
 				<TextBlock Text="LAST LAP               GAP              TO P1" Width="253" Grid.Column="1" Classes="tableheader"/>
 				<StackPanel Orientation="Horizontal" Grid.Column="2" IsVisible="{Binding ShowPenaltyColumn}">
 					<TextBlock Text="PENALTY" Classes="tableheader"/>
-					<PathIcon Height="10" Margin="0,0,0,1" Foreground="Black" Data="{StaticResource warningopengeom}" VerticalAlignment="Center"/>
+					<PathIcon Height="10" Margin="0,0,0,1" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warningopengeom}" VerticalAlignment="Center"/>
 				</StackPanel>
 				<TextBlock Text="BEST LAP" Grid.Column="3" HorizontalAlignment="Right" Classes="tableheader" Margin="0,0,3,0"/>
 			</Grid>
 		</Border>
 
 		<!--Car Table-->
-		<Border Grid.Row="2" Background="White" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Opacity="25">
+		<Border Grid.Row="2"  BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Opacity=".90">
 			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 				<Grid>
 					<!--Flat-->

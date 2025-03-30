@@ -1,4 +1,6 @@
-﻿using Avalonia.Media;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RedMist.TimingCommon.Models;
 using System;
@@ -53,8 +55,8 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
         get
         {
             if (IsBestLap)
-                return CarViewModel.carBestLapColor;
-            return CarViewModel.carNormalLapColor;
+                return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, CarViewModel.CARROWLAPTEXTFOREGROUND_BEST_BRUSH) ?? Brushes.Black;
+            return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, CarViewModel.CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH) ?? Brushes.Black;
         }
     }
 
