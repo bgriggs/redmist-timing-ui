@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Clients;
@@ -10,6 +11,7 @@ using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -20,16 +22,10 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private const string CARROW_NORMAL_BACKGROUNDBRUSH = "carRowNormalBackgroundBrush";
     private const string CARROW_UPDATED_BACKGROUNDBRUSH = "carRowUpdatedBackgroundBrush";
     private const string CARROW_STALE_BACKGROUNDBRUSH = "carRowStaleBackgroundBrush";
-    //private static readonly Color rowNormalColor = Colors.Transparent;
-    //private static readonly Color rowUpdateColor = Color.Parse("#fce3cf");
-    //private static readonly Color rowStaleColor = Color.Parse("#f7d2bb");
 
     public const string CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH = "carRowLapTextForegroundNormalBrush";
     public const string CARROWLAPTEXTFOREGROUND_BEST_BRUSH = "carRowLapTextForegroundBestBrush";
     public const string CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH = "carRowLapTextForegroundOverallBestBrush";
-    //public static readonly IBrush carNormalLapColor = Brushes.Black;
-    //public static readonly IBrush carBestLapColor = Brush.Parse("#5da639");
-    //public static readonly IBrush carOverallBestLapColor = Brushes.Purple;
 
     #endregion
 
@@ -39,8 +35,35 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
     [ObservableProperty]
     private string number = string.Empty;
+    
+    public string Name
+    {
+        get
+        {
+            var upper = OriginalName.ToUpperInvariant();
+            var size = viewSizeService.CurrentSize;
+            if (size.Width < 400)
+            {
+                return upper[..Math.Min(upper.Length, 21)];
+            }
+            else if (size.Width < 500)
+            {
+                return upper[..Math.Min(upper.Length, 28)];
+            }
+            else if (size.Width < 600)
+            {
+                return upper[..Math.Min(upper.Length, 35)];
+            }
+            else if (size.Width < 700)
+            {
+                return upper[..Math.Min(upper.Length, 42)];
+            }
+            return upper;
+        }
+    }
     [ObservableProperty]
-    private string name = string.Empty;
+    [NotifyPropertyChangedFor(nameof(Name))]
+    private string originalName = string.Empty;
     [ObservableProperty]
     private string team = string.Empty;
     [ObservableProperty]
@@ -269,6 +292,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
+    private readonly Debouncer viewSizeDebouncer = new(TimeSpan.FromMilliseconds(50));
+
     #region Car Details
 
     private bool isDetailsExpanded = false;
@@ -401,10 +426,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     public void ApplyEntry(EventEntry entry)
     {
         Number = entry.Number;
-        var n = entry.Name.ToUpperInvariant();
-        if (n.Length > 21)
-            n = n[..21];
-        Name = n;
+        OriginalName = entry.Name;
         Team = entry.Team;
         Class = entry.Class;
 
@@ -432,5 +454,15 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     public void Receive(SizeChangedNotification message)
     {
         ShowPenaltyColumn = viewSizeService.CurrentSize.Width > LiveTimingViewModel.PenaltyColumnWidth;
+        FireNamePropertyChangedDebounced();
+    }
+
+    private void FireNamePropertyChangedDebounced()
+    {
+        _ = viewSizeDebouncer.ExecuteAsync(() =>
+        {
+            Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(Name)), DispatcherPriority.Normal);
+            return Task.CompletedTask;
+        });
     }
 }
