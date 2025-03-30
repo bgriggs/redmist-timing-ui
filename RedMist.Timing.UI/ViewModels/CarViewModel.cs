@@ -1,4 +1,6 @@
-﻿using Avalonia.Media;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -15,17 +17,24 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 {
     #region Colors
 
-    private static readonly Color rowNormalColor = Colors.Transparent;
-    private static readonly Color rowUpdateColor = Color.Parse("#fce3cf");
-    private static readonly Color rowStaleColor = Color.Parse("#f7d2bb");
+    private const string CARROW_NORMAL_BACKGROUNDBRUSH = "carRowNormalBackgroundBrush";
+    private const string CARROW_UPDATED_BACKGROUNDBRUSH = "carRowUpdatedBackgroundBrush";
+    private const string CARROW_STALE_BACKGROUNDBRUSH = "carRowStaleBackgroundBrush";
+    //private static readonly Color rowNormalColor = Colors.Transparent;
+    //private static readonly Color rowUpdateColor = Color.Parse("#fce3cf");
+    //private static readonly Color rowStaleColor = Color.Parse("#f7d2bb");
 
-    public static readonly IBrush carNormalLapColor = Brushes.Black;
-    public static readonly IBrush carBestLapColor = Brush.Parse("#5da639");
-    public static readonly IBrush carOverallBestLapColor = Brushes.Purple;
+    public const string CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH = "carRowLapTextForegroundNormalBrush";
+    public const string CARROWLAPTEXTFOREGROUND_BEST_BRUSH = "carRowLapTextForegroundBestBrush";
+    public const string CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH = "carRowLapTextForegroundOverallBestBrush";
+    //public static readonly IBrush carNormalLapColor = Brushes.Black;
+    //public static readonly IBrush carBestLapColor = Brush.Parse("#5da639");
+    //public static readonly IBrush carOverallBestLapColor = Brushes.Purple;
 
     #endregion
 
     #region Car Properties
+
     private CarPosition? lastCarPosition;
 
     [ObservableProperty]
@@ -229,18 +238,15 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
-    private Color _rowBackground = rowNormalColor;
-    public Color RowBackground
-    {
-        get => _rowBackground;
-        set
-        {
-            SetProperty(ref _rowBackground, value);
-        }
-    }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RowBackground))]
+    private string rowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH;
+    public Color RowBackground => (Color?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, RowBackgroundKey) ?? Colors.Transparent;
 
     [ObservableProperty]
-    private IBrush lapDataColor = carNormalLapColor;
+    [NotifyPropertyChangedFor(nameof(LapDataColor))]
+    private string lapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
+    public IBrush LapDataColor => (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, LapDataBrushKey) ?? Brushes.Black;
     [ObservableProperty]
     private FontWeight lapDataFontWeight = FontWeight.Normal;
 
@@ -299,7 +305,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         this.pitTracking = pitTracking;
         this.viewSizeService = viewSizeService;
         WeakReferenceMessenger.Default.RegisterAll(this);
-        Receive(new SizeChangedNotification(Avalonia.Size.Infinity));
+        Receive(new SizeChangedNotification(Size.Infinity));
     }
 
 
@@ -326,9 +332,6 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         InClassPositionsGained = carPosition.InClassPositionsGained;
         IsOverallMostPositionsGained = carPosition.IsOverallMostPositionsGained;
         IsClassMostPositionsGained = carPosition.IsClassMostPositionsGained;
-        if (carPosition.PenalityLaps > 0 || carPosition.PenalityWarnings > 0)
-        {
-        }
         PenaltyLaps = carPosition.PenalityLaps;
         PenaltyWarnings = carPosition.PenalityWarnings;
         IsStale = carPosition.IsStale;
@@ -352,18 +355,18 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         // Change to stale color to show car has not updated in a while
         if (IsStale)
         {
-            RowBackground = rowStaleColor;
+            RowBackgroundKey = CARROW_STALE_BACKGROUNDBRUSH;
         }
-        else if (RowBackground == rowStaleColor)
+        else if (RowBackgroundKey == CARROW_STALE_BACKGROUNDBRUSH)
         {
-            RowBackground = rowNormalColor;
+            RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH;
         }
 
         // Flash the row background if the lap has changed
-        if (prevLap != LastLap && RowBackground != rowUpdateColor)
+        if (prevLap != LastLap && RowBackgroundKey != CARROW_UPDATED_BACKGROUNDBRUSH)
         {
-            Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackground = rowUpdateColor));
-            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackground = rowNormalColor));
+            Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_UPDATED_BACKGROUNDBRUSH));
+            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH));
         }
 
         if (LastLap > 0)
@@ -371,23 +374,23 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             // Check for best lap overall/in-class and car's fastest lap
             if (IsBestTime)
             {
-                LapDataColor = carOverallBestLapColor;
+                LapDataBrushKey = CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH;
                 LapDataFontWeight = FontWeight.Bold;
             }
             else if (BestLap == LastLap)
             {
-                LapDataColor = carBestLapColor;
+                LapDataBrushKey = CARROWLAPTEXTFOREGROUND_BEST_BRUSH;
                 LapDataFontWeight = FontWeight.Bold;
             }
             else // Reset to normal
             {
-                LapDataColor = carNormalLapColor;
+                LapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
                 LapDataFontWeight = FontWeight.Normal;
             }
         }
         else // Reset to normal
         {
-            LapDataColor = carNormalLapColor;
+            LapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
             LapDataFontWeight = FontWeight.Normal;
         }
 
@@ -406,7 +409,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         Class = entry.Class;
 
         // Force reset once loaded - prevents color from getting stuck on update color
-        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackground = rowNormalColor, DispatcherPriority.Send));
+        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH, DispatcherPriority.Send));
     }
 
     private void UpdateCarDetails(bool isEnabled)

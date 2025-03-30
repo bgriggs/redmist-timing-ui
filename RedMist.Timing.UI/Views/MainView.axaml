@@ -27,7 +27,7 @@
 			<TabItem IsVisible="{Binding IsLiveTimingTabVisible}">
 				<TabItem.Header>
 					<StackPanel Width="60">
-						<PathIcon Height="15" Foreground="Black" Data="{StaticResource flaggeom}"/>
+						<PathIcon Height="15" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
 						<TextBlock Text="Live" HorizontalAlignment="Center"/>
 					</StackPanel>
 				</TabItem.Header>
@@ -36,7 +36,7 @@
 			<TabItem Header="Results" IsSelected="{Binding IsResultsTabSelected}">
 				<TabItem.Header>
 					<StackPanel Width="60">
-						<PathIcon Height="15" Margin="0,2,0,0" Foreground="Black" Data="{StaticResource trophygeom}">
+						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource trophygeom}">
 							<PathIcon.RenderTransform>
 								<RotateTransform Angle="180"/>
 							</PathIcon.RenderTransform>
@@ -49,7 +49,7 @@
 			<TabItem Header="Control Log" IsSelected="{Binding IsControlLogTabSelected}" IsVisible="{Binding IsControlLogTabVisible}">
 				<TabItem.Header>
 					<StackPanel Width="70">
-						<PathIcon Height="15" Margin="0,2,0,0" Foreground="Black" Data="{StaticResource warninggeom}"/>
+						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warninggeom}"/>
 						<TextBlock Text="Control Log" Margin="0,1,0,0" HorizontalAlignment="Center"/>
 					</StackPanel>
 				</TabItem.Header>
@@ -58,7 +58,7 @@
 			<TabItem Header="Information">
 				<TabItem.Header>
 					<StackPanel Width="60">
-						<PathIcon Height="15" Margin="0,3,0,0" Foreground="Black" Data="{StaticResource infogeom}"/>
+						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
 						<TextBlock Text="Info" Margin="0,1,0,0" HorizontalAlignment="Center"/>
 					</StackPanel>
 				</TabItem.Header>

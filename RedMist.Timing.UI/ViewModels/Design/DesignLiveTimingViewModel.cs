@@ -1,7 +1,6 @@
 ﻿using DynamicData;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
-using RedMist.Timing.UI.ViewModels.CarDetails;
 using RedMist.TimingCommon.Models;
 using System;
 
