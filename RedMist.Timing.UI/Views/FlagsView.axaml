@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
+			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
+			 xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
+			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
+             x:Class="RedMist.Timing.UI.Views.FlagsView"
+			 x:DataType="vm:FlagsViewModel">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<design:DesignFlagsViewModel />
+	</Design.DataContext>
+
+	<UserControl.Resources>
+		<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
+	</UserControl.Resources>
+	
+	<StackPanel>
+		<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
+			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}"/>
+			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
+			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
+		</Grid>
+
+		<StackPanel Orientation="Horizontal">
+			<TextBlock Text="Flags" FontSize="16" FontWeight="Bold" Margin="4,15,4,0" Width="82"/>
+			<TextBlock Text="Start" Classes="flagdurationheader" Width="62"/>
+			<!--<TextBlock Text="-" Margin="0,0,2,0" VerticalAlignment="Bottom"/>-->
+			<TextBlock Text="End" Classes="flagdurationheader" Width="66"/>
+			<TextBlock Text="Duration" Classes="flagdurationheader" Width="50"/>
+		</StackPanel>
+		<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+			<ItemsRepeater ItemsSource="{Binding Flags}" Margin="4,2,4,4">
+				<ItemsRepeater.ItemTemplate>
+					<DataTemplate DataType="vm:FlagViewModel">
+						<Border BorderThickness="1" BorderBrush="Black" Padding="5" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" CornerRadius="3" Margin="0,0,0,1">
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding FlagStr}" Width="80" Classes="theme-text-heading size-xs"/>
+								<TextBlock Text="{Binding StartTime}" Width="52" Classes="flagduration"/>
+								<TextBlock Text="-" Margin="0,0,2,0"/>
+								<TextBlock Text="{Binding EndTime}" Width="52" Classes="flagduration"/>
+								<TextBlock Text="{Binding Duration}" Width="80" Margin="15,0,0,0" Classes="flagduration"/>
+							</StackPanel>
+						</Border>
+					</DataTemplate>
+				</ItemsRepeater.ItemTemplate>
+			</ItemsRepeater>
+		</ScrollViewer>
+	</StackPanel>
+</UserControl>

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Microsoft.IdentityModel.Tokens;
+using RedMist.TimingCommon.Models;
 using System;
 using System.Globalization;
 
@@ -36,6 +37,20 @@ public class FlagToBrushConverter : IValueConverter
                 return GetResource(TIMINGFLAG_PURPLE_BACKGROUND);
             else if (flag == "Checkered")
                 return GetResource(TIMINGFLAG_CHECKERED_BACKGROUND);
+        }
+        else if (value is Flags fe)
+        {
+            return fe switch
+            {
+                Flags.Green => GetResource(TIMINGFLAG_GREEN_BACKGROUND),
+                Flags.Yellow => GetResource(TIMINGFLAG_YELLOW_BACKGROUND),
+                Flags.Red => GetResource(TIMINGFLAG_RED_BACKGROUND),
+                Flags.Black => GetResource(TIMINGFLAG_BLACK_BACKGROUND),
+                Flags.White => GetResource(TIMINGFLAG_WHITE_BACKGROUND),
+                Flags.Purple35 => GetResource(TIMINGFLAG_PURPLE_BACKGROUND),
+                Flags.Checkered => GetResource(TIMINGFLAG_CHECKERED_BACKGROUND),
+                _ => Brushes.Transparent,
+            };
         }
         return Brushes.Transparent;
     }

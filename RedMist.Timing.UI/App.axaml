@@ -8,6 +8,7 @@
 	<Application.Resources>
 		<ResourceDictionary>
 			<StreamGeometry x:Key="flaggeom">M 14.4,6 14,4 H 5 v 17 h 2 v -7 h 5.6 l 0.4,2 h 7 V 6 Z</StreamGeometry>
+			<StreamGeometry x:Key="flagopngeom">M883.405 807.697c-5.875 6.127-14.128 9.934-23.27 9.934-0.087 0-0.174 0-0.261-0.001h0.013c-10.717-2.174-20.23-5.987-28.788-11.212l0.389 0.221c-14.438-7.305-29.764-15.428-45.909-24.508-16.258-9.045-35.248-17.346-55.058-23.84l-2.355-0.668c-18.25-6.596-39.315-10.59-61.258-10.988l-0.182-0.003c-0.638-0.014-1.391-0.023-2.145-0.023-15.913 0-30.968 3.674-44.362 10.219l0.598-0.264c-30.956 15.422-68.742 30.963-107.674 44.001l-6.57 1.908c-30.441 9.621-65.449 15.165-101.753 15.165-0.924 0-1.847-0.004-2.769-0.011l0.142 0.001c-81.211-3.786-156.347-26.548-222.098-63.916l2.45 1.282c-17.067-8.465-29.082-14.985-36.932-19.797l-7.817 57.207c17.669 15.374 28.774 37.897 28.774 63.015 0 46.054-37.334 83.388-83.388 83.388s-83.388-37.334-83.388-83.388c0-29.984 15.825-56.272 39.579-70.966l0.358-0.206 112.64-827.085c3.373-24.107 23.841-42.463 48.602-42.496h0.003c0.018 0 0.039 0 0.060 0 2.386 0 4.734 0.161 7.035 0.474l-0.268-0.030c24.275 3.254 42.799 23.834 42.799 48.74 0 2.312-0.16 4.587-0.468 6.814l0.029-0.258-45.329 332.425c61.542 34.707 134.36 56.935 211.942 61.379l1.323 0.061c0.11 0 0.239 0 0.369 0 26.424 0 51.867-4.195 75.701-11.956l-1.728 0.487c23.163-7.052 43.133-15.549 61.964-25.865l-1.684 0.845c15.959-9.019 34.649-17.47 54.114-24.266l2.479-0.754c19.155-7.15 41.286-11.354 64.379-11.503h0.065c71.725 4.693 137.471 26.591 194.309 61.567l-1.831-1.048c7.892 3.827 14.653 8.636 20.49 14.38l-0.010-0.010c4.094 4.896 6.581 11.259 6.581 18.203 0 0.657-0.022 1.309-0.066 1.954l0.005-0.087v397.995c0.001 0.093 0.002 0.202 0.002 0.312 0 9.092-3.766 17.305-9.823 23.163l-0.009 0.009z</StreamGeometry>
 			<StreamGeometry x:Key="trophygeom">M458 653c-42 92 -74 214 -74 371h-256v-96c0 -98 133 -234 330 -275zM1536 928v96h-256c0 -157 -32 -279 -74 -371c197 41 330 177 330 275zM1664 1056v-128c0 -190 -230 -400 -542 -415c-40 -51 -77 -81 -95 -95c-53 -48 -67 -98 -67 -162s32 -128 128 -128 s192 -64 192 -160v-64c0 -18 -14 -32 -32 -32h-832c-18 0 -32 14 -32 32v64c0 96 96 160 192 160s128 64 128 128s-14 114 -67 162c-18 14 -55 44 -95 95c-312 15 -542 225 -542 415v128c0 53 43 96 96 96h288v96c0 88 72 160 160 160h576c88 0 160 -72 160 -160v-96h288 c53 0 96 -43 96 -96z</StreamGeometry>
 			<StreamGeometry x:Key="infogeom">M12.432,0c1.34,0,2.01,0.912,2.01,1.957c0,1.305-1.164,2.512-2.679,2.512c-1.269,0-2.009-0.75-1.974-1.99  C9.789,1.436,10.67,0,12.432,0z M8.309,20c-1.058,0-1.833-0.652-1.093-3.524l1.214-5.092c0.211-0.814,0.246-1.141,0-1.141  c-0.317,0-1.689,0.562-2.502,1.117L5.4,10.48c2.572-2.186,5.531-3.467,6.801-3.467c1.057,0,1.233,1.273,0.705,3.23l-1.391,5.352  c-0.246,0.945-0.141,1.271,0.106,1.271c0.317,0,1.357-0.392,2.379-1.207l0.6,0.814C12.098,19.02,9.365,20,8.309,20z</StreamGeometry>
 			<StreamGeometry x:Key="back">M1017 1235l-531 -531l531 -531c25 -25 25 -65 0 -90l-166 -166c-25 -25 -65 -25 -90 0l-742 742c-25 25 -25 65 0 90l742 742c25 25 65 25 90 0l166 -166c25 -25 25 -65 0 -90z</StreamGeometry>
@@ -16,15 +17,8 @@
 			<StreamGeometry x:Key="warningopengeom">M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z</StreamGeometry>
 			<StreamGeometry x:Key="refreshArrow">M463.5 224H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1c-87.5 87.5-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5z</StreamGeometry>
 
-			<!--<SolidColorBrush x:Key="lightAppBackground">#FFEBEB</SolidColorBrush>-->
-			<!--<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
-			<SolidColorBrush x:Key="strongAppBackground">#D7412C</SolidColorBrush>-->
 			<SolidColorBrush x:Key="boldItemBorder">#D7412C</SolidColorBrush>
 			<SolidColorBrush x:Key="medItemBorder">#FFCDCD</SolidColorBrush>
-			<!--<SolidColorBrush x:Key="btnPointerOver">White</SolidColorBrush>-->
-
-			<!--<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
-			<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>-->
 
 			<ResourceDictionary.ThemeDictionaries>
 				<ResourceDictionary x:Key="Light">
@@ -39,6 +33,7 @@
 					<SolidColorBrush x:Key="PositionsLostForegroundBrush">Red</SolidColorBrush>
 					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">Gray</SolidColorBrush>
 					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">#e0e0e0</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableBackgroundBrush">White</SolidColorBrush>
 
 					<SolidColorBrush x:Key="EventRowBackgroundBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="btnPointerOver">White</SolidColorBrush>
@@ -83,6 +78,7 @@
 					<SolidColorBrush x:Key="PositionsLostForegroundBrush">Red</SolidColorBrush>
 					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">Gray</SolidColorBrush>
 					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">Gray</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableBackgroundBrush">#272727</SolidColorBrush>
 					
 					<SolidColorBrush x:Key="btnPointerOver">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="lightAppBackground">#D7412C</SolidColorBrush>
@@ -158,6 +154,14 @@
 		</Style>
 		<Style Selector="TextBlock.sch">
 			<Setter Property="FontSize" Value="9"/>
+		</Style>
+		<Style Selector="TextBlock.flagduration">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="TextBlock.flagdurationheader">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="VerticalAlignment" Value="Bottom"/>
 		</Style>
 		
 		<Style Selector="Button.back">

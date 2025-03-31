@@ -1,5 +1,4 @@
-﻿using Avalonia.Interactivity;
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -14,6 +13,7 @@ using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
@@ -46,7 +46,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private string timeToGo = string.Empty;
 
     [ObservableProperty]
-    private string totalTime = string.Empty;
+    private string localTime = string.Empty;
+
+    [ObservableProperty]
+    private string raceTime = string.Empty;
 
     [ObservableProperty]
     private string totalLaps = string.Empty;
@@ -202,7 +205,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         {
             Flag = status.EventStatus.Flag.ToString();
             TimeToGo = status.EventStatus.TimeToGo;
-            TotalTime = status.EventStatus.TotalTime;
+            RaceTime = status.EventStatus.RunningRaceTime;
+            if (DateTime.TryParseExact(status.EventStatus.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var tod))
+            {
+                LocalTime = tod.ToString("h:mm:ss tt");
+            }
         }
 
         // Update event entries
@@ -284,7 +291,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             EventName = string.Empty;
             Flag = string.Empty;
             TimeToGo = string.Empty;
-            TotalTime = string.Empty;
+            RaceTime = string.Empty;
+            LocalTime = string.Empty;
             TotalLaps = string.Empty;
         }
     }

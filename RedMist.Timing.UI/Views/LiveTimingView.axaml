@@ -314,7 +314,8 @@
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="{Binding EventName}" Classes="h1" FontWeight="Bold"/>
 				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1"/>
-				<TextBlock Text="{Binding TotalTime, StringFormat='Race Time: {0}'}}" Classes="h1"/>
+				<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}}" Classes="h1"/>
+				<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}}" Classes="h1"/>
 				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}}" Classes="h1"/>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock Text="Watch Along: " Classes="h1" IsVisible="{Binding IsBroadcastVisible}"/>
@@ -347,7 +348,7 @@
 		</Border>
 
 		<!--Car Table-->
-		<Border Grid.Row="2"  BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Opacity=".90">
+		<Border Grid.Row="2" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
 			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 				<Grid>
 					<!--Flat-->
