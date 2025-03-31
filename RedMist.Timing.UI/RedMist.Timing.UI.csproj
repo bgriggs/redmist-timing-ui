@@ -34,28 +34,28 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.2.4" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.4" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.4" />
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.4" />
+		<PackageReference Include="Avalonia" Version="11.2.6" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.6" />
+		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.6" />
+		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.6" />
 		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="ActiproSoftware.Controls.Avalonia" Version="25.1.1" />
 		<PackageReference Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.1.1" />
-		<PackageReference Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250128-build.2031" />
-		<PackageReference Include="DynamicData" Version="9.1.2" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.2" />
+		<PackageReference Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250319-build.2093" />
+		<PackageReference Include="DynamicData" Version="9.2.1" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.3" />
 		<PackageReference Include="BigMission.Avalonia.Utilities" Version="1.0.3" />
 		<PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
 
-		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.2">
+		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
 		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.4" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.3" />
 		<PackageReference Include="RestSharp" Version="112.1.0" />
 	</ItemGroup>
 

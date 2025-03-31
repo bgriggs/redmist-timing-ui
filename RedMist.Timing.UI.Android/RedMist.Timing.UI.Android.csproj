@@ -5,8 +5,8 @@
 		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 		<Nullable>enable</Nullable>
 		<ApplicationId>com.bigmissionmotorsports.redmist</ApplicationId>
-		<ApplicationVersion>1</ApplicationVersion>
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationVersion>4</ApplicationVersion>
+		<ApplicationDisplayVersion>0.0.4</ApplicationDisplayVersion>
 		<AndroidUseAapt2>True</AndroidUseAapt2>
 		<AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 		<AndroidPackageFormat>aab</AndroidPackageFormat>
@@ -15,7 +15,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Android" Version="11.2.4" />
+		<PackageReference Include="Avalonia.Android" Version="11.2.6" />
 		<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.14" />
 	</ItemGroup>
 
