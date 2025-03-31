@@ -13,7 +13,7 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public enum TabTypes { LiveTiming, Results, ControlLog, EventInformation }
 
-public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>
+public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<SizeChangedNotification>
 {
     public EventsListViewModel EventsListViewModel { get; }
     public LiveTimingViewModel LiveTimingViewModel { get; }
@@ -28,6 +28,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private EventInformationViewModel? eventInformationViewModel;
     [ObservableProperty]
     private ControlLogViewModel? controlLogViewModel;
+    [ObservableProperty]
+    private FlagsViewModel? flagsViewModel;
 
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
@@ -70,6 +72,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     }
     [ObservableProperty]
     private bool isControlLogTabVisible;
+    [ObservableProperty]
+    private bool isFlagsTabVisible;
+    private const int FlagShowWidth = 500;
 
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient, 
@@ -102,6 +107,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService);
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
                 ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient);
+                FlagsViewModel = new FlagsViewModel(eventModel);
                 IsTimingVisible = true;
                 IsControlLogTabVisible = eventModel.HasControlLog;
 
@@ -118,5 +124,13 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             IsEventsListVisible = true;
             IsTimingVisible = false;
         }
+    }
+
+    /// <summary>
+    /// Handles notifications related to size changes.
+    /// </summary>
+    public void Receive(SizeChangedNotification message)
+    {
+        IsFlagsTabVisible = viewSizeService.CurrentSize.Width > FlagShowWidth;
     }
 }

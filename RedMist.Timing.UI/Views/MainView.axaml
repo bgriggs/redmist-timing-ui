@@ -5,7 +5,7 @@
              xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:v="clr-namespace:RedMist.Timing.UI.Views"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="450"
              x:Class="RedMist.Timing.UI.Views.MainView"
              x:DataType="vm:MainViewModel">
 	<Design.DataContext>
@@ -46,6 +46,15 @@
 				</TabItem.Header>
 				<v:ResultsView DataContext="{Binding ResultsViewModel}"/>
 			</TabItem>
+			<TabItem Header="Information">
+				<TabItem.Header>
+					<StackPanel Width="60">
+						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
+						<TextBlock Text="Info" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+					</StackPanel>
+				</TabItem.Header>
+				<v:EventInformationView DataContext="{Binding EventInformationViewModel}"/>
+			</TabItem>
 			<TabItem Header="Control Log" IsSelected="{Binding IsControlLogTabSelected}" IsVisible="{Binding IsControlLogTabVisible}">
 				<TabItem.Header>
 					<StackPanel Width="70">
@@ -55,14 +64,14 @@
 				</TabItem.Header>
 				<v:ControlLogView DataContext="{Binding ControlLogViewModel}"/>
 			</TabItem>
-			<TabItem Header="Information">
+			<TabItem Header="Flags" IsVisible="{Binding IsFlagsTabVisible}">
 				<TabItem.Header>
 					<StackPanel Width="60">
-						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
-						<TextBlock Text="Info" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
+						<TextBlock Text="Flags" Margin="0,1,0,0" HorizontalAlignment="Center"/>
 					</StackPanel>
 				</TabItem.Header>
-				<v:EventInformationView DataContext="{Binding EventInformationViewModel}"/>
+				<v:FlagsView DataContext="{Binding FlagsViewModel}"/>
 			</TabItem>
 		</TabControl>
 	</Grid>

@@ -17,7 +17,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         EventName = "Design Event";
         Flag = "Green";
         TimeToGo = "03:45:00";
-        TotalTime = "01:00:00";
+        RaceTime = "01:00:00";
+        LocalTime = "9:14:33 am";
 
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {

@@ -1,6 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -64,6 +62,7 @@ public class EventInformationViewModel : ObservableObject
     {
         WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.EventUrl));
     }
+
     public void LaunchBroadcastUrl()
     {
         if (EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url))
