@@ -10,7 +10,6 @@
 		<ApplicationId>com.bigmission.redmist</ApplicationId>
 		<ApplicationVersion>0.0.4</ApplicationVersion>
 		<ArchiveOnBuild>true</ArchiveOnBuild>
-		<_DotNetRootRemoteDirectory>/Users/***REMOVED***/Library/Caches/Xamarin/XMA/SDKs/dotnet/</_DotNetRootRemoteDirectory>
 		<TcpPort>22</TcpPort>
 		<!--<UseInterpreter>true</UseInterpreter>-->
 		<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
