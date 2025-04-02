@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="550" d:DesignHeight="350"
+             mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="750"
              x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -192,55 +192,70 @@
 		<DataTemplate x:Key="carExpanderTemplate" DataType="model:CarViewModel">
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
-				<TabControl DataContext="{Binding CarDetailsViewModel}" Padding="0">
-					<!--Laps-->
-					<TabItem Header="Laps">
-						<Grid RowDefinitions="Auto,*" Margin="10,3">
-							<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS  TIME          PIT     FLAG"/>
-							<ScrollViewer MaxHeight="250" Grid.Row="1">
-								<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
-									<ItemsRepeater.ItemTemplate>
-										<DataTemplate>
-											<StackPanel Orientation="Horizontal">
-												<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
-												<TextBlock Text="{Binding OverallPosition}" Classes="sm" Width="32"/>
-												<TextBlock Text="{Binding ClassPosition}" Classes="sm" Width="58"/>
-												<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
-												<TextBlock Text="{Binding InPit}" Classes="sm" Width="35"/>
-												<TextBlock Text="{Binding Flag}" Classes="sm" Width="55"/>
-											</StackPanel>
-										</DataTemplate>
-									</ItemsRepeater.ItemTemplate>
-								</ItemsRepeater>
-							</ScrollViewer>
-						</Grid>
-					</TabItem>
+				<Grid RowDefinitions="Auto,*" DataContext="{Binding CarDetailsViewModel}">
+					<Border Padding="3" BorderThickness="1" BorderBrush="Black" CornerRadius="3" Margin="2,1,2,0" IsVisible="{Binding IsCarMetadataVisible}">
+						<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
+							<TextBlock Text="{Binding Name, StringFormat='Name: {0}'}" Classes="sm"/>
+							<TextBlock Text="{Binding NationState, StringFormat='Country/State: {0}'}" Classes="sm" Grid.Column="1" Margin="6,0,0,0"/>
+							<TextBlock Text="{Binding Sponsor, StringFormat='Sponsor: {0}'}" Classes="sm" Grid.Column="2" Margin="6,0,0,0"/>
+							
+							<TextBlock Text="{Binding Make, StringFormat='Make: {0}'}" Classes="sm" Grid.Row="1"/>
+							<TextBlock Text="{Binding ModelEngine, StringFormat='Model/Engine: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="1" Margin="6,0,0,0"/>
+							<TextBlock Text="{Binding Tires, StringFormat='Tires: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="3" Margin="6,0,0,0"/>
 
-					<!--Positions Chart-->
-					<TabItem Header="Positions">
-						<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
+							<TextBlock Text="{Binding Club, StringFormat='Club: {0}'}" Classes="sm" Grid.Row="2" Grid.ColumnSpan="3"/>
+						</Grid>
+					</Border>
+					<TabControl Padding="0" Grid.Row="1">
+						<!--Laps-->
+						<TabItem Header="Laps">
+							<Grid RowDefinitions="Auto,*" Margin="10,3">
+								<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS  TIME          PIT     FLAG"/>
+								<ScrollViewer MaxHeight="250" Grid.Row="1">
+									<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
+										<ItemsRepeater.ItemTemplate>
+											<DataTemplate>
+												<StackPanel Orientation="Horizontal">
+													<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
+													<TextBlock Text="{Binding OverallPosition}" Classes="sm" Width="32"/>
+													<TextBlock Text="{Binding ClassPosition}" Classes="sm" Width="58"/>
+													<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
+													<TextBlock Text="{Binding InPit}" Classes="sm" Width="35"/>
+													<TextBlock Text="{Binding Flag}" Classes="sm" Width="55"/>
+												</StackPanel>
+											</DataTemplate>
+										</ItemsRepeater.ItemTemplate>
+									</ItemsRepeater>
+								</ScrollViewer>
+							</Grid>
+						</TabItem>
+
+						<!--Positions Chart-->
+						<TabItem Header="Positions">
+							<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
 											Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
 											ZoomMode="X" Padding="0"/>-->
-						<ContentControl Content="{Binding Chart.Chart}"/>
-					</TabItem>
+							<ContentControl Content="{Binding Chart.Chart}"/>
+						</TabItem>
 
-					<!--Penalties-->
-					<TabItem Header="Penalties">
-						<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
-								  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
-							<DataGrid.Columns>
-								<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
-								<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
-								<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
-								<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
-								<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
-								<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-								<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenalityAction}"/>
-								<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
-							</DataGrid.Columns>
-						</DataGrid>
-					</TabItem>
-				</TabControl>
+						<!--Penalties-->
+						<TabItem Header="Penalties">
+							<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
+									  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
+								<DataGrid.Columns>
+									<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
+									<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
+									<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
+									<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
+									<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
+									<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+									<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenalityAction}"/>
+									<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
+								</DataGrid.Columns>
+							</DataGrid>
+						</TabItem>
+					</TabControl>
+				</Grid>
 			</Expander>
 		</DataTemplate>
 
