@@ -166,6 +166,20 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
                 OtherNotes = "Continued"
             }));
 
+        carCache.Lookup("222").Value?.CarDetailsViewModel?.Receive(new Models.CompetitorMetadataNotification(new CompetitorMetadata 
+        { 
+            FirstName = "Bob",
+            LastName = "Smith",
+            NationState = "USA",
+            Sponsor = "Awesome Company",
+            CarNumber = "222",
+            Class = "GP1",
+            Transponder = 123456789,
+            Make = "Toyota",
+            ModelEngine = "Corolla",
+            //Club = "Awesome Club",
+            Tires = "Super Soft",
+        }));
         //ToggleGroupMode();
     }
 }

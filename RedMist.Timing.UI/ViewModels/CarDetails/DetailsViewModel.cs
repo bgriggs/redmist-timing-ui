@@ -9,14 +9,12 @@ using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IDisposable
+public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IRecipient<CompetitorMetadataNotification>, IDisposable
 {
     private readonly int eventId;
     private readonly string carNumber;
@@ -25,6 +23,26 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     private readonly PitTracking pitTracking;
     [ObservableProperty]
     private bool isLoading = false;
+
+    [ObservableProperty]
+    private bool isCarMetadataVisible = false;
+    [ObservableProperty]
+    private string name = string.Empty;
+    [ObservableProperty]
+    private string nationState = string.Empty;
+    [ObservableProperty]
+    private string sponsor = string.Empty;
+    [ObservableProperty]
+    private string hometown = string.Empty;
+    [ObservableProperty]
+    private string make = string.Empty;
+    [ObservableProperty]
+    private string modelEngine = string.Empty;
+    [ObservableProperty]
+    private string tires = string.Empty;
+    [ObservableProperty]
+    private string club = string.Empty;
+
 
     public ChartViewModel Chart { get; } = new ChartViewModel();
     public LapsListViewModel LapList { get; } = new LapsListViewModel();
@@ -47,11 +65,13 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             Dispatcher.UIThread.Post(() => IsLoading = true);
             // Subscribe to get control logs
             _ = hubClient.SubscribeToCarControlLogs(eventId, carNumber);
+            // Subscribe to get competitor metadata
+            _ = hubClient.SubscribeToCompetitorMetadata(eventId, carNumber);
 
             var carPositions = await serverClient.LoadCarLapsAsync(eventId, carNumber);
             Chart.UpdateLaps(carPositions);
             LapList.UpdateLaps(carPositions);
-            Debug.WriteLine($"Car positions loaded: {carPositions.Count}");
+            //Debug.WriteLine($"Car positions loaded: {carPositions.Count}");
         }
         catch (Exception)
         {
@@ -93,12 +113,39 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         }
     }
 
+    /// <summary>
+    /// Competitor metadata.
+    /// </summary>
+    public void Receive(CompetitorMetadataNotification message)
+    {
+        if (message.Value.CarNumber == carNumber)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                Name = message.Value.FirstName + " " + message.Value.LastName;
+                NationState = message.Value.NationState;
+                Sponsor = message.Value.Sponsor;
+                Hometown = message.Value.Hometown;
+                Make = message.Value.Make;
+                ModelEngine = message.Value.ModelEngine;
+                Tires = message.Value.Tires;
+                Club = message.Value.Club;
+                IsCarMetadataVisible = true;
+            });
+        }
+    }
+
     public void Dispose()
     {
         try
         {
             _ = hubClient.UnsubscribeFromCarControlLogs(eventId, carNumber);
+            _ = hubClient.UnsubscribeFromCompetitorMetadata(eventId, carNumber);
         }
         catch { }
+        finally
+        {
+            GC.SuppressFinalize(this);
+        }
     }
 }
