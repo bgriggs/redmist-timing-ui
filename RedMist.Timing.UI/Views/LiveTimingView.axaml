@@ -43,33 +43,23 @@
 					<TextBlock Text="{Binding Position}" Classes="lg" Grid.Column="0" Margin="2,0,0,0" Width="32" HorizontalAlignment="Left"/>
 
 					<!--Positions gained/lost-->
-					<ContentControl Content="{Binding .}" Grid.Row="1" HorizontalAlignment="Left" Margin="3,0">
-						<ContentControl.DataTemplates>
-							<sel:PositionsGainedLostTemplateSelector>
-								<DataTemplate x:Key="PositionsGained" DataType="model:CarViewModel">
-									<Grid ColumnDefinitions="Auto,Auto">
-										<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource upArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>
-										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Grid.Column="1"/>
-									</Grid>
-								</DataTemplate>
-								<DataTemplate x:Key="PositionsLost" DataType="model:CarViewModel">
-									<Grid ColumnDefinitions="Auto,Auto">
-										<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downArrow}"/>
-										<TextBlock Text="{Binding PositionsGainedLost}" Classes="sm" Foreground="{DynamicResource PositionsLostForegroundBrush}" Grid.Column="1"/>
-									</Grid>
-								</DataTemplate>
-								<DataTemplate x:Key="PositionsNeutral" DataType="model:CarViewModel">
-									<Grid ColumnDefinitions="Auto,Auto">
-										<StackPanel Orientation="Vertical">
-											<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource upArrow}"/>
-											<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource downArrow}" Margin="0,-2,0,0"/>
-										</StackPanel>
-										<TextBlock Text="0" Classes="sm" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Grid.Column="1" Margin="1,0,0,0" VerticalAlignment=""/>
-									</Grid>
-								</DataTemplate>
-							</sel:PositionsGainedLostTemplateSelector>
-						</ContentControl.DataTemplates>
-					</ContentControl>
+					<StackPanel DataContext="{Binding PositionsGainedLost}" Grid.Row="1" HorizontalAlignment="Left" Margin="3,0">
+						<Grid ColumnDefinitions="Auto,Auto" IsVisible="{Binding IsGain}">
+							<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource upArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>
+							<TextBlock Text="{Binding PositionChangeText}" Classes="sm" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Grid.Column="1"/>
+						</Grid>
+						<Grid ColumnDefinitions="Auto,Auto" IsVisible="{Binding IsLoss}">
+							<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downArrow}"/>
+							<TextBlock Text="{Binding PositionChangeText}" Classes="sm" Foreground="{DynamicResource PositionsLostForegroundBrush}" Grid.Column="1"/>
+						</Grid>
+						<Grid ColumnDefinitions="Auto,Auto" IsVisible="{Binding IsNoChange}">
+							<StackPanel Orientation="Vertical">
+								<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource upArrow}"/>
+								<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource downArrow}" Margin="0,-2,0,0"/>
+							</StackPanel>
+							<TextBlock Text="0" Classes="sm" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Grid.Column="1" Margin="1,0,0,0" VerticalAlignment=""/>
+						</Grid>
+					</StackPanel>
 				</Grid>
 				<Grid RowDefinitions="Auto,Auto" Margin="1,0,0,4" Grid.Column="1">
 					<StackPanel Orientation="Horizontal">

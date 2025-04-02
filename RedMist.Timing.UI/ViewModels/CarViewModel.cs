@@ -122,8 +122,11 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private int lastLap;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Position))]
+    [NotifyPropertyChangedFor(nameof(PositionsGainedLost))]
     private int overallPosition;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Position))]
+    [NotifyPropertyChangedFor(nameof(PositionsGainedLost))]
     private int classPosition;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PositionsGainedLost))]
@@ -231,18 +234,21 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
-    public int PositionsGainedLost
+    private PositionChange positionsGainedLost = new();
+    public PositionChange PositionsGainedLost
     {
         get
         {
             if (CurrentGroupMode == GroupMode.Overall)
             {
-                return OverallPositionsGained;
+                positionsGainedLost.RawPositionChange = OverallPositionsGained;
             }
             else
             {
-                return InClassPositionsGained;
+                positionsGainedLost.RawPositionChange = InClassPositionsGained;
             }
+
+            return positionsGainedLost;
         }
     }
 
@@ -465,4 +471,18 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             return Task.CompletedTask;
         });
     }
+}
+
+public partial class PositionChange : ObservableObject
+{
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PositionChangeText))]
+    [NotifyPropertyChangedFor(nameof(IsGain))]
+    [NotifyPropertyChangedFor(nameof(IsLoss))]
+    [NotifyPropertyChangedFor(nameof(IsNoChange))]
+    private int rawPositionChange;
+    public string PositionChangeText { get => Math.Abs(RawPositionChange).ToString(); }
+    public bool IsGain => RawPositionChange > 0 && RawPositionChange != CarPosition.InvalidPosition;
+    public bool IsLoss => RawPositionChange < 0 && RawPositionChange != CarPosition.InvalidPosition;
+    public bool IsNoChange => RawPositionChange == 0 && RawPositionChange != CarPosition.InvalidPosition;
 }
