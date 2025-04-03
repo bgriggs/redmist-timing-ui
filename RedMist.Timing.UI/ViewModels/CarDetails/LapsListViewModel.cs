@@ -34,7 +34,7 @@ public class LapsListViewModel
         }
 
         // Update best lap
-        var bestLap = lapCache.Items.Where(l => l.LapTimeDt > DateTime.MinValue).OrderBy(l => l.LapTimeDt).FirstOrDefault();
+        var bestLap = lapCache.Items.Where(l => l.LapTimeDt.TimeOfDay > TimeSpan.Zero).OrderBy(l => l.LapTimeDt).FirstOrDefault();
         if (bestLap != null)
         {
             foreach (var lap in lapCache.Items)
