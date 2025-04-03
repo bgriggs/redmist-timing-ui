@@ -45,5 +45,25 @@ public class LapsListViewModel
             }
             bestLap.IsBestLap = true;
         }
+
+        // Update gained/lost position
+        for (int i = 0; i < lapCache.Items.Count; i++)
+        {
+            var lap = lapCache.Items[i];
+            if (i == 0)
+            {
+                lap.GainedOverallPosition = false;
+                lap.LostOverallPosition = false;
+                lap.GainedClassPosition = false;
+                lap.LostClassPosition = false;
+            }
+            else
+            {
+                lap.GainedOverallPosition = lapCache.Items[i - 1].OverallPosition > lap.OverallPosition;
+                lap.LostOverallPosition = lapCache.Items[i - 1].OverallPosition < lap.OverallPosition;
+                lap.GainedClassPosition = lapCache.Items[i - 1].ClassPosition > lap.ClassPosition;
+                lap.LostClassPosition = lapCache.Items[i - 1].ClassPosition < lap.ClassPosition;
+            }
+        }
     }
 }

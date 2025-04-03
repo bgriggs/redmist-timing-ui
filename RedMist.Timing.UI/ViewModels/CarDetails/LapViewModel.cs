@@ -26,8 +26,15 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
             return string.Empty;
         }
     }
-    public bool GainedPosition { get; set; }
-    public bool LostPosition { get; set; }
+
+    [ObservableProperty]
+    private bool gainedOverallPosition;
+    [ObservableProperty]
+    private bool lostOverallPosition;
+    [ObservableProperty]
+    private bool gainedClassPosition;
+    [ObservableProperty]
+    private bool lostClassPosition;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeColor))]
