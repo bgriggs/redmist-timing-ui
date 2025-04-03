@@ -2,7 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using Microsoft.IdentityModel.Tokens;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Globalization;

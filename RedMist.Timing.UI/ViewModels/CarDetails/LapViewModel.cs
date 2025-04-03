@@ -40,7 +40,8 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
     [NotifyPropertyChangedFor(nameof(TimeColor))]
     [NotifyPropertyChangedFor(nameof(TimeFontWeight))]
     private bool isBestLap;
-    public string Flag => carPosition.Flag != Flags.Unknown ? carPosition.Flag.ToString() : string.Empty;
+    public string FlagStr => carPosition.Flag != Flags.Unknown ? carPosition.Flag.ToString() : string.Empty;
+    public Flags Flag => carPosition.Flag;
     public string InPit => carPosition.LapIncludedPit ? "YES" : string.Empty;
 
     private DateTime? lapTimeDt;
