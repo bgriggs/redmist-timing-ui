@@ -128,18 +128,13 @@
 
 		<!--Car Row Toggle Button-->
 		<ControlTemplate x:Key="rowToggleButtonTemplate" TargetType="ToggleButton">
-			<Border x:Name="ToggleButtonBackground"
-					CornerRadius="{TemplateBinding CornerRadius}"
-					Background="{TemplateBinding Background}"
-					BorderBrush="{TemplateBinding BorderBrush}"
+			<Border x:Name="ToggleButtonBackground" CornerRadius="{TemplateBinding CornerRadius}"
+					Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
 					BorderThickness="{TemplateBinding BorderThickness}">
 				<Grid x:Name="ToggleButtonGrid" ColumnDefinitions="*,Auto">
-					<ContentPresenter x:Name="PART_ContentPresenter"
-									  Content="{TemplateBinding Content}"
-									  ContentTemplate="{TemplateBinding ContentTemplate}"
-									  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-									  Foreground="{TemplateBinding Foreground}"
+					<ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+									  ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" Foreground="{TemplateBinding Foreground}"
 									  Margin="{TemplateBinding Padding}"/>
 				</Grid>
 			</Border>
@@ -148,30 +143,17 @@
 		<!--Car Row Expander-->
 		<ControlTemplate x:Key="rowExpanderTemplate" TargetType="Expander">
 			<DockPanel MinWidth="{TemplateBinding MinWidth}" MaxWidth="{TemplateBinding MaxWidth}">
-				<ToggleButton x:Name="ExpanderHeader"
-							  Template="{StaticResource rowToggleButtonTemplate}"
-							  Height="33"
-							  CornerRadius="{TemplateBinding CornerRadius}"
-							  IsEnabled="{TemplateBinding IsEnabled}"
-							  Content="{TemplateBinding Header}"
-							  ContentTemplate="{TemplateBinding HeaderTemplate}"
-							  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-							  Background="Transparent"
-							  BorderBrush="Gray"
-							  Padding="0"/>
-				<Border x:Name="ExpanderContent"
-						IsVisible="{TemplateBinding IsExpanded, Mode=TwoWay}"
-						Background="Transparent"
-						BorderBrush="{TemplateBinding BorderBrush}"
-						BorderThickness="{TemplateBinding BorderThickness}"
-						MinHeight="{TemplateBinding MinHeight}"
-						HorizontalAlignment="Stretch"
-						VerticalAlignment="Stretch"
-						Padding="{TemplateBinding Padding}">
-					<ContentPresenter x:Name="PART_ContentPresenter"
-									  Content="{TemplateBinding Content}"
-									  ContentTemplate="{TemplateBinding ContentTemplate}"
-									  Foreground="{TemplateBinding Foreground}"
+				<ToggleButton x:Name="ExpanderHeader" Template="{StaticResource rowToggleButtonTemplate}"
+							  Height="33" CornerRadius="{TemplateBinding CornerRadius}"
+							  IsEnabled="{TemplateBinding IsEnabled}" Content="{TemplateBinding Header}"
+							  ContentTemplate="{TemplateBinding HeaderTemplate}" IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+							  Background="Transparent" BorderBrush="Gray" Padding="0"/>
+				<Border x:Name="ExpanderContent" IsVisible="{TemplateBinding IsExpanded, Mode=TwoWay}"
+						Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="{TemplateBinding BorderThickness}"	MinHeight="{TemplateBinding MinHeight}"
+						HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="{TemplateBinding Padding}">
+					<ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+									  ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}"
 									  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
 									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 				</Border>
@@ -183,12 +165,12 @@
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
 				<Grid RowDefinitions="Auto,*" DataContext="{Binding CarDetailsViewModel}">
-					<Border Padding="3" BorderThickness="1" BorderBrush="Black" CornerRadius="3" Margin="2,1,2,0" IsVisible="{Binding IsCarMetadataVisible}">
+					<Border Padding="3" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0" IsVisible="{Binding IsCarMetadataVisible}">
 						<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
 							<TextBlock Text="{Binding Name, StringFormat='Name: {0}'}" Classes="sm"/>
 							<TextBlock Text="{Binding NationState, StringFormat='Country/State: {0}'}" Classes="sm" Grid.Column="1" Margin="6,0,0,0"/>
 							<TextBlock Text="{Binding Sponsor, StringFormat='Sponsor: {0}'}" Classes="sm" Grid.Column="2" Margin="6,0,0,0"/>
-							
+
 							<TextBlock Text="{Binding Make, StringFormat='Make: {0}'}" Classes="sm" Grid.Row="1"/>
 							<TextBlock Text="{Binding ModelEngine, StringFormat='Model/Engine: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="1" Margin="6,0,0,0"/>
 							<TextBlock Text="{Binding Tires, StringFormat='Tires: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="3" Margin="6,0,0,0"/>
@@ -200,15 +182,23 @@
 						<!--Laps-->
 						<TabItem Header="Laps">
 							<Grid RowDefinitions="Auto,*" Margin="10,3">
-								<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS  TIME          PIT     FLAG"/>
+								<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG"/>
 								<ScrollViewer MaxHeight="250" Grid.Row="1">
 									<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
 										<ItemsRepeater.ItemTemplate>
 											<DataTemplate>
 												<StackPanel Orientation="Horizontal">
 													<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
-													<TextBlock Text="{Binding OverallPosition}" Classes="sm" Width="32"/>
-													<TextBlock Text="{Binding ClassPosition}" Classes="sm" Width="58"/>
+													<StackPanel Orientation="Horizontal" Width="49">
+														<TextBlock Text="{Binding OverallPosition}" Classes="sm"/>
+														<PathIcon Height="10" Width="6" IsVisible="{Binding GainedOverallPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
+														<PathIcon Height="10" Width="6" IsVisible="{Binding LostOverallPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+													</StackPanel>
+													<StackPanel Orientation="Horizontal" Width="42">
+														<TextBlock Text="{Binding ClassPosition}" Classes="sm"/>
+														<PathIcon Height="10" Width="6" IsVisible="{Binding GainedClassPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
+														<PathIcon Height="10" Width="6" IsVisible="{Binding LostClassPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+													</StackPanel>
 													<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
 													<TextBlock Text="{Binding InPit}" Classes="sm" Width="35"/>
 													<TextBlock Text="{Binding Flag}" Classes="sm" Width="55"/>
@@ -252,29 +242,14 @@
 		<!--Class header expander-->
 		<ControlTemplate x:Key="groupExpanderTemplate" TargetType="Expander">
 			<DockPanel MinWidth="{TemplateBinding MinWidth}" MaxWidth="{TemplateBinding MaxWidth}">
-				<ToggleButton x:Name="ExpanderHeader"
-							  Height="33"
-							  CornerRadius="{TemplateBinding CornerRadius}"
-							  IsEnabled="{TemplateBinding IsEnabled}"
-							  Content="{TemplateBinding Header}"
-							  ContentTemplate="{TemplateBinding HeaderTemplate}"
-							  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-							  Background="LightGray"
-							  BorderBrush="Gray"/>
-				<Border x:Name="ExpanderContent"
-						IsVisible="{TemplateBinding IsExpanded, Mode=TwoWay}"
-						Background="Transparent"
-						BorderBrush="{TemplateBinding BorderBrush}"
-						BorderThickness="{TemplateBinding BorderThickness}"
-						MinHeight="{TemplateBinding MinHeight}"
-						HorizontalAlignment="Stretch"
-						VerticalAlignment="Stretch"
-						Padding="{TemplateBinding Padding}">
-					<ContentPresenter x:Name="PART_ContentPresenter"
-									  Content="{TemplateBinding Content}"
-									  ContentTemplate="{TemplateBinding ContentTemplate}"
-									  Foreground="{TemplateBinding Foreground}"
-									  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+				<ToggleButton x:Name="ExpanderHeader" Height="33" CornerRadius="{TemplateBinding CornerRadius}"
+							  IsEnabled="{TemplateBinding IsEnabled}" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+							  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}" Background="LightGray" BorderBrush="Gray"/>
+				<Border x:Name="ExpanderContent" IsVisible="{TemplateBinding IsExpanded, Mode=TwoWay}" Background="Transparent"
+						BorderBrush="{TemplateBinding BorderBrush}"	BorderThickness="{TemplateBinding BorderThickness}"
+						MinHeight="{TemplateBinding MinHeight}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="{TemplateBinding Padding}">
+					<ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+									  Foreground="{TemplateBinding Foreground}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
 									  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
 				</Border>
 			</DockPanel>
