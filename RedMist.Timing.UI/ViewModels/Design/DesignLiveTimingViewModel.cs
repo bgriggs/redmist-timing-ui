@@ -152,6 +152,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsOverallMostPositionsGained = true,
             IsBestTime = true,
             IsInPit = true,
+            TotalTime = "12:17:12.872",
+            Flag = Flags.Green,
         });
         carCache.Lookup("222").Value?.CarDetailsViewModel?.ControlLog.Add(new ControlLogEntryViewModel(
             new ControlLogEntry

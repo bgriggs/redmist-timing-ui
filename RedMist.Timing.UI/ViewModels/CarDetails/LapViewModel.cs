@@ -77,4 +77,17 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
             return FontWeight.Normal;
         }
     }
+
+    public string RaceTime
+    {
+        get
+        {
+            if (carPosition.TotalTime != null)
+            {
+                DateTime.TryParseExact(carPosition.TotalTime, "hh:mm:ss.fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt);
+                return dt.ToString("H:mm:ss");
+            }
+            return string.Empty;
+        }
+    }
 }
