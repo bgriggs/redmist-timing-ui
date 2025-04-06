@@ -5,8 +5,8 @@
 		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 		<Nullable>enable</Nullable>
 		<ApplicationId>com.bigmissionmotorsports.redmist</ApplicationId>
-		<ApplicationVersion>7</ApplicationVersion>
-		<ApplicationDisplayVersion>0.0.7</ApplicationDisplayVersion>
+		<ApplicationVersion>8</ApplicationVersion>
+		<ApplicationDisplayVersion>0.0.8</ApplicationDisplayVersion>
 		<AndroidUseAapt2>True</AndroidUseAapt2>
 		<AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 		<AndroidPackageFormat>aab</AndroidPackageFormat>
