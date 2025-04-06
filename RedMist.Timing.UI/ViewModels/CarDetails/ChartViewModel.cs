@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Media.Immutable;
+using CommunityToolkit.Mvvm.ComponentModel;
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
@@ -15,6 +16,7 @@ namespace RedMist.Timing.UI.ViewModels.CarDetails;
 public partial class ChartViewModel : ObservableObject
 {
     private static readonly double BarWidth = 13;
+    private readonly SortedDictionary<int, LapViewModel> laps = [];
 
     // Putting chart in here to be able to manage the cleanup and prevent exception when it has no axes.
     public CartesianChart Chart
@@ -34,28 +36,22 @@ public partial class ChartViewModel : ObservableObject
             };
         }
     }
-    private readonly SortedDictionary<int, LapViewModel> laps = [];
 
     public ObservableCollection<ISeries> Series { get; } =
     [
-        new ColumnSeries<double>
+        new ColumnSeries<LapViewModel>
         {
             Name = "Lap",
             MaxBarWidth = BarWidth,
-            ScalesYAt = 0
-            //DataLabelsFormatter = (point) => GetDataLabel(point),
-            //ScalesYAt = 0,
-            //GeometrySize = 0,
-            //GeometryFill = null,
-            //GeometryStroke = null,
-            //LineSmoothness = 0,
-            //Fill = null,
-            //Stroke = new SolidColorPaint(s_blue) { StrokeThickness = 2 },
-            //YToolTipLabelFormatter = (point) => $"{point.Coordinate.PrimaryValue:0.#} @ {point.Coordinate.SecondaryValue:0.####}",
+            ScalesYAt = 0,
+            Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.LapTimeDt.TimeOfDay.TotalSeconds),
+            DataLabelsFormatter = (point) => point.Model?.LapTime ?? string.Empty,
+            YToolTipLabelFormatter = (point) => $"{point.Model?.LapNumber ?? 0}",
         },
-        new LineSeries<int>
+        new LineSeries<LapViewModel>
         {
             Name = "Position Overall",
+            Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.OverallPosition),
             ScalesYAt = 1,
             Stroke = new SolidColorPaint(SKColors.Coral, 2),
             GeometrySize = 0,
@@ -64,9 +60,10 @@ public partial class ChartViewModel : ObservableObject
             LineSmoothness = 0,
             Fill = null,
         },
-        new LineSeries<int>
+        new LineSeries<LapViewModel>
         {
             Name = "Position Class",
+            Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.ClassPosition),
             ScalesYAt = 1,
             Stroke = new SolidColorPaint(SKColors.Cyan, 2),
             GeometrySize = 0,
@@ -81,12 +78,9 @@ public partial class ChartViewModel : ObservableObject
     [
         new Axis
         {
-            //Name = "Time",
-            //TicksPaint = new SolidColorPaint(s_blue),
-            //SubticksPaint = new SolidColorPaint(s_blue),
             DrawTicksPath = true,
-            //ForceStepToMin = true,
-            IsVisible = false
+            IsVisible = false,
+            MinLimit = 0,
         },
         new Axis
         {
@@ -99,7 +93,6 @@ public partial class ChartViewModel : ObservableObject
     [
         new Axis
         {
-            //Name = "Lap",
             ShowSeparatorLines = true,
             LabelsRotation = 90,
             LabelsDensity = 0,
@@ -108,13 +101,37 @@ public partial class ChartViewModel : ObservableObject
             TextSize = 12,
             SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)),
             MinLimit = 0,
-            MaxLimit = 23
+            MaxLimit = 23,
         }
     ];
 
     [ObservableProperty]
     private double width = 250;
 
+
+    public ChartViewModel()
+    {
+        ((ColumnSeries<LapViewModel>)Series[0]).PointMeasured += ChartViewModel_PointMeasured;
+        XAxes[0].Labeler = (value) =>
+        {
+            if (laps.TryGetValue((int)value, out var lap))
+            {
+                return lap.LapTime;
+            }
+            return string.Empty;
+        };
+    }
+
+
+    private void ChartViewModel_PointMeasured(LiveChartsCore.Kernel.ChartPoint<LapViewModel, LiveChartsCore.SkiaSharpView.Drawing.Geometries.RoundedRectangleGeometry, LiveChartsCore.SkiaSharpView.Drawing.Geometries.LabelGeometry> obj)
+    {
+        if (obj.Model != null && obj.Visual != null)
+        {
+            var brush = (ImmutableSolidColorBrush)obj.Model.FlagColor;
+            var skColor = new SKColor(brush.Color.R, brush.Color.G, brush.Color.B, brush.Color.A);
+            obj.Visual.Fill = new SolidColorPaint(skColor);
+        }
+    }
 
     public void UpdateLaps(List<CarPosition> carPositions)
     {
@@ -125,31 +142,21 @@ public partial class ChartViewModel : ObservableObject
             laps[carUpdate.LastLap] = new LapViewModel(carUpdate);
         }
 
-        var lapSeconds = laps.Values.Select(l => l.LapTimeDt.TimeOfDay.TotalSeconds).ToList();
-        if (lapSeconds.Count == 0)
-            lapSeconds.Add(0);
-
-        var lapLabels = laps.Values.Select(l => l.LapTime).ToList();
-        if (lapLabels.Count == 0)
-            lapLabels.Add(" ");
-
-        var overallPositions = laps.Values.Select(l => l.OverallPosition).ToList();
-        if (overallPositions.Count == 0)
-            overallPositions.Add(0);
-
-        var classPositions = laps.Values.Select(l => l.ClassPosition).ToList();
-        if (classPositions.Count == 0)
-            classPositions.Add(0);
-
-        if (Series[0].Values?.Cast<object>().Count() != lapSeconds.Count ||
-           Series[1].Values?.Cast<object>().Count() != overallPositions.Count ||
-           Series[2].Values?.Cast<object>().Count() != classPositions.Count ||
-           XAxes[0].Labels?.Count != lapLabels.Count)
+        // Fill in missing laps
+        var maxLap = laps.Keys.Max();
+        for (int i = 1; i <= maxLap; i++)
         {
-            Series[0].Values = lapSeconds;
-            Series[1].Values = overallPositions;
-            Series[2].Values = classPositions;
-            XAxes[0].Labels = lapLabels;
+            if (!laps.ContainsKey(i))
+            {
+                laps[i] = new LapViewModel(new CarPosition { LastLap = i });
+            }
+        }
+
+        if (Series[0].Values?.Cast<object>().Count() != laps.Count)
+        {
+            Series[0].Values = laps.Values;
+            Series[1].Values = laps.Values;
+            Series[2].Values = laps.Values;
         }
     }
 }

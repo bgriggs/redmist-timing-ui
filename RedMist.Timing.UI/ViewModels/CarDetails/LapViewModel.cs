@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using RedMist.Timing.UI.Converters;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Globalization;
@@ -11,6 +12,7 @@ namespace RedMist.Timing.UI.ViewModels.CarDetails;
 public partial class LapViewModel(CarPosition carPosition) : ObservableObject
 {
     private readonly CarPosition carPosition = carPosition;
+    private static readonly FlagToBrushConverter flagToBrushConverter = new();
 
     public int LapNumber => carPosition.LastLap;
     public int OverallPosition => carPosition.OverallPosition;
@@ -88,6 +90,18 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
                 return dt.ToString("H:mm:ss");
             }
             return string.Empty;
+        }
+    }
+
+    public IBrush FlagColor
+    {
+        get
+        {
+            if (carPosition.Flag != Flags.Unknown)
+            {
+                return flagToBrushConverter.Convert(carPosition.Flag, typeof(IBrush), null, CultureInfo.InvariantCulture) as IBrush ?? Brushes.Gray;
+            }
+            return Brushes.Gray;
         }
     }
 }
