@@ -19,34 +19,27 @@ public partial class ChartViewModel : ObservableObject
     private readonly SortedDictionary<int, LapViewModel> laps = [];
 
     // Putting chart in here to be able to manage the cleanup and prevent exception when it has no axes.
-    public CartesianChart Chart
+    public CartesianChart Chart => new()
     {
-        get
-        {
-            // Get a new chart each request as a workaround for it being rendered again when changed to grouped or back
-            return new CartesianChart
-            {
-                Padding = new Avalonia.Thickness(0),
-                MinWidth = 90,
-                Height = 240,
-                ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.X,
-                Series = Series,
-                XAxes = XAxes,
-                YAxes = YAxes
-            };
-        }
-    }
+        Padding = new Avalonia.Thickness(0),
+        MinWidth = 90,
+        Height = 240,
+        ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.X,
+        Series = Series,
+        XAxes = XAxes,
+        YAxes = YAxes
+    };
 
     public ObservableCollection<ISeries> Series { get; } =
     [
         new ColumnSeries<LapViewModel>
         {
-            Name = "Lap",
+            Name = "Lap/Race Time",
             MaxBarWidth = BarWidth,
             ScalesYAt = 0,
             Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.LapTimeDt.TimeOfDay.TotalSeconds),
             DataLabelsFormatter = (point) => point.Model?.LapTime ?? string.Empty,
-            YToolTipLabelFormatter = (point) => $"{point.Model?.LapNumber ?? 0}",
+            YToolTipLabelFormatter = (point) => $"{point.Model?.LapNumber ?? 0} @ {point.Model?.RaceTime ?? string.Empty}",
         },
         new LineSeries<LapViewModel>
         {
@@ -71,7 +64,18 @@ public partial class ChartViewModel : ObservableObject
             GeometryStroke = null,
             LineSmoothness = 0,
             Fill = null,
-        }
+        },
+        //new ScatterSeries<LapViewModel, >
+        //{
+        //    Name = "Pit",
+        //    Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, 1),
+        //    YToolTipLabelFormatter = (point) => $"{point.Model?.InPit}",
+        //    ScalesYAt = 1,
+        //    GeometrySize = 0,
+        //    Fill = null,
+        //    Stroke = new SolidColorPaint(SKColors.Cyan, 2),
+            
+        //}
     ];
 
     public ObservableCollection<ICartesianAxis> YAxes { get; } =
@@ -157,6 +161,7 @@ public partial class ChartViewModel : ObservableObject
             Series[0].Values = laps.Values;
             Series[1].Values = laps.Values;
             Series[2].Values = laps.Values;
+            //Series[3].Values = laps.Values;
         }
     }
 }
