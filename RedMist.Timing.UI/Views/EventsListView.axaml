@@ -24,7 +24,7 @@
 			</Grid>
 		</Border>
 
-		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="1" TextWrapping="Wrap" FontSize="8"/>
+		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="1" TextWrapping="Wrap" FontSize="9"/>
 		<ItemsRepeater ItemsSource="{Binding Events}" Grid.Row="2" >
 			<ItemsRepeater.ItemTemplate>
 				<DataTemplate>

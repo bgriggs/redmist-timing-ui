@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public class EventInformationViewModel : ObservableObject
+public partial class EventInformationViewModel : ObservableObject
 {
     public Event EventModel { get; }
     public string Name => EventModel.EventName;
@@ -37,6 +37,8 @@ public class EventInformationViewModel : ObservableObject
         }
     }
 
+    [ObservableProperty]
+    private bool allowEventList = true;
 
     public EventInformationViewModel(Event eventModel)
     {

@@ -9,6 +9,7 @@
 		<Version>$(SharedVersion)</Version>
 		<Description>Timing user interface for Red Mist shared across platforms</Description>
 		<Copyright>2025</Copyright>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<UserSecretsId>9bace759-d6d1-47df-90f1-261d075ec518</UserSecretsId>
 	</PropertyGroup>

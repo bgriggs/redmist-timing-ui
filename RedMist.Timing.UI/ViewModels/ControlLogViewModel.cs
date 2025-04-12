@@ -42,6 +42,9 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         }
     }
 
+    [ObservableProperty]
+    private bool allowEventList = true;
+
 
     public ControlLogViewModel(Event EventModel, HubClient hubClient)
     {

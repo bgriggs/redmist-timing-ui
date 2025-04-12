@@ -5,9 +5,13 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
+using RedMist.Timing.UI.Views;
 using RedMist.TimingCommon.Models;
+using SkiaSharp;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -35,6 +39,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly EventClient eventClient;
     private readonly ILoggerFactory loggerFactory;
     private readonly ViewSizeService viewSizeService;
+
+    [ObservableProperty]
+    private bool isContentVisible = false;
+
     [ObservableProperty]
     private bool isLiveTimingTabVisible;
 
@@ -77,7 +85,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private const int FlagShowWidth = 500;
 
 
-    public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient, 
+    public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
         EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
     {
         EventsListViewModel = eventsListViewModel;
@@ -89,6 +97,56 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
+
+    public async Task Initialize()
+    {
+        if (OperatingSystem.IsBrowser())
+        {
+            await BrowserInterop.InitializeJsModuleAsync();
+            //string currentUrl = BrowserInterop.GetCurrentUrl();
+
+            var eventIdStr = BrowserInterop.GetQueryParameter("eventId");
+            if (int.TryParse(eventIdStr, out var eventId) && eventId > 0)
+            {
+                try
+                {
+                    var @event = await eventClient.LoadEventAsync(eventId);
+                    if (@event != null)
+                    {
+                        var routerEvent = new RouterEvent { Path = "EventStatus", Data = @event };
+                        Receive(new ValueChangedMessage<RouterEvent>(routerEvent));
+
+                        LiveTimingViewModel.AllowEventList = false;
+                        if (ControlLogViewModel != null)
+                        {
+                            ControlLogViewModel.AllowEventList = false;
+                        }
+                        if (EventInformationViewModel != null)
+                        {
+                            EventInformationViewModel.AllowEventList = false;
+                        }
+                        if (EventInformationViewModel != null)
+                        {
+                            EventInformationViewModel.AllowEventList = false;
+                        }
+                        if (FlagsViewModel != null)
+                        {
+                            FlagsViewModel.AllowEventList = false;
+                        }
+                        if (ResultsViewModel != null)
+                        {
+                            ResultsViewModel.AllowEventList = false;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        IsContentVisible = true;
+    }
 
     public void Receive(ValueChangedMessage<RouterEvent> message)
     {

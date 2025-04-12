@@ -19,7 +19,7 @@
 		<!--<Thickness x:Key="TabItemHeaderMargin">5,1,1,1</Thickness>-->
 	</UserControl.Resources>
 
-	<Grid RowDefinitions="*">
+	<Grid RowDefinitions="*" IsVisible="{Binding IsContentVisible}">
 		<ContentControl IsVisible="{Binding IsEventsListVisible}">
 			<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"/>
 		</ContentControl>

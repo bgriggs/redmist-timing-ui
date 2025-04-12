@@ -70,7 +70,7 @@ public partial class EventViewModel : ObservableObject
 
     public void SelectEvent(object eventViewModel)
     {
-        if (eventViewModel is EventViewModel evm)
+        if (eventViewModel is EventViewModel)
         {
             var routerEvent = new RouterEvent { Path = "EventStatus", Data = EventModel };
             WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
