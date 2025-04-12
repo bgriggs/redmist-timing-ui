@@ -6,7 +6,8 @@
 		<Title>Red Mist Timing</Title>
 		<Authors>Brian Griggs</Authors>
 		<Company>Big Mission Motorsports</Company>
-		<Description></Description>
+		<Version>$(SharedVersion)</Version>
+		<Description>Timing user interface for Red Mist shared across platforms</Description>
 		<Copyright>2025</Copyright>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<UserSecretsId>9bace759-d6d1-47df-90f1-261d075ec518</UserSecretsId>
@@ -34,29 +35,32 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.2.6" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.6" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.6" />
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.6" />
-		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="ActiproSoftware.Controls.Avalonia" Version="25.1.1" />
-		<PackageReference Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.1.1" />
-		<PackageReference Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250319-build.2093" />
-		<PackageReference Include="DynamicData" Version="9.2.1" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.3" />
-		<PackageReference Include="BigMission.Avalonia.Utilities" Version="1.0.3" />
-		<PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
+		<PackageReference Include="Avalonia" />
+		<PackageReference Include="Avalonia.Themes.Fluent" />
+		<PackageReference Include="Avalonia.Fonts.Inter" />
+		<PackageReference Include="Avalonia.Controls.ItemsRepeater" />
+		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+		<PackageReference Include="Avalonia.Diagnostics">
+			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		
+		<PackageReference Include="ActiproSoftware.Controls.Avalonia"/>
+		<PackageReference Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid"/>
+		<PackageReference Include="CommunityToolkit.Labs.Extensions.DependencyInjection" />
+		<PackageReference Include="DynamicData"/>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+		<PackageReference Include="BigMission.Avalonia.Utilities" />
+		<PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" />
 
-		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.3">
+		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.4" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.3" />
-		<PackageReference Include="RestSharp" Version="112.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting"/>
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions"/>
+		<PackageReference Include="RestSharp" />
 	</ItemGroup>
 
 	<ItemGroup>
