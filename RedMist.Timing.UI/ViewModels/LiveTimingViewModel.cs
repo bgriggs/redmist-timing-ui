@@ -100,6 +100,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private bool showPenaltyColumn = false;
     public const int PenaltyColumnWidth = 470;
 
+    [ObservableProperty]
+    private bool allowEventList = true;
+
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
     {

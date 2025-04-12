@@ -30,6 +30,9 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<StatusNotific
         }
     }
 
+    [ObservableProperty]
+    private bool allowEventList = true;
+
 
     public FlagsViewModel(Event eventModel)
     {

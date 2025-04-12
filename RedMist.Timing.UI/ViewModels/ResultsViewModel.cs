@@ -48,6 +48,9 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         }
     }
 
+    [ObservableProperty]
+    private bool allowEventList = true;
+
 
     public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
     {

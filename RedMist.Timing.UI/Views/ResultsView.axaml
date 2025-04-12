@@ -21,7 +21,7 @@
 		</ContentControl>
 		<Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding !IsLiveTimingVisible}">
 
-			<Button Classes="back" Margin="4,12,10,0" Command="{Binding Back}" VerticalAlignment="Top"/>
+			<Button Classes="back" Margin="4,12,10,0" Command="{Binding Back}" VerticalAlignment="Top" IsVisible="{Binding AllowEventList}"/>
 			
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="{Binding Name, StringFormat='Provisional Results for {0}'}" Classes="theme-text-heading" TextWrapping="Wrap" Margin="0,15,10,0"/>

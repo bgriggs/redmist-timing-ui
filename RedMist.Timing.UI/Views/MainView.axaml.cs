@@ -2,6 +2,7 @@
 using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.ViewModels;
 
 namespace RedMist.Timing.UI.Views;
 
@@ -13,7 +14,7 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
-    protected override void OnLoaded(RoutedEventArgs e)
+    protected override async void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
 
@@ -23,6 +24,11 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
         if (insetsManager is not null)
         {
             insetsManager.DisplayEdgeToEdge = true;
+        }
+
+        if (DataContext is MainViewModel vm)
+        {
+            await vm.Initialize();
         }
     }
 

@@ -7,5 +7,6 @@ public class DesignMainViewModel : MainViewModel
         new DesignLiveTimingViewModel(), new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(),
         new Services.ViewSizeService())
     {
+        IsContentVisible = true;
     }
 }
