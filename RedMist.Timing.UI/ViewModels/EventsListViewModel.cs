@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -12,12 +13,20 @@ namespace RedMist.Timing.UI.ViewModels;
 /// <summary>
 /// Available events to select from.
 /// </summary>
-public class EventsListViewModel : ObservableObject
+public partial class EventsListViewModel : ObservableObject
 {
     private readonly EventClient eventClient;
     private ILogger Logger { get; }
 
     public LargeObservableCollection<EventViewModel> Events { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMessage))]
+    private string message = string.Empty;
+
+    public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
+
+    public string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty;
 
 
     public EventsListViewModel(EventClient eventClient, ILoggerFactory loggerFactory)
@@ -29,30 +38,38 @@ public class EventsListViewModel : ObservableObject
 
     public async Task Initialize()
     {
+        Message = string.Empty;
         try
         {
             var events = await eventClient.LoadRecentEventsAsync();
             if (events != null)
             {
+                if (events.Length == 0)
+                {
+                    Message = "No events found";
+                    Logger.LogInformation(Message);
+                }
+
                 Dispatcher.UIThread.Post(() =>
                 {
                     var vms = new List<EventViewModel>();
                     foreach (var e in events)
                     {
                         vms.Add(new EventViewModel(e));
-                        //Logger.LogInformation($"Event: {e.EventName}");
                     }
                     Events.SetRange(vms);
                 });
             }
             else
             {
-                Logger.LogInformation("No events found.");
+                Message = "No events found - null";
+                Logger.LogInformation(Message);
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Error loading events: {ex.Message}");
+            Message = $"Error loading events: {ex}";
+            Logger.LogError(ex, "Error loading events");
         }
     }
 

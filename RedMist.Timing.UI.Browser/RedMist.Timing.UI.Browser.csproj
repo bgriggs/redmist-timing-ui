@@ -5,16 +5,14 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Nullable>enable</Nullable>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<Version>$(SharedVersion)</Version>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Content Remove="wwwroot\favicon.ico" />
-	</ItemGroup>
-	<ItemGroup>
-	  <AvaloniaResource Include="wwwroot\favicon.ico" />
+		<AvaloniaResource Include="wwwroot\favicon.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Browser" Version="11.2.6" />
+		<PackageReference Include="Avalonia.Browser" />
 	</ItemGroup>
 
 	<ItemGroup>
