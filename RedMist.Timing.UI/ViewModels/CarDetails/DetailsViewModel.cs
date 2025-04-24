@@ -17,6 +17,7 @@ namespace RedMist.Timing.UI.ViewModels;
 public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IRecipient<CompetitorMetadataNotification>, IDisposable
 {
     private readonly int eventId;
+    private readonly int sessionId;
     private readonly string carNumber;
     private readonly EventClient serverClient;
     private readonly HubClient hubClient;
@@ -48,15 +49,18 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     public LapsListViewModel LapList { get; } = new LapsListViewModel();
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
 
-    public DetailsViewModel(int eventId, string carNumber, EventClient serverClient, HubClient hubClient, PitTracking pitTracking)
+
+    public DetailsViewModel(int eventId, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient, PitTracking pitTracking)
     {
         this.eventId = eventId;
+        this.sessionId = sessionId;
         this.carNumber = carNumber;
         this.serverClient = serverClient;
         this.hubClient = hubClient;
         this.pitTracking = pitTracking;
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
+
 
     public async Task Initialize()
     {
@@ -68,7 +72,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             // Subscribe to get competitor metadata
             _ = hubClient.SubscribeToCompetitorMetadata(eventId, carNumber);
 
-            var carPositions = await serverClient.LoadCarLapsAsync(eventId, carNumber);
+            var carPositions = await serverClient.LoadCarLapsAsync(eventId, sessionId, carNumber);
             Chart.UpdateLaps(carPositions);
             LapList.UpdateLaps(carPositions);
             //Debug.WriteLine($"Car positions loaded: {carPositions.Count}");
