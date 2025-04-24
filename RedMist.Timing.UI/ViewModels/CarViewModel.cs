@@ -444,7 +444,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         if (isEnabled && CarDetailsViewModel == null)
         {
-            CarDetailsViewModel = new DetailsViewModel(eventId, Number, serverClient, hubClient, pitTracking);
+            _ = int.TryParse(lastCarPosition?.SessionId ?? "0", out int sessionId);
+            CarDetailsViewModel = new DetailsViewModel(eventId, sessionId, Number, serverClient, hubClient, pitTracking);
             _ = CarDetailsViewModel.Initialize();
         }
         else if (!isEnabled && CarDetailsViewModel != null)

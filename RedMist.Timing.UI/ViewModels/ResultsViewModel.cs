@@ -8,6 +8,7 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -21,7 +22,16 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     public Event EventModel { get; }
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
-    public string Dates => EventModel.EventDate;
+    public string Dates
+    {
+        get
+        {
+            _ = DateTime.TryParse(EventModel.EventDate, out DateTime parsedDate);
+            return parsedDate == default
+                ? EventModel.EventDate
+                : parsedDate.ToString("MM/dd/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
     public string TrackName => EventModel.TrackName;
     public string Distance => EventModel.Distance;
     public string CourseConfiguration => EventModel.CourseConfiguration;
