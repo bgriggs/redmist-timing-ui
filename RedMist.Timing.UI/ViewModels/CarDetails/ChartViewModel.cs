@@ -147,12 +147,15 @@ public partial class ChartViewModel : ObservableObject
         }
 
         // Fill in missing laps
-        var maxLap = laps.Keys.Max();
-        for (int i = 1; i <= maxLap; i++)
+        if (laps.Count > 0)
         {
-            if (!laps.ContainsKey(i))
+            var maxLap = laps.Keys.Max();
+            for (int i = 1; i <= maxLap; i++)
             {
-                laps[i] = new LapViewModel(new CarPosition { LastLap = i });
+                if (!laps.ContainsKey(i))
+                {
+                    laps[i] = new LapViewModel(new CarPosition { LastLap = i });
+                }
             }
         }
 
