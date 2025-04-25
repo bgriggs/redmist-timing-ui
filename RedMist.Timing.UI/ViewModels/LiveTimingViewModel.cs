@@ -34,7 +34,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private readonly ViewSizeService viewSizeService;
 
     private ILogger Logger { get; }
-    public Event EventModel { get; set; } = new();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OrganizationLogo))]
+    [NotifyPropertyChangedFor(nameof(IsBroadcastVisible))]
+    [NotifyPropertyChangedFor(nameof(BroadcastCompanyName))]
+    private Event eventModel = new();
 
     [ObservableProperty]
     private string eventName = string.Empty;
