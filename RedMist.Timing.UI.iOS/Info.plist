@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Red&#x2007;Mist&#x2007;Timing</string>
+	<string>RedMistTiming</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.bigmission.redmist</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>17</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>17</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
