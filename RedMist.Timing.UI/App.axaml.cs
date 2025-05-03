@@ -2,16 +2,23 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using CommunityToolkit.Extensions.DependencyInjection;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
+using RedMist.TimingCommon.Models;
+using System;
 using System.IO;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 
@@ -69,6 +76,14 @@ public partial class App : Application
         {
             desktop.MainWindow = _host.Services.GetRequiredService<MainWindow>();
             desktop.ShutdownRequested += OnShutdownRequested;
+
+            // Check for event ID passed into command line and jump to that event.
+            if (desktop.Args?.Length > 0 && int.TryParse(desktop.Args[0], out var eventId))
+            {
+                var routerEvent = new RouterEvent { Path = "EventStatus", Data = eventId };
+                WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
+                //Observable.Timer(TimeSpan.FromMilliseconds(5000)).Subscribe(_ => Dispatcher.UIThread.Post(() => WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent))));
+            }
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {

@@ -99,12 +99,12 @@ public class HubClient : HubClientBase
             if (payload == null)
                 return;
 
-            Logger.LogInformation("RX: {len} bytes, CPos: {c}", message.Length * 8, payload.CarPositions.Count + payload.CarPositionUpdates.Count);
+            Logger.LogInformation("RX: {len} bytes, cars: {c}", message.Length * 8, payload.CarPositions.Count + payload.CarPositionUpdates.Count);
             WeakReferenceMessenger.Default.Send(new StatusNotification(payload));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            Logger.LogError("Failed to process message: {0}", message);
+            Logger.LogError(ex, "Failed to process message.");
         }
     }
 

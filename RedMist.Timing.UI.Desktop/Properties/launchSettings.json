@@ -2,6 +2,7 @@
   "profiles": {
     "RedMist.Timing.UI.Desktop": {
       "commandName": "Project",
+      "commandLineArgs": "29",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development"
       }

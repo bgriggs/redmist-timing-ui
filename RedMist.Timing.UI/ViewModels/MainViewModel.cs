@@ -5,13 +5,10 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
-using RedMist.Timing.UI.Views;
 using RedMist.TimingCommon.Models;
-using SkiaSharp;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -148,13 +145,24 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         IsContentVisible = true;
     }
 
-    public void Receive(ValueChangedMessage<RouterEvent> message)
+    public async void Receive(ValueChangedMessage<RouterEvent> message)
     {
         var router = message.Value;
         if (router.Path == "EventStatus")
         {
             IsEventsListVisible = false;
-            if (router.Data is Event eventModel)
+
+            Event? eventModel = null;
+            if (router.Data is Event @event)
+            {
+                eventModel = @event;
+            }
+            else if (router.Data is int eventId)
+            {
+                eventModel = await eventClient.LoadEventAsync(eventId);
+            }
+
+            if (eventModel != null)
             {
                 var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
                 if (hasLiveSession)
