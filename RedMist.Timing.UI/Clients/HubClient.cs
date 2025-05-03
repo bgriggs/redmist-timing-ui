@@ -1,4 +1,5 @@
 ﻿using BigMission.Shared.SignalR;
+using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ public class HubClient : HubClientBase
     private HubConnection? hub;
     private ILogger Logger { get; }
     private int? subscribedEventId;
+    private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(5));
 
 
     public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration) : base(loggerFactory, configuration)
@@ -37,7 +39,10 @@ public class HubClient : HubClientBase
         {
             if (hub.State == HubConnectionState.Connected && subscribedEventId != null)
             {
-                _ = hub.InvokeAsync("SubscribeToEvent", subscribedEventId);
+                _ = debouncer.ExecuteAsync(async () =>
+                {
+                    await hub.InvokeAsync("SubscribeToEvent", subscribedEventId);
+                });
             }
         }
         catch (Exception ex)
