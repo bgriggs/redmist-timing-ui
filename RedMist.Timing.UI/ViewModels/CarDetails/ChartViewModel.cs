@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
+using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Avalonia;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -24,22 +25,31 @@ public partial class ChartViewModel : ObservableObject
         Padding = new Avalonia.Thickness(0),
         MinWidth = 90,
         Height = 240,
-        ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.X,
+        ZoomMode = ZoomAndPanMode.X,
         Series = Series,
         XAxes = XAxes,
-        YAxes = YAxes
+        YAxes = YAxes,
+        TooltipTextSize = 10,
+        FindingStrategy = FindingStrategy.CompareOnlyX
     };
 
     public ObservableCollection<ISeries> Series { get; } =
     [
         new ColumnSeries<LapViewModel>
         {
-            Name = "Lap/Race Time",
+            Name = "Lap@RaceTime/Time(Laps)Since Pit",
             MaxBarWidth = BarWidth,
             ScalesYAt = 0,
             Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.LapTimeDt.TimeOfDay.TotalSeconds),
             DataLabelsFormatter = (point) => point.Model?.LapTime ?? string.Empty,
-            YToolTipLabelFormatter = (point) => $"{point.Model?.LapNumber ?? 0} @ {point.Model?.RaceTime ?? string.Empty}",
+            YToolTipLabelFormatter = (point) =>
+            {
+                if (string.IsNullOrWhiteSpace(point.Model?.MinutesSinceLastPit))
+                {
+                    return $"{point.Model?.LapNumber ?? 0}@{point.Model?.RaceTime ?? string.Empty}";
+                }
+                return $"{point.Model?.LapNumber ?? 0}@{point.Model?.RaceTime ?? string.Empty}/{point.Model?.MinutesSinceLastPit}m({point.Model?.LapsSinceLastPit})";
+            }
         },
         new LineSeries<LapViewModel>
         {
@@ -65,17 +75,19 @@ public partial class ChartViewModel : ObservableObject
             LineSmoothness = 0,
             Fill = null,
         },
-        //new ScatterSeries<LapViewModel, >
-        //{
-        //    Name = "Pit",
-        //    Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, 1),
-        //    YToolTipLabelFormatter = (point) => $"{point.Model?.InPit}",
-        //    ScalesYAt = 1,
-        //    GeometrySize = 0,
-        //    Fill = null,
-        //    Stroke = new SolidColorPaint(SKColors.Cyan, 2),
-            
-        //}
+        new ScatterSeries<LapViewModel>
+        {
+            Name = "Pit",
+            Mapping = (vm, lap) =>
+            {
+                return new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.LapTimeDt.TimeOfDay.TotalSeconds);
+            },
+            DataLabelsPaint = new SolidColorPaint(SKColors.Gray),
+            DataLabelsSize = 10,
+            DataLabelsPosition = DataLabelsPosition.Middle,
+            DataLabelsFormatter = point => "PIT",
+            GeometrySize = 0 // Hide the marker
+        }
     ];
 
     public ObservableCollection<ICartesianAxis> YAxes { get; } =
@@ -159,12 +171,43 @@ public partial class ChartViewModel : ObservableObject
             }
         }
 
+        // Pit laps
+        var pitLaps = laps.Where(c => c.Value.CarPosition.LapIncludedPit).Select(k => k.Value).ToList();
+
+        // Testing
+        //foreach (var pl in laps.Values)
+        //{
+        //    if (pl.Flag == Flags.Yellow)
+        //    {
+        //        pitLaps.Add(pl);
+        //    }
+        //}
+
+        // Update the time and laps since last pit
+        int runningPitLaps = 0;
+        double runningPitMinutes = 0;
+        foreach (var l in laps.Values)
+        {
+            if (l.CarPosition.LapIncludedPit)
+            {
+                runningPitLaps = 0;
+                runningPitMinutes = 0;
+            }
+            else
+            {
+                runningPitLaps++;
+                runningPitMinutes += l.LapTimeDt.TimeOfDay.TotalMinutes;
+                l.MinutesSinceLastPit = ((int)runningPitMinutes).ToString();
+                l.LapsSinceLastPit = runningPitLaps.ToString();
+            }
+        }
+
         if (Series[0].Values?.Cast<object>().Count() != laps.Count)
         {
             Series[0].Values = laps.Values;
             Series[1].Values = laps.Values;
             Series[2].Values = laps.Values;
-            //Series[3].Values = laps.Values;
+            Series[3].Values = pitLaps;
         }
     }
 }

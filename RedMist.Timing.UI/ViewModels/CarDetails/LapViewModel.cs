@@ -13,6 +13,7 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
 {
     private readonly CarPosition carPosition = carPosition;
     private static readonly FlagToBrushConverter flagToBrushConverter = new();
+    public CarPosition CarPosition => carPosition;
 
     public int LapNumber => carPosition.LastLap;
     public int OverallPosition => carPosition.OverallPosition;
@@ -45,6 +46,9 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
     public string FlagStr => carPosition.Flag != Flags.Unknown ? carPosition.Flag.ToString() : string.Empty;
     public Flags Flag => carPosition.Flag;
     public string InPit => carPosition.LapIncludedPit ? "YES" : string.Empty;
+
+    public string MinutesSinceLastPit { get; set; } = string.Empty;
+    public string LapsSinceLastPit { get; set; } = string.Empty;
 
     private DateTime? lapTimeDt;
     public DateTime LapTimeDt
