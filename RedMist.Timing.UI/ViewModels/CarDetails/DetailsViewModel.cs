@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IRecipient<CompetitorMetadataNotification>, IDisposable
+public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IDisposable
 {
     private readonly int eventId;
     private readonly int sessionId;
@@ -69,12 +69,20 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             Dispatcher.UIThread.Post(() => IsLoading = true);
             // Subscribe to get control logs
             _ = hubClient.SubscribeToCarControlLogs(eventId, carNumber);
-            // Subscribe to get competitor metadata
-            _ = hubClient.SubscribeToCompetitorMetadata(eventId, carNumber);
+
+            // Load Competitor Metadata
+            _ = serverClient.LoadCompetitorMetadataAsync(eventId, carNumber).ContinueWith(t =>
+            {
+                if (t.Result != null)
+                {
+                    UpdateCompetitorMetadata(t.Result);
+                }
+            });
 
             var carPositions = await serverClient.LoadCarLapsAsync(eventId, sessionId, carNumber);
             Chart.UpdateLaps(carPositions);
             LapList.UpdateLaps(carPositions);
+            await Task.Delay(1500);
             //Debug.WriteLine($"Car positions loaded: {carPositions.Count}");
         }
         catch (Exception)
@@ -117,26 +125,20 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         }
     }
 
-    /// <summary>
-    /// Competitor metadata.
-    /// </summary>
-    public void Receive(CompetitorMetadataNotification message)
+    private void UpdateCompetitorMetadata(CompetitorMetadata cm)
     {
-        if (message.Value.CarNumber == carNumber)
+        Dispatcher.UIThread.Post(() =>
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                Name = message.Value.FirstName + " " + message.Value.LastName;
-                NationState = message.Value.NationState;
-                Sponsor = message.Value.Sponsor;
-                Hometown = message.Value.Hometown;
-                Make = message.Value.Make;
-                ModelEngine = message.Value.ModelEngine;
-                Tires = message.Value.Tires;
-                Club = message.Value.Club;
-                IsCarMetadataVisible = true;
-            });
-        }
+            Name = cm.FirstName + " " + cm.LastName;
+            NationState = cm.NationState;
+            Sponsor = cm.Sponsor;
+            Hometown = cm.Hometown;
+            Make = cm.Make;
+            ModelEngine = cm.ModelEngine;
+            Tires = cm.Tires;
+            Club = cm.Club;
+            IsCarMetadataVisible = true;
+        });
     }
 
     public void Dispose()
@@ -144,7 +146,6 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         try
         {
             _ = hubClient.UnsubscribeFromCarControlLogs(eventId, carNumber);
-            _ = hubClient.UnsubscribeFromCompetitorMetadata(eventId, carNumber);
         }
         catch { }
         finally

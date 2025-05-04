@@ -155,42 +155,8 @@ public class HubClient : HubClientBase
     {
         try
         {
-            Logger.LogInformation("RX Control Logs: {0} car {1}", ccl.ControlLogEntries.Count, ccl.CarNumber);
+            Logger.LogInformation("RX Control Logs: {cl} car {cn}", ccl.ControlLogEntries.Count, ccl.CarNumber);
             WeakReferenceMessenger.Default.Send(new ControlLogNotification(ccl));
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to process control log message");
-        }
-    }
-
-    #endregion
-
-    #region Competitor Metadata
-
-    public async Task SubscribeToCompetitorMetadata(int eventId, string carNumber)
-    {
-        if (hub == null)
-            return;
-        await hub.InvokeAsync("SubscribeToCompetitorMetadata", eventId, carNumber);
-
-        hub.Remove("ReceiveCompetitorMetadata");
-        hub.On("ReceiveCompetitorMetadata", (CompetitorMetadata cm) => ProcessCompetitorMetadata(cm));
-    }
-
-    public async Task UnsubscribeFromCompetitorMetadata(int eventId, string carNumber)
-    {
-        if (hub == null)
-            return;
-        await hub.InvokeAsync("UnsubscribeFromCompetitorMetadata", eventId, carNumber);
-    }
-
-    private void ProcessCompetitorMetadata(CompetitorMetadata cm)
-    {
-        try
-        {
-            Logger.LogInformation("RX Competitor Metadata: car {CarNumber}", cm.CarNumber);
-            WeakReferenceMessenger.Default.Send(new CompetitorMetadataNotification(cm));
         }
         catch (Exception ex)
         {

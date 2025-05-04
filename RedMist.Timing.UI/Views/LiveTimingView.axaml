@@ -178,64 +178,67 @@
 							<TextBlock Text="{Binding Club, StringFormat='Club: {0}'}" Classes="sm" Grid.Row="2" Grid.ColumnSpan="3"/>
 						</Grid>
 					</Border>
-					<TabControl Padding="0" Grid.Row="1">
-						<!--Laps-->
-						<TabItem Header="Laps">
-							<Grid RowDefinitions="Auto,*" Margin="10,3">
-								<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME"/>
-								<ScrollViewer MaxHeight="250" Grid.Row="1">
-									<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
-										<ItemsRepeater.ItemTemplate>
-											<DataTemplate>
-												<StackPanel Orientation="Horizontal">
-													<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
-													<StackPanel Orientation="Horizontal" Width="49">
-														<TextBlock Text="{Binding OverallPosition}" Classes="sm"/>
-														<PathIcon Height="10" Width="6" IsVisible="{Binding GainedOverallPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
-														<PathIcon Height="10" Width="6" IsVisible="{Binding LostOverallPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+					<Grid Grid.Row="1">
+						<TextBlock Text="Loading..." Classes="sm" IsVisible="{Binding IsLoading}"/>
+						<TabControl Padding="0" IsVisible="{Binding !IsLoading}">
+							<!--Laps-->
+							<TabItem Header="Laps">
+								<Grid RowDefinitions="Auto,*" Margin="10,3">
+									<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME"/>
+									<ScrollViewer MaxHeight="250" Grid.Row="1">
+										<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
+											<ItemsRepeater.ItemTemplate>
+												<DataTemplate>
+													<StackPanel Orientation="Horizontal">
+														<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
+														<StackPanel Orientation="Horizontal" Width="49">
+															<TextBlock Text="{Binding OverallPosition}" Classes="sm"/>
+															<PathIcon Height="10" Width="6" IsVisible="{Binding GainedOverallPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
+															<PathIcon Height="10" Width="6" IsVisible="{Binding LostOverallPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+														</StackPanel>
+														<StackPanel Orientation="Horizontal" Width="42">
+															<TextBlock Text="{Binding ClassPosition}" Classes="sm"/>
+															<PathIcon Height="10" Width="6" IsVisible="{Binding GainedClassPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
+															<PathIcon Height="10" Width="6" IsVisible="{Binding LostClassPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+														</StackPanel>
+														<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
+														<TextBlock Text="{Binding InPit}" Classes="sm" Width="20"/>
+														<PathIcon Height="11" Width="70" Foreground="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" Data="{StaticResource flaggeom}" ToolTip.Tip="{Binding FlagStr}"/>
+														<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0"/>
 													</StackPanel>
-													<StackPanel Orientation="Horizontal" Width="42">
-														<TextBlock Text="{Binding ClassPosition}" Classes="sm"/>
-														<PathIcon Height="10" Width="6" IsVisible="{Binding GainedClassPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
-														<PathIcon Height="10" Width="6" IsVisible="{Binding LostClassPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
-													</StackPanel>
-													<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
-													<TextBlock Text="{Binding InPit}" Classes="sm" Width="20"/>
-													<PathIcon Height="11" Width="70" Foreground="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" Data="{StaticResource flaggeom}" ToolTip.Tip="{Binding FlagStr}"/>
-													<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0"/>
-												</StackPanel>
-											</DataTemplate>
-										</ItemsRepeater.ItemTemplate>
-									</ItemsRepeater>
-								</ScrollViewer>
-							</Grid>
-						</TabItem>
+												</DataTemplate>
+											</ItemsRepeater.ItemTemplate>
+										</ItemsRepeater>
+									</ScrollViewer>
+								</Grid>
+							</TabItem>
 
-						<!--Positions Chart-->
-						<TabItem Header="Positions">
-							<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
-											Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
-											ZoomMode="X" Padding="0"/>-->
-							<ContentControl Content="{Binding Chart.Chart}"/>
-						</TabItem>
+							<!--Positions Chart-->
+							<TabItem Header="Positions">
+								<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
+												Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
+												ZoomMode="X" Padding="0"/>-->
+								<ContentControl Content="{Binding Chart.Chart}"/>
+							</TabItem>
 
-						<!--Penalties-->
-						<TabItem Header="Penalties">
-							<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
-									  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
-								<DataGrid.Columns>
-									<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
-									<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
-									<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
-									<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
-									<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
-									<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-									<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenalityAction}"/>
-									<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
-								</DataGrid.Columns>
-							</DataGrid>
-						</TabItem>
-					</TabControl>
+							<!--Penalties-->
+							<TabItem Header="Penalties">
+								<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
+										  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
+									<DataGrid.Columns>
+										<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
+										<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
+										<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
+										<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
+										<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
+										<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+										<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenalityAction}"/>
+										<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
+									</DataGrid.Columns>
+								</DataGrid>
+							</TabItem>
+						</TabControl>
+					</Grid>
 				</Grid>
 			</Expander>
 		</DataTemplate>
