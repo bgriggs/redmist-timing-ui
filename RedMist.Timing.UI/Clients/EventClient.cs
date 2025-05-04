@@ -63,6 +63,14 @@ public class EventClient
         var request = new RestRequest("LoadSessionResults", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
-        return await restClient.GetAsync<Payload>(request);
+        return await restClient.GetAsync<Payload?>(request);
+    }
+
+    public virtual async Task<CompetitorMetadata?> LoadCompetitorMetadataAsync(int eventId, string car)
+    {
+        var request = new RestRequest("LoadCompetitorMetadata", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("car", car);
+        return await restClient.GetAsync<CompetitorMetadata?>(request);
     }
 }
