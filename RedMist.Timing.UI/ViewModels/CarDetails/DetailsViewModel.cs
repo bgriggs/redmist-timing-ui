@@ -79,10 +79,21 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
                 }
             });
 
+            // Load control logs
+            var carControlLogsTask = serverClient.LoadCarControlLogsAsync(eventId, carNumber);
+
+            // Load laps
             var carPositions = await serverClient.LoadCarLapsAsync(eventId, sessionId, carNumber);
             Chart.UpdateLaps(carPositions);
             LapList.UpdateLaps(carPositions);
-            await Task.Delay(1500);
+
+            // Apply control logs
+            var carControlLogs = await carControlLogsTask;
+            if (carControlLogs != null)
+            {
+                Receive(new ControlLogNotification(carControlLogs));
+            }
+
             //Debug.WriteLine($"Car positions loaded: {carPositions.Count}");
         }
         catch (Exception)

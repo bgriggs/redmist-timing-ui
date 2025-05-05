@@ -26,6 +26,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 
     public Event EventModel { get; }
     private readonly HubClient hubClient;
+    private readonly EventClient eventClient;
 
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
@@ -44,14 +45,15 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 
     [ObservableProperty]
     private bool allowEventList = true;
+    [ObservableProperty]
+    private bool isLoading = false;
 
-
-    public ControlLogViewModel(Event EventModel, HubClient hubClient)
+    public ControlLogViewModel(Event EventModel, HubClient hubClient, EventClient eventClient)
     {
         WeakReferenceMessenger.Default.RegisterAll(this);
         this.EventModel = EventModel;
         this.hubClient = hubClient;
-
+        this.eventClient = eventClient;
         logCache.Connect()
             .AutoRefresh(t => t.Timestamp)
             .SortAndBind(ControlLog, SortExpressionComparer<ControlLogEntryViewModel>.Descending(t => t.LogEntry.Timestamp))
@@ -105,15 +107,22 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
     }
 
-    public async Task SubscribeToControlLogs()
+    public async Task Initialize()
     {
         try
         {
+            Dispatcher.UIThread.Post(() => IsLoading = true);
+            var controlLogEntries = await eventClient.LoadControlLogAsync(EventModel.EventId);
+            await ProcessControlLogs(new ControlLogNotification(new CarControlLogs { ControlLogEntries = controlLogEntries }));
             await hubClient.SubscribeToControlLogs(EventModel.EventId);
         }
         catch (Exception)
         {
             // Handle exceptions
+        }
+        finally
+        {
+            Dispatcher.UIThread.Post(() => IsLoading = false);
         }
     }
 
