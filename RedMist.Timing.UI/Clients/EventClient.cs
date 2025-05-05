@@ -73,4 +73,19 @@ public class EventClient
         request.AddQueryParameter("car", car);
         return await restClient.GetAsync<CompetitorMetadata?>(request);
     }
+
+    public virtual async Task<List<ControlLogEntry>> LoadControlLogAsync(int eventId)
+    {
+        var request = new RestRequest("LoadControlLog", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        return await restClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
+    }
+
+    public virtual async Task<CarControlLogs?> LoadCarControlLogsAsync(int eventId, string car)
+    {
+        var request = new RestRequest("LoadCarControlLogs", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("car", car);
+        return await restClient.GetAsync<CarControlLogs?>(request);
+    }
 }

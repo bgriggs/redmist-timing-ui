@@ -66,7 +66,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             {
                 if (value)
                 {
-                    _ = ControlLogViewModel?.SubscribeToControlLogs();
+                    _ = ControlLogViewModel?.Initialize();
                 }
                 else
                 {
@@ -172,7 +172,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
                 ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService);
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
-                ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient);
+                ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient);
                 FlagsViewModel = new FlagsViewModel(eventModel);
                 IsTimingVisible = true;
                 IsControlLogTabVisible = eventModel.HasControlLog;

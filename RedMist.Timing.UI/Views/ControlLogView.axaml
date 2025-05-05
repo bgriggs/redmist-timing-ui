@@ -36,8 +36,8 @@
 			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
 			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
 		</Grid>
-		
-		<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0" Grid.Row="1"
+		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title"/>
+		<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0" Grid.Row="1" IsVisible="{Binding !IsLoading}"
 				  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
