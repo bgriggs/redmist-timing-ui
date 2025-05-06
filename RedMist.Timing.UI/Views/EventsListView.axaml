@@ -13,7 +13,7 @@
 		<design:DesignEventsListViewModel />
 	</Design.DataContext>
 
-	<Grid RowDefinitions="Auto,Auto,*,Auto">
+	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}">
 			<Grid ColumnDefinitions="70,*,70">
 				<Image Source="avares://RedMist.Timing.UI/Assets/redmist.png" Width="70" Height="35" Margin="5,4,0,5"/>
@@ -24,8 +24,9 @@
 			</Grid>
 		</Border>
 
-		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="1" TextWrapping="Wrap" FontSize="9"/>
-		<ItemsRepeater ItemsSource="{Binding Events}" Grid.Row="2" >
+		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="2" TextWrapping="Wrap" FontSize="9"/>
+		<ItemsRepeater ItemsSource="{Binding Events}" Grid.Row="3" >
 			<ItemsRepeater.ItemTemplate>
 				<DataTemplate>
 					<Button Background="{DynamicResource EventRowBackgroundBrush}" Height="63" CornerRadius="0" BorderThickness="0,0,0,2"
@@ -72,7 +73,7 @@
 			</ItemsRepeater.ItemTemplate>
 		</ItemsRepeater>
 
-		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}" Grid.Row="3">
+		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}" Grid.Row="4">
 			<Grid ColumnDefinitions="Auto,*,Auto">
 				<TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="10" Margin="4"/>
 			</Grid>
