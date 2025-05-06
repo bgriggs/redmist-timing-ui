@@ -100,6 +100,7 @@ public partial class App : Application
 
     [Transient(typeof(EventClient))]
     [Singleton(typeof(HubClient))]
+    [Transient(typeof(OrganizationClient))]
     [Singleton(typeof(ViewSizeService))]
     internal static partial void ConfigureServices(IServiceCollection services);
 

@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -16,6 +18,8 @@ namespace RedMist.Timing.UI.ViewModels;
 public partial class EventsListViewModel : ObservableObject
 {
     private readonly EventClient eventClient;
+    private readonly OrganizationClient organizationClient;
+
     private ILogger Logger { get; }
 
     public LargeObservableCollection<EventViewModel> Events { get; } = [];
@@ -26,12 +30,16 @@ public partial class EventsListViewModel : ObservableObject
 
     public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
-    public string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty;
+    public static string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty;
+
+    [ObservableProperty]
+    private bool isLoading = false;
 
 
-    public EventsListViewModel(EventClient eventClient, ILoggerFactory loggerFactory)
+    public EventsListViewModel(EventClient eventClient, OrganizationClient organizationClient, ILoggerFactory loggerFactory)
     {
         this.eventClient = eventClient;
+        this.organizationClient = organizationClient;
         Logger = loggerFactory.CreateLogger(GetType().Name);
     }
 
@@ -39,26 +47,52 @@ public partial class EventsListViewModel : ObservableObject
     public async Task Initialize()
     {
         Message = string.Empty;
+        IsLoading = true;
         try
         {
             var events = await eventClient.LoadRecentEventsAsync();
             if (events != null)
             {
-                if (events.Length == 0)
+                if (events.Count == 0)
                 {
                     Message = "No events found";
                     Logger.LogInformation(Message);
                 }
-
-                Dispatcher.UIThread.Post(() =>
+                else
                 {
-                    var vms = new List<EventViewModel>();
-                    foreach (var e in events)
+                    // Load icons for organizations
+                    var iconTasks = new Dictionary<int, Task<byte[]>>();
+                    var orgIds = events.Select(e => e.OrganizationId).Distinct();
+                    foreach (var orgId in orgIds)
                     {
-                        vms.Add(new EventViewModel(e));
+                        iconTasks[orgId] = organizationClient.GetOrganizationIconAsync(orgId);
                     }
-                    Events.SetRange(vms);
-                });
+
+                    await Task.WhenAll(iconTasks.Values);
+                    var orgIconLookup = new Dictionary<int, byte[]>();
+                    foreach (var ot in iconTasks)
+                    {
+                        var orgId = ot.Key;
+                        var icon = ot.Value.Result;
+                        if (icon != null)
+                        {
+                            orgIconLookup[orgId] = icon;
+                        }
+                    }
+
+                    // Order the live events at the top
+                    var vms = new List<EventViewModel>();
+                    foreach (var e in events.Where(e => e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
+                    {
+                        vms.Add(new EventViewModel(e, orgIconLookup[e.OrganizationId]));
+                    }
+                    foreach (var e in events.Where(e => !e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
+                    {
+                        vms.Add(new EventViewModel(e, orgIconLookup[e.OrganizationId]));
+                    }
+
+                    Dispatcher.UIThread.Post(() => Events.SetRange(vms));
+                }
             }
             else
             {
@@ -70,6 +104,10 @@ public partial class EventsListViewModel : ObservableObject
         {
             Message = $"Error loading events: {ex}";
             Logger.LogError(ex, "Error loading events");
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 

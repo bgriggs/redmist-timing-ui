@@ -102,6 +102,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             await BrowserInterop.InitializeJsModuleAsync();
             //string currentUrl = BrowserInterop.GetCurrentUrl();
 
+            // Check for browser URL event ID parameter to go directly to that event
             var eventIdStr = BrowserInterop.GetQueryParameter("eventId");
             if (int.TryParse(eventIdStr, out var eventId) && eventId > 0)
             {
@@ -152,20 +153,26 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         {
             IsEventsListVisible = false;
 
-            Event? eventModel = null;
-            if (router.Data is Event @event)
+            int eventId = 0;
+            if (router.Data is EventListSummary @event)
             {
-                eventModel = @event;
+                eventId = @event.Id;
             }
-            else if (router.Data is int eventId)
+            else if (router.Data is int id)
+            {
+                eventId = id;
+            }
+
+            Event? eventModel = null;
+            if (eventId > 0)
             {
                 eventModel = await eventClient.LoadEventAsync(eventId);
             }
 
             if (eventModel != null)
             {
-                var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
-                if (hasLiveSession)
+                //var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
+                if (eventModel.IsLive)
                 {
                     _ = Task.Run(() => LiveTimingViewModel.InitializeLiveAsync(eventModel));
                 }
@@ -177,8 +184,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 IsTimingVisible = true;
                 IsControlLogTabVisible = eventModel.HasControlLog;
 
-                IsResultsTabSelected = !hasLiveSession;
-                IsLiveTimingTabVisible = hasLiveSession;
+                IsResultsTabSelected = !eventModel.IsLive;
+                IsLiveTimingTabVisible = eventModel.IsLive;
             }
         }
         else if (router.Path == "EventsList")

@@ -27,12 +27,12 @@ public class EventClient
         restClient = new RestClient(options);
     }
 
-    public virtual async Task<Event[]> LoadRecentEventsAsync() 
+    public virtual async Task<List<EventListSummary>> LoadRecentEventsAsync() 
     {
-        var request = new RestRequest("LoadEvents", Method.Get);
-        var startTime = DateTime.UtcNow - TimeSpan.FromDays(7);
-        request.AddQueryParameter("startDateUtc", startTime.ToString());
-        return await restClient.GetAsync<Event[]>(request) ?? [];
+        var request = new RestRequest("LoadLiveAndRecentEvents", Method.Get);
+        //var startTime = DateTime.UtcNow - TimeSpan.FromDays(7);
+        //request.AddQueryParameter("startDateUtc", startTime.ToString());
+        return await restClient.GetAsync<List<EventListSummary>>(request) ?? [];
     }
 
     public virtual async Task<Event?> LoadEventAsync(int eventId)

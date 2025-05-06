@@ -13,42 +13,23 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public partial class EventViewModel : ObservableObject
 {
-    public Event EventModel { get; }
+    public EventListSummary EventModel { get; }
     public string Name => EventModel.EventName;
-
     public string Organization => EventModel.OrganizationName;
-
-    public Bitmap? OrganizationLogo
-    {
-        get
-        {
-            if (EventModel.OrganizationLogo is not null)
-            {
-                using MemoryStream ms = new(EventModel.OrganizationLogo);
-                return Bitmap.DecodeToWidth(ms, 55);
-            }
-            return null;
-        }
-    }
-
+    public Bitmap? OrganizationLogo { get; private set; }
     public ObservableCollection<ScheduleDayViewModel> ScheduleDays { get; } = [];
-
-    public bool IsLive
-    {
-        get
-        {
-            if (EventModel.Sessions is not null)
-            {
-                return EventModel.Sessions.Any(s => s.IsLive);
-            }
-            return false;
-        }
-    }
+    public bool IsLive => EventModel.IsLive;
 
 
-    public EventViewModel(Event eventModel)
+    public EventViewModel(EventListSummary eventModel, byte[]? organizationLogo)
     {
         EventModel = eventModel;
+        if (organizationLogo is not null)
+        {
+            using MemoryStream ms = new(organizationLogo);
+            OrganizationLogo = Bitmap.DecodeToWidth(ms, 55);
+        }
+        
         if (EventModel.Schedule != null)
         {
             var today = DateTime.Now.Day;
