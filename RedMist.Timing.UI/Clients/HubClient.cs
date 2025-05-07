@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using System;
+using System.Buffers.Text;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -101,11 +105,27 @@ public class HubClient : HubClientBase
     {
         try
         {
+            int compressedLength = 0;
+            if (!message.StartsWith("{"))
+            {
+                compressedLength = message.Length;
+                var compressedBytes = Convert.FromBase64String(message);
+                using var input = new MemoryStream(compressedBytes);
+                using var gzip = new GZipStream(input, CompressionMode.Decompress);
+                using var output = new MemoryStream();
+
+                gzip.CopyTo(output);
+                var decompressedBytes = output.ToArray();
+
+                message = Encoding.UTF8.GetString(decompressedBytes);
+            }
+
             var payload = JsonSerializer.Deserialize<Payload>(message);
             if (payload == null)
                 return;
 
-            Logger.LogInformation("RX: {len} bytes, cars: {c}", message.Length * 8, payload.CarPositions.Count + payload.CarPositionUpdates.Count);
+            var size = compressedLength > 0 ? compressedLength : message.Length;
+            Logger.LogInformation("RX: {len} bytes, cars: {c}", size * 8, payload.CarPositions.Count + payload.CarPositionUpdates.Count);
             WeakReferenceMessenger.Default.Send(new StatusNotification(payload));
         }
         catch (Exception ex)
