@@ -106,39 +106,29 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             var eventIdStr = BrowserInterop.GetQueryParameter("eventId");
             if (int.TryParse(eventIdStr, out var eventId) && eventId > 0)
             {
-                try
-                {
-                    var @event = await eventClient.LoadEventAsync(eventId);
-                    if (@event != null)
-                    {
-                        var routerEvent = new RouterEvent { Path = "EventStatus", Data = @event };
-                        Receive(new ValueChangedMessage<RouterEvent>(routerEvent));
+                var routerEvent = new RouterEvent { Path = "EventStatus", Data = eventId };
+                Receive(new ValueChangedMessage<RouterEvent>(routerEvent));
 
-                        LiveTimingViewModel.AllowEventList = false;
-                        if (ControlLogViewModel != null)
-                        {
-                            ControlLogViewModel.AllowEventList = false;
-                        }
-                        if (EventInformationViewModel != null)
-                        {
-                            EventInformationViewModel.AllowEventList = false;
-                        }
-                        if (EventInformationViewModel != null)
-                        {
-                            EventInformationViewModel.AllowEventList = false;
-                        }
-                        if (FlagsViewModel != null)
-                        {
-                            FlagsViewModel.AllowEventList = false;
-                        }
-                        if (ResultsViewModel != null)
-                        {
-                            ResultsViewModel.AllowEventList = false;
-                        }
-                    }
-                }
-                catch
+                LiveTimingViewModel.AllowEventList = false;
+                if (ControlLogViewModel != null)
                 {
+                    ControlLogViewModel.AllowEventList = false;
+                }
+                if (EventInformationViewModel != null)
+                {
+                    EventInformationViewModel.AllowEventList = false;
+                }
+                if (EventInformationViewModel != null)
+                {
+                    EventInformationViewModel.AllowEventList = false;
+                }
+                if (FlagsViewModel != null)
+                {
+                    FlagsViewModel.AllowEventList = false;
+                }
+                if (ResultsViewModel != null)
+                {
+                    ResultsViewModel.AllowEventList = false;
                 }
             }
         }
