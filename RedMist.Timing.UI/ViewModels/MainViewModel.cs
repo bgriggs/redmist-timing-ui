@@ -100,7 +100,6 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         if (OperatingSystem.IsBrowser())
         {
             await BrowserInterop.InitializeJsModuleAsync();
-            //string currentUrl = BrowserInterop.GetCurrentUrl();
 
             // Check for browser URL event ID parameter to go directly to that event
             var eventIdStr = BrowserInterop.GetQueryParameter("eventId");

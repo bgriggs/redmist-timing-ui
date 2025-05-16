@@ -44,7 +44,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             var size = viewSizeService.CurrentSize;
             if (size.Width < 400)
             {
-                return upper[..Math.Min(upper.Length, 21)];
+                return upper[..Math.Min(upper.Length, 18)];
             }
             else if (size.Width < 500)
             {
