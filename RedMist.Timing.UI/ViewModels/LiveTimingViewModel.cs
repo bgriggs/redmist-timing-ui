@@ -74,6 +74,21 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     }
     public bool IsFlat => CurrentGrouping == GroupMode.Overall;
 
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SortToggleText))]
+    private SortMode currentSortMode = SortMode.Position;
+    public string SortToggleText
+    {
+        get
+        {
+            if (CurrentSortMode == SortMode.Position)
+                return "Position";
+            return "Fastest";
+        }
+    }
+    private bool? lastIsQualifying = false;
+
     private IDisposable? consistencyCheckInterval;
 
     public string BackRouterPath { get; set; } = "EventsList";
@@ -118,8 +133,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         // Flat
-        carCache.Connect()
+        var f = carCache.Connect()
             .AutoRefresh(t => t.OverallPosition)
+            .AutoRefresh(t => t.SortablePosition)
+            .AutoRefresh(t => t.BestTime)
             .SortAndBind(Cars, SortExpressionComparer<CarViewModel>.Ascending(t => t.SortablePosition))
             .DisposeMany()
             .Subscribe();
@@ -218,6 +235,19 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             {
                 LocalTime = tod.ToString("h:mm:ss tt");
             }
+            if (lastIsQualifying == null || lastIsQualifying != status.EventStatus.IsPracticeQualifying)
+            {
+                // Only update the sort if it has changed to avoid overriding the user
+                if (status.EventStatus.IsPracticeQualifying && CurrentSortMode != SortMode.Fastest)
+                {
+                    ToggleSortMode();
+                }
+                else if (!status.EventStatus.IsPracticeQualifying && CurrentSortMode != SortMode.Position)
+                {
+                    ToggleSortMode();
+                }
+                lastIsQualifying = status.EventStatus.IsPracticeQualifying;
+            }
         }
 
         // Update event entries
@@ -254,6 +284,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
                 var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService);
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
+
+                if (CurrentSortMode == SortMode.Fastest)
+                {
+                    UpdatePositionsByFastestTime();
+                }
             }
             else if (carVm.HasValue)
             {
@@ -281,12 +316,66 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             if (carUpdate.Number == null)
                 continue;
 
+            bool bestLapTimeChanged = false;
             var carVm = carCache.Lookup(carUpdate.Number);
             if (carVm.HasValue)
             {
+                int lastBestLapTime = 0;
+                if (CurrentSortMode == SortMode.Fastest)
+                {
+                    lastBestLapTime = carVm.Value.BestTimeMs;
+                }
+
+                // Update the car data
                 carVm.Value.ApplyStatus(carUpdate);
+
+                if (!bestLapTimeChanged && CurrentSortMode == SortMode.Fastest && lastBestLapTime != carVm.Value.BestTimeMs)
+                {
+                    bestLapTimeChanged = true;
+                }
+            }
+
+            if (bestLapTimeChanged)
+            {
+                UpdatePositionsByFastestTime();
+            }
+            else if (CurrentSortMode == SortMode.Position)
+            {
+                // Reset position override
+                ResetPositionOverrides();
             }
         }
+    }
+
+    private void UpdatePositionsByFastestTime()
+    {
+        // Sort the cars by fastest time
+        if (CurrentGrouping == GroupMode.Overall)
+        {
+            var sortedCars = carCache.Items.OrderBy(c => c.BestTimeMs).ToList();
+            for (int i = 0; i < sortedCars.Count; i++)
+            {
+                sortedCars[i].OverridePosition(i + 1);
+            }
+        }
+        else if (CurrentGrouping == GroupMode.Class)
+        {
+            // Sort the cars by class and then by fastest time
+            var sortedCars = carCache.Items.GroupBy(c => c.Class);
+            foreach (var group in sortedCars)
+            {
+                var sortedGroup = group.OrderBy(c => c.BestTimeMs).ToList();
+                for (int i = 0; i < sortedGroup.Count; i++)
+                {
+                    sortedGroup[i].OverridePosition(i + 1);
+                }
+            }
+        }
+    }
+
+    private void ResetPositionOverrides()
+    {
+        carCache.Items.ToList().ForEach(car => car.OverridePosition(null));
     }
 
     private void ResetEvent()
@@ -424,6 +513,25 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         foreach (var car in carCache.Items)
         {
             car.CurrentGroupMode = CurrentGrouping;
+        }
+
+        if (CurrentSortMode == SortMode.Fastest)
+        {
+            UpdatePositionsByFastestTime();
+        }
+    }
+
+    public void ToggleSortMode()
+    {
+        if (CurrentSortMode == SortMode.Position)
+        {
+            CurrentSortMode = SortMode.Fastest;
+            UpdatePositionsByFastestTime();
+        }
+        else
+        {
+            CurrentSortMode = SortMode.Position;
+            ResetPositionOverrides();
         }
     }
 

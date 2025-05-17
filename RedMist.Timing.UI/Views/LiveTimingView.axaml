@@ -290,9 +290,9 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid RowDefinitions="Auto,Auto,*,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+	<Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
-		<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="4,5,4,0">
+		<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="4,5,4,0">
 			<Button Classes="back" Margin="0,0,15,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 
 			<StackPanel Grid.Column="1">
@@ -310,10 +310,16 @@
 			</StackPanel>
 
 			<Image Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
-			<Button Grid.Column="4" VerticalAlignment="Center" Command="{Binding ToggleGroupMode}">
+			<Button Grid.Column="4" VerticalAlignment="Center" Command="{Binding ToggleSortMode}">
+				<StackPanel Orientation="Vertical">
+					<TextBlock Text="Sort" FontStyle="Italic" FontSize="12"/>
+					<TextBlock Text="{Binding SortToggleText}" FontSize="10"/>
+				</StackPanel>
+			</Button>
+			<Button Grid.Column="5" VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="2,0,0,0">
 				<StackPanel Orientation="Vertical">
 					<TextBlock Text="Show" FontStyle="Italic" FontSize="12"/>
-					<TextBlock Text="{Binding GroupToggleText}" FontSize="11"/>
+					<TextBlock Text="{Binding GroupToggleText}" FontSize="10"/>
 				</StackPanel>
 			</Button>
 		</Grid>
