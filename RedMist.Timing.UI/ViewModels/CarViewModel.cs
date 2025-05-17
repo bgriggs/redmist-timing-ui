@@ -10,6 +10,7 @@ using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
+using System.Globalization;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -35,7 +36,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
     [ObservableProperty]
     private string number = string.Empty;
-    
+
     public string Name
     {
         get
@@ -75,11 +76,25 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         get
         {
-            if (DateTime.TryParseExact(BestTime, "hh:mm:ss.fff", null, System.Globalization.DateTimeStyles.None, out DateTime time))
+            if (DateTime.TryParseExact(BestTime, "hh:mm:ss.fff", null, DateTimeStyles.None, out DateTime time))
             {
                 return time.ToString("m:ss.fff");
             }
             return string.Empty;
+        }
+    }
+    public int BestTimeMs
+    {
+        get
+        {
+            if (TimeSpan.TryParseExact(BestTime, "hh\\:mm\\:ss\\.fff", CultureInfo.InvariantCulture, out TimeSpan time))
+            {
+                var ms = (int)time.TotalMilliseconds;
+                if (ms <= 0)
+                    return int.MaxValue;
+                return ms;
+            }
+            return int.MaxValue;
         }
     }
 
@@ -159,6 +174,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
     #endregion
 
+    private int? overridePosition;
+
     /// <summary>
     /// Used when sorting cars to put the car with no position at the end of the list.
     /// </summary>
@@ -166,6 +183,10 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         get
         {
+            if (overridePosition != null)
+            {
+                return overridePosition.Value;
+            }
             if (OverallPosition == 0)
             {
                 return 9999;
@@ -178,14 +199,15 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         get
         {
+            if (overridePosition != null)
+            {
+                return overridePosition.Value;
+            }
             if (CurrentGroupMode == GroupMode.Overall)
             {
                 return OverallPosition;
             }
-            else
-            {
-                return ClassPosition;
-            }
+            return ClassPosition;
         }
     }
 
@@ -452,6 +474,22 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         {
             CarDetailsViewModel.Dispose();
             CarDetailsViewModel = null;
+        }
+    }
+
+    /// <summary>
+    /// Manually set the position such as for fastest time rather than overall position.
+    /// </summary>
+    /// <param name="position">1-based position, or null to reset back to position</param>
+    public void OverridePosition(int? position)
+    {
+        var lastPos = overridePosition;
+        overridePosition = position;
+
+        if (lastPos != position)
+        {
+            OnPropertyChanged(nameof(SortablePosition));
+            OnPropertyChanged(nameof(Position));
         }
     }
 

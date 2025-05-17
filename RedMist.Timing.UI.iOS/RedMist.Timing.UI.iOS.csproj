@@ -5,12 +5,17 @@
 		<SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
 		<Nullable>enable</Nullable>
 		<ProvisioningType>manual</ProvisioningType>
+		<CodesignKey>***REMOVED***</CodesignKey>
 		<CodesignProvision>RedMist</CodesignProvision>
 		<ApplicationTitle>Red Mist Timing</ApplicationTitle>
 		<ApplicationId>com.bigmission.redmist</ApplicationId>
-		<ApplicationVersion>0.0.4</ApplicationVersion>
+		<ApplicationVersion>$(SharedVersion)</ApplicationVersion>
 		<ArchiveOnBuild>true</ArchiveOnBuild>
+		<_DotNetRootRemoteDirectory>/Users/***REMOVED***/Library/Caches/Xamarin/XMA/SDKs/dotnet/</_DotNetRootRemoteDirectory>
 		<TcpPort>22</TcpPort>
+		<ServerAddress>***REMOVED***</ServerAddress>
+		<ServerUser>***REMOVED***</ServerUser>
+		<ServerPassword>***REMOVED***</ServerPassword>
 		<!--<UseInterpreter>true</UseInterpreter>-->
 		<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
 	</PropertyGroup>
@@ -20,7 +25,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.iOS" Version="11.2.6" />
+		<PackageReference Include="Avalonia.iOS" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -17,6 +17,8 @@ public class GroupHeaderViewModel : ObservableCollection<CarViewModel>
         Name = name;
         observableCache.Connect()
             .AutoRefresh(t => t.OverallPosition)
+            .AutoRefresh(t => t.SortablePosition)
+            .AutoRefresh(t => t.BestTime)
             .SortAndBind(this, SortExpressionComparer<CarViewModel>.Ascending(t => t.SortablePosition))
             .DisposeMany()
             .Subscribe();
