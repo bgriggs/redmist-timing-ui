@@ -68,8 +68,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         get
         {
             if (CurrentGrouping == GroupMode.Overall)
-                return "By Class";
-            return "Overall";
+                return "Overall";
+            return "By Class";
         }
     }
     public bool IsFlat => CurrentGrouping == GroupMode.Overall;
@@ -83,8 +83,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         get
         {
             if (CurrentSortMode == SortMode.Position)
-                return "Position";
-            return "Fastest";
+                return "By Position";
+            return "By Fastest";
         }
     }
     private bool? lastIsQualifying = false;
@@ -178,7 +178,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             catch { }
             consistencyCheckInterval = null;
         }
-        //consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(_ => ConsistencyCheck());
+        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(_ => ConsistencyCheck());
     }
 
     public async Task UnsubscribeLiveAsync()
