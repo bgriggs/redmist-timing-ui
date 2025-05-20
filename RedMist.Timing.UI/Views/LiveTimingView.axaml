@@ -290,7 +290,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+	<Grid RowDefinitions="Auto,Auto,*,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
 		<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="4,5,4,0">
 			<Button Classes="back" Margin="0,0,15,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
@@ -310,18 +310,21 @@
 			</StackPanel>
 
 			<Image Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
-			<Button Grid.Column="4" VerticalAlignment="Center" Command="{Binding ToggleSortMode}">
-				<StackPanel Orientation="Vertical">
-					<TextBlock Text="Sort" FontStyle="Italic" FontSize="12"/>
-					<TextBlock Text="{Binding SortToggleText}" FontSize="10"/>
-				</StackPanel>
-			</Button>
-			<Button Grid.Column="5" VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="2,0,0,0">
-				<StackPanel Orientation="Vertical">
-					<TextBlock Text="Show" FontStyle="Italic" FontSize="12"/>
-					<TextBlock Text="{Binding GroupToggleText}" FontSize="10"/>
-				</StackPanel>
-			</Button>
+
+			<StackPanel Grid.Column="4" Orientation="Vertical">
+				<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
+					<StackPanel Orientation="Vertical">
+						<TextBlock Text="Sorting" FontStyle="Italic" FontSize="11"/>
+						<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
+					</StackPanel>
+				</Button>
+				<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,1,0,0" Padding="3" Width="55">
+					<StackPanel Orientation="Vertical">
+						<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
+						<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
+					</StackPanel>
+				</Button>
+			</StackPanel>
 		</Grid>
 
 		<!--Table Header-->
