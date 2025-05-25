@@ -1,4 +1,4 @@
-﻿docker build -f "C:\Code\***REMOVED***\RedMist.Timing.UI.Browser\Dockerfile" --force-rm -t bigmission/redmist-ui-browser "C:\Code\***REMOVED***"
-docker build -f "C:\Code\***REMOVED***\RedMist.Timing.UI.Browser\Dockerfile" --force-rm -t bigmission/redmist-ui-browser "C:\Code\***REMOVED***" --progress=plain
+﻿docker build -f "C:\Code\redmist-timing-ui\RedMist.Timing.UI.Browser\Dockerfile" --force-rm -t bigmission/redmist-ui-browser "C:\Code\redmist-timing-ui"
+docker build -f "C:\Code\redmist-timing-ui\RedMist.Timing.UI.Browser\Dockerfile" --force-rm -t bigmission/redmist-ui-browser "C:\Code\redmist-timing-ui" --progress=plain
 
 docker push bigmission/redmist-ui-browser
