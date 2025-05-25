@@ -32,7 +32,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
     #region Car Properties
 
-    private CarPosition? lastCarPosition;
+    public CarPosition? LastCarPosition { get; private set; }
 
     [ObservableProperty]
     private string number = string.Empty;
@@ -45,9 +45,9 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             var size = viewSizeService.CurrentSize;
             if (size.Width < 400)
             {
-                return upper[..Math.Min(upper.Length, 16)];
+                return upper[..Math.Min(upper.Length, 18)];
             }
-            else if (size.Width < 500)
+            else if (size.Width < 525)
             {
                 return upper[..Math.Min(upper.Length, 28)];
             }
@@ -448,7 +448,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
 
         CarDetailsViewModel?.UpdateLaps([carPosition]);
-        lastCarPosition = carPosition;
+        LastCarPosition = carPosition;
     }
 
     public void ApplyEntry(EventEntry entry)
@@ -466,7 +466,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         if (isEnabled && CarDetailsViewModel == null)
         {
-            _ = int.TryParse(lastCarPosition?.SessionId ?? "0", out int sessionId);
+            _ = int.TryParse(LastCarPosition?.SessionId ?? "0", out int sessionId);
             CarDetailsViewModel = new DetailsViewModel(eventId, sessionId, Number, serverClient, hubClient, pitTracking);
             _ = CarDetailsViewModel.Initialize();
         }

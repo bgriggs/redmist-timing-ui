@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="com.bigmissionmotorsports.redmist" android:versionCode="24" android:versionName="24">
 	<uses-permission android:name="android.permission.INTERNET" />
-	<application android:label="Red Mist Timing" android:icon="@drawable/Icon" />
+	<application android:label="Red Mist Timing" android:icon="@drawable/icon" />
 	<!--android:usesCleartextTraffic="true"-->
 </manifest>

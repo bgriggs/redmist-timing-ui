@@ -114,6 +114,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
 
     private int consistencyCheckFailures;
+    private Payload? lastFullPayload;
+    private DateTime? lastConsistencyCheckReset;
+
     private readonly PitTracking pitTracking = new();
 
     [ObservableProperty]
@@ -122,6 +125,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     [ObservableProperty]
     private bool allowEventList = true;
+
 
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
@@ -178,7 +182,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             catch { }
             consistencyCheckInterval = null;
         }
-        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(_ => ConsistencyCheck());
+        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(3)).Subscribe(_ => RunConsistencyCheck());
     }
 
     public async Task UnsubscribeLiveAsync()
@@ -271,6 +275,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         else
         {
             TotalLaps = string.Empty;
+        }
+
+        if (status.CarPositions.Count > 0)
+        {
+            lastFullPayload = status;
         }
     }
 
@@ -394,72 +403,42 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         }
     }
 
-    private void ConsistencyCheck()
+    private void RunConsistencyCheck()
     {
-        bool duplicates = false;
-        int duplicatePos = 0;
-        string duplicateClass = "";
+        if (lastFullPayload == null)
+            return;
 
-        // Check the overall positions are unique
-        var positions = new Dictionary<int, List<string>>();
-        foreach (var c in carCache.Items)
-        {
-            if (!positions.TryGetValue(c.OverallPosition, out var cars))
-            {
-                cars = [];
-                positions[c.OverallPosition] = cars;
-            }
-            cars.Add(c.Number);
-        }
+        if (lastConsistencyCheckReset != null && (DateTime.Now - lastConsistencyCheckReset) < TimeSpan.FromSeconds(60))
+            return;
 
-        foreach (var pos in positions)
+        bool isValid = true;
+        if (CurrentGrouping == GroupMode.Overall)
         {
-            if (pos.Value.Count > 1)
+            var cars = Cars.ToList();
+            isValid = ValidateSequential(cars, car => car.OverallPosition);
+            if (!isValid)
             {
-                duplicates = true;
-                duplicatePos = pos.Key;
-                break;
+                Logger.LogWarning("Consistency check failed for overall positions");
             }
         }
-
-        if (!duplicates)
+        else
         {
-            // Check the class positions
-            // Group by class then group by class position with each var in that position in a list
-            var classGroups = new Dictionary<string, Dictionary<int, List<string>>>();
-            foreach (var c in carCache.Items)
+            var groupedCars = GroupedCars.ToList();
+            foreach (var group in groupedCars)
             {
-                if (!classGroups.TryGetValue(c.Class, out var classPositions))
+                var cars = group.ToList();
+                isValid = ValidateSequential(cars, car => car.ClassPosition);
+                if (!isValid)
                 {
-                    classPositions = [];
-                    classGroups[c.Class] = classPositions;
-                }
-                if (!classPositions.TryGetValue(c.ClassPosition, out var cars))
-                {
-                    cars = [];
-                    classPositions[c.ClassPosition] = cars;
-                }
-                cars.Add(c.Number);
-            }
-
-            foreach (var classPos in classGroups)
-            {
-                foreach (var pos in classPos.Value)
-                {
-                    if (pos.Value.Count > 1)
-                    {
-                        duplicates = true;
-                        duplicatePos = pos.Key;
-                        duplicateClass = classPos.Key;
-                        break;
-                    }
+                    Logger.LogWarning("Consistency check failed for group {GroupName}", group.Name);
+                    break;
                 }
             }
         }
 
-        if (duplicates)
+        if (!isValid)
         {
-            Logger.LogWarning($"Consistency check duplicate positions found. Position {duplicatePos} Class {duplicateClass}");
+            Logger.LogWarning("Consistency check failed for event {EventId}", EventModel.EventId);
             consistencyCheckFailures++;
 
             if (consistencyCheckFailures > 3)
@@ -469,16 +448,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
                 // Reset the event
                 carCache.Clear();
-
-                // Send request to server to get the latest car positions
-                try
-                {
-                    _ = hubClient.SubscribeToEvent(EventModel.EventId);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
-                }
+                Cars.Clear();
+                ProcessUpdate(lastFullPayload);
+                lastConsistencyCheckReset = DateTime.Now;
             }
         }
         else if (consistencyCheckFailures > 0)
@@ -487,6 +459,118 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             consistencyCheckFailures = 0;
         }
     }
+
+    private bool ValidateSequential(List<CarViewModel> cars, Func<CarViewModel, int> getPosition)
+    {
+        // Check positions are sequential and unique
+        int lastPos = 0;
+        foreach (var car in cars)
+        {
+            var pos = getPosition(car);
+            if (pos != lastPos + 1)
+            {
+                Logger.LogWarning("Consistency check failed for {CarNumber}. Expected position {Expected}, got {Actual}", car.Number, lastPos + 1, pos);
+                return false;
+            }
+            lastPos = pos;
+        }
+
+        return true;
+    }
+
+    //private void ConsistencyCheck()
+    //{
+    //    bool duplicates = false;
+    //    int duplicatePos = 0;
+    //    string duplicateClass = "";
+
+    //    // Check the overall positions are unique
+    //    var positions = new Dictionary<int, List<string>>();
+    //    foreach (var c in carCache.Items)
+    //    {
+    //        if (!positions.TryGetValue(c.OverallPosition, out var cars))
+    //        {
+    //            cars = [];
+    //            positions[c.OverallPosition] = cars;
+    //        }
+    //        cars.Add(c.Number);
+    //    }
+
+    //    foreach (var pos in positions)
+    //    {
+    //        if (pos.Value.Count > 1)
+    //        {
+    //            duplicates = true;
+    //            duplicatePos = pos.Key;
+    //            break;
+    //        }
+    //    }
+
+    //    if (!duplicates)
+    //    {
+    //        // Check the class positions
+    //        // Group by class then group by class position with each var in that position in a list
+    //        var classGroups = new Dictionary<string, Dictionary<int, List<string>>>();
+    //        foreach (var c in carCache.Items)
+    //        {
+    //            if (!classGroups.TryGetValue(c.Class, out var classPositions))
+    //            {
+    //                classPositions = [];
+    //                classGroups[c.Class] = classPositions;
+    //            }
+    //            if (!classPositions.TryGetValue(c.ClassPosition, out var cars))
+    //            {
+    //                cars = [];
+    //                classPositions[c.ClassPosition] = cars;
+    //            }
+    //            cars.Add(c.Number);
+    //        }
+
+    //        foreach (var classPos in classGroups)
+    //        {
+    //            foreach (var pos in classPos.Value)
+    //            {
+    //                if (pos.Value.Count > 1)
+    //                {
+    //                    duplicates = true;
+    //                    duplicatePos = pos.Key;
+    //                    duplicateClass = classPos.Key;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    if (duplicates)
+    //    {
+    //        Logger.LogWarning("Consistency check duplicate positions found. Position {duplicatePos} Class {duplicateClass}", duplicatePos, duplicateClass);
+    //        consistencyCheckFailures++;
+
+    //        if (consistencyCheckFailures > 3)
+    //        {
+    //            Logger.LogWarning("Consistency check failures exceeded, resetting event");
+    //            consistencyCheckFailures = 0;
+
+    //            // Reset the event
+    //            carCache.Clear();
+
+    //            // Send request to server to get the latest car positions
+    //            try
+    //            {
+    //                _ = hubClient.SubscribeToEvent(EventModel.EventId);
+    //            }
+    //            catch (Exception ex)
+    //            {
+    //                Logger.LogError(ex, "Error subscribing to event: {Message}", ex.Message);
+    //            }
+    //        }
+    //    }
+    //    else if (consistencyCheckFailures > 0)
+    //    {
+    //        Logger.LogInformation("Consistency check passed, resetting counter");
+    //        consistencyCheckFailures = 0;
+    //    }
+    //}
 
     #region Commands
 
@@ -540,6 +624,25 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         if (EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url))
         {
             WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.Broadcast.Url));
+        }
+    }
+
+    public void InsertDuplicateCar()
+    {
+        var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService)
+        {
+            Number = "DuplicateCar",
+            Class = "Test Class",
+            OverallPosition = 1,
+        };
+        if (Cars.Count > 0)
+        {
+            var c = Cars.First();
+            if (c.LastCarPosition != null)
+            {
+                vm.ApplyStatus(c.LastCarPosition);
+                Cars.Insert(0, vm);
+            }
         }
     }
 

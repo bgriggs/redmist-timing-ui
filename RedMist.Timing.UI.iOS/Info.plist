@@ -7,9 +7,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.bigmission.redmist</string>
 	<key>CFBundleShortVersionString</key>
-	<string>18</string>
+	<string>25</string>
 	<key>CFBundleVersion</key>
-	<string>18</string>
+	<string>25</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
@@ -20,7 +20,7 @@
 		<integer>2</integer>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>Launch</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
