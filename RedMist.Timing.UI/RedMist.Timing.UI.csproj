@@ -19,20 +19,26 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <AvaloniaXaml Remove="Configuration\**" />
-	  <Compile Remove="Configuration\**" />
-	  <EmbeddedResource Remove="Configuration\**" />
-	  <None Remove="Configuration\**" />
+		<AvaloniaXaml Remove="Configuration\**" />
+		<Compile Remove="Configuration\**" />
+		<EmbeddedResource Remove="Configuration\**" />
+		<None Remove="Configuration\**" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="appsettings.json" />
+		<None Remove="appsettings.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="appsettings.json">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </EmbeddedResource>
+		<EmbeddedResource Include="appsettings.json">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)' == 'Release'">
+		<EmbeddedResource Include="../secrets.release.json">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -66,13 +72,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\bigmission-shared\BigMission.Shared\BigMission.Shared.csproj" />
-	  <ProjectReference Include="..\redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj" />
+		<ProjectReference Include="..\bigmission-shared\BigMission.Shared\BigMission.Shared.csproj" />
+		<ProjectReference Include="..\redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Views\LiveTimingView.axaml.cs">
-	    <DependentUpon>LiveTimingView.axaml</DependentUpon>
-	  </Compile>
+		<Compile Update="Views\LiveTimingView.axaml.cs">
+			<DependentUpon>LiveTimingView.axaml</DependentUpon>
+		</Compile>
 	</ItemGroup>
 </Project>

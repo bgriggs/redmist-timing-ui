@@ -54,6 +54,13 @@ public partial class App : Application
         builder.Configuration.AddJsonStream(stream);
         builder.Configuration.AddUserSecrets(assembly);
 
+#if RELEASE
+        // Add secrets for release builds
+        var secretsResourceName = "RedMist.Timing.UI.secrets.release.json";
+        using var secretsStream = assembly.GetManifestResourceStream(secretsResourceName) ?? throw new FileNotFoundException("Secrets configuration file not found.");
+        builder.Configuration.AddJsonStream(secretsStream);
+#endif
+
         var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddDebug();
