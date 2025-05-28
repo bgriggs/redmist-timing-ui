@@ -10,6 +10,7 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.InCarVideo;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>, IRecipient<SizeChangedNotification>
+public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>, IRecipient<SizeChangedNotification>, IRecipient<InCarVideoMetadataNotification>
 {
     // Flat collection for the view
     public ObservableCollection<CarViewModel> Cars { get; } = [];
@@ -183,6 +184,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             consistencyCheckInterval = null;
         }
         consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(3)).Subscribe(_ => RunConsistencyCheck());
+
+        
     }
 
     public async Task UnsubscribeLiveAsync()
@@ -215,6 +218,16 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     public void Receive(SizeChangedNotification message)
     {
         ShowPenaltyColumn = viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
+        Logger.LogInformation("Size changed: {Width}x{Height}", message.Size.Width, message.Size.Height);
+    }
+
+    /// <summary>
+    /// Handles in-car video metadata notifications and processes updates for in-car video metadata.
+    /// </summary>
+    /// <param name="message"></param>
+    public void Receive(InCarVideoMetadataNotification message)
+    {
+        Dispatcher.UIThread.Post(() => ProcessInCarVideoUpdate(message.Value), DispatcherPriority.Background);
     }
 
     public void ProcessUpdate(Payload status)
@@ -281,6 +294,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         {
             lastFullPayload = status;
         }
+
+        Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
     }
 
     private void ApplyEntries(List<EventEntry> entries, bool isDeltaUpdate = false)
@@ -478,99 +493,40 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         return true;
     }
 
-    //private void ConsistencyCheck()
-    //{
-    //    bool duplicates = false;
-    //    int duplicatePos = 0;
-    //    string duplicateClass = "";
+    private void ProcessInCarVideoUpdate(List<VideoMetadata> videoMetadata)
+    {
+        try
+        {
+            var cars = carCache.Items.ToArray();
+            foreach (var car in cars)
+            {
+                if (car.LastCarPosition == null)
+                {
+                    car.UpdateCarStream(null);
+                    continue;
+                }
 
-    //    // Check the overall positions are unique
-    //    var positions = new Dictionary<int, List<string>>();
-    //    foreach (var c in carCache.Items)
-    //    {
-    //        if (!positions.TryGetValue(c.OverallPosition, out var cars))
-    //        {
-    //            cars = [];
-    //            positions[c.OverallPosition] = cars;
-    //        }
-    //        cars.Add(c.Number);
-    //    }
+                VideoMetadata? vm = null;
+                var transponder = car.LastCarPosition.TransponderId;
+                if (transponder > 0)
+                {
+                    vm = videoMetadata.FirstOrDefault(vm => vm.TransponderId == transponder);
+                }
 
-    //    foreach (var pos in positions)
-    //    {
-    //        if (pos.Value.Count > 1)
-    //        {
-    //            duplicates = true;
-    //            duplicatePos = pos.Key;
-    //            break;
-    //        }
-    //    }
+                if (vm == null && !string.IsNullOrWhiteSpace(car.Number))
+                {
+                    // Try to match by car number if transponder not found
+                    vm = videoMetadata.FirstOrDefault(vm => string.Compare(vm.CarNumber, car.Number, true, CultureInfo.InvariantCulture) == 0);
+                }
 
-    //    if (!duplicates)
-    //    {
-    //        // Check the class positions
-    //        // Group by class then group by class position with each var in that position in a list
-    //        var classGroups = new Dictionary<string, Dictionary<int, List<string>>>();
-    //        foreach (var c in carCache.Items)
-    //        {
-    //            if (!classGroups.TryGetValue(c.Class, out var classPositions))
-    //            {
-    //                classPositions = [];
-    //                classGroups[c.Class] = classPositions;
-    //            }
-    //            if (!classPositions.TryGetValue(c.ClassPosition, out var cars))
-    //            {
-    //                cars = [];
-    //                classPositions[c.ClassPosition] = cars;
-    //            }
-    //            cars.Add(c.Number);
-    //        }
-
-    //        foreach (var classPos in classGroups)
-    //        {
-    //            foreach (var pos in classPos.Value)
-    //            {
-    //                if (pos.Value.Count > 1)
-    //                {
-    //                    duplicates = true;
-    //                    duplicatePos = pos.Key;
-    //                    duplicateClass = classPos.Key;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
-
-    //    if (duplicates)
-    //    {
-    //        Logger.LogWarning("Consistency check duplicate positions found. Position {duplicatePos} Class {duplicateClass}", duplicatePos, duplicateClass);
-    //        consistencyCheckFailures++;
-
-    //        if (consistencyCheckFailures > 3)
-    //        {
-    //            Logger.LogWarning("Consistency check failures exceeded, resetting event");
-    //            consistencyCheckFailures = 0;
-
-    //            // Reset the event
-    //            carCache.Clear();
-
-    //            // Send request to server to get the latest car positions
-    //            try
-    //            {
-    //                _ = hubClient.SubscribeToEvent(EventModel.EventId);
-    //            }
-    //            catch (Exception ex)
-    //            {
-    //                Logger.LogError(ex, "Error subscribing to event: {Message}", ex.Message);
-    //            }
-    //        }
-    //    }
-    //    else if (consistencyCheckFailures > 0)
-    //    {
-    //        Logger.LogInformation("Consistency check passed, resetting counter");
-    //        consistencyCheckFailures = 0;
-    //    }
-    //}
+                car.UpdateCarStream(vm);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing in-car video metadata");
+        }
+    }
 
     #region Commands
 

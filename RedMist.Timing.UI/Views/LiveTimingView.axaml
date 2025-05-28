@@ -69,6 +69,10 @@
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
 						<PathIcon Height="12" Width="12" Foreground="Orange" Data="{StaticResource doubleLightning}"
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
+						<Button Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video stream" Padding="0" Height="12" Margin="5,-2,0,0">
+							<Image Source="{Binding CarStreamImage}"/>
+						</Button>
+						
 						<ContentControl Content="{Binding PitState}">
 							<ContentControl.DataTemplates>
 								<sel:PitIconTemplateSelector>
@@ -115,7 +119,7 @@
 						</StackPanel>
 					</Grid>
 				</Grid>
-				<Grid RowDefinitions="Auto,Auto" Margin="15,0,5,0" Grid.Column="2">
+				<Grid RowDefinitions="Auto,Auto" Margin="0,0,5,0" Grid.Column="2">
 					<TextBlock Text="{Binding Class}" HorizontalAlignment="Right" Classes="lg"/>
 					<StackPanel Orientation="Horizontal" Grid.Row="1">
 						<TextBlock Text="{Binding BestLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>

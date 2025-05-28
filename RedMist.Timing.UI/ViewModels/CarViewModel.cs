@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,8 +11,10 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.InCarVideo;
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -45,19 +49,15 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             var size = viewSizeService.CurrentSize;
             if (size.Width < 400)
             {
-                return upper[..Math.Min(upper.Length, 18)];
+                return upper[..Math.Min(upper.Length, 25)];
             }
             else if (size.Width < 525)
             {
-                return upper[..Math.Min(upper.Length, 28)];
+                return upper[..Math.Min(upper.Length, 30)];
             }
             else if (size.Width < 600)
             {
                 return upper[..Math.Min(upper.Length, 35)];
-            }
-            else if (size.Width < 700)
-            {
-                return upper[..Math.Min(upper.Length, 42)];
             }
             return upper;
         }
@@ -349,6 +349,19 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
     #endregion
 
+    #region In-Car Video
+
+    [ObservableProperty]
+    private bool isCarStreaming;
+
+    [ObservableProperty]
+    private Bitmap? carStreamImage;
+
+    [ObservableProperty]
+    private string? carStreamDestinationUrl;
+
+    #endregion
+
 
     public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService)
     {
@@ -509,6 +522,51 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(Name)), DispatcherPriority.Normal);
             return Task.CompletedTask;
         });
+    }
+
+    public void UpdateCarStream(VideoMetadata? videoMetadata)
+    {
+        if (videoMetadata == null || !videoMetadata.IsLive || videoMetadata.Destinations.Count == 0)
+        {
+            IsCarStreaming = false;
+            CarStreamImage = null;
+            CarStreamDestinationUrl = null;
+            return;
+        }
+
+        if (videoMetadata.IsLive && videoMetadata.Destinations.Count > 0)
+        {
+            IsCarStreaming = true;
+            CarStreamImage = GetCarSourceImage(videoMetadata.SystemType);
+            CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type == VideoDestinationType.Youtube)?.Url;
+            CarStreamDestinationUrl ??= videoMetadata.Destinations.FirstOrDefault()?.Url;
+        }
+        else
+        {
+            IsCarStreaming = false;
+            CarStreamImage = null;
+            CarStreamDestinationUrl = null;
+        }
+    }
+
+    private static Bitmap GetCarSourceImage(VideoSystemType type)
+    {
+        var imagePath = type switch
+        {
+            VideoSystemType.Sentinel => "avares://RedMist.Timing.UI/Assets/sentinel.png",
+            _ => "avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png"
+        };
+
+        return new Bitmap(AssetLoader.Open(new Uri(imagePath)));
+    }
+
+    public void LaunchInCarVideo()
+    {
+        var url = CarStreamDestinationUrl;
+        if (!string.IsNullOrEmpty(url))
+        {
+            WeakReferenceMessenger.Default.Send(new LauncherEvent(url));
+        }
     }
 }
 

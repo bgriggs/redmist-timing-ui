@@ -7,8 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.InCarVideo;
 using System;
 using System.Buffers.Text;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -82,6 +84,9 @@ public class HubClient : HubClientBase
 
         hub.Remove("ReceiveMessage");
         hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
+
+        hub.Remove("ReceiveInCarVideoMetadata");
+        hub.On("ReceiveInCarVideoMetadata", (string s) => ProcessInCarVideoMetadata(s));
     }
 
     public async Task UnsubscribeFromEvent(int eventId)
@@ -182,6 +187,27 @@ public class HubClient : HubClientBase
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to process control log message");
+        }
+    }
+
+    #endregion
+
+    #region In-Car Video Metadata
+
+    private void ProcessInCarVideoMetadata(string metadataJson)
+    {
+        try
+        {
+            var metadata = JsonSerializer.Deserialize<List<VideoMetadata>>(metadataJson);
+            if (metadata == null)
+                return;
+
+            Logger.LogInformation("RX In-Car Video Metadata: {c}", metadata.Count);
+            WeakReferenceMessenger.Default.Send(new InCarVideoMetadataNotification(metadata));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to process in-car video metadata message");
         }
     }
 

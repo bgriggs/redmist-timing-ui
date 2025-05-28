@@ -76,9 +76,9 @@
 		<ProjectReference Include="..\redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 		<Compile Update="Views\LiveTimingView.axaml.cs">
 			<DependentUpon>LiveTimingView.axaml</DependentUpon>
 		</Compile>
-	</ItemGroup>
+	</ItemGroup>-->
 </Project>
