@@ -42,6 +42,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     [ObservableProperty]
     private bool isLiveTimingTabVisible;
+    [ObservableProperty]
+    private bool isLiveTimingTabSelected;
 
     private bool isResultsTabSelected;
     public bool IsResultsTabSelected
@@ -55,6 +57,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             }
         }
     }
+
+    [ObservableProperty]
+    private bool isInformationTabSelected;
 
     private bool isControlLogTabSelected;
     public bool IsControlLogTabSelected
@@ -79,6 +84,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private bool isControlLogTabVisible;
     [ObservableProperty]
     private bool isFlagsTabVisible;
+    [ObservableProperty]
+    private bool isFlagsTabSelected;
     private const int FlagShowWidth = 500;
 
 
@@ -185,6 +192,43 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
             IsEventsListVisible = true;
             IsTimingVisible = false;
+        }
+    }
+
+    public bool HandleDeviceBackButton()
+    {
+        if (IsEventsListVisible)
+        {
+            return false; // There is nothing to go back to, so do not handle the back button
+        }
+        else // The main tab strip is visible
+        {
+            if (IsLiveTimingTabSelected)
+            {
+                LiveTimingViewModel.Back();
+            }
+            if (IsResultsTabSelected) // Session Results Tab
+            {
+                ResultsViewModel?.Back();
+            }
+            else if (IsInformationTabSelected) // Information Tab
+            {
+                EventInformationViewModel?.Back();
+            }
+            else if (IsControlLogTabSelected) // Control Log Tab
+            {
+                ControlLogViewModel?.Back();
+            }
+            else if (IsFlagsTabSelected) // Flags Tab
+            {
+                FlagsViewModel?.Back();
+            }
+            else
+            {
+                return false; // No tab is selected, so do not handle the back button
+            }
+
+            return true;
         }
     }
 

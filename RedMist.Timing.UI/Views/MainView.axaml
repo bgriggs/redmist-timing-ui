@@ -24,7 +24,7 @@
 			<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"/>
 		</ContentControl>
 		<TabControl Padding="0" TabStripPlacement="Bottom" IsVisible="{Binding !IsEventsListVisible}">
-			<TabItem IsVisible="{Binding IsLiveTimingTabVisible}">
+			<TabItem IsVisible="{Binding IsLiveTimingTabVisible}" IsSelected="{Binding IsLiveTimingTabSelected}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
@@ -46,7 +46,7 @@
 				</TabItem.Header>
 				<v:ResultsView DataContext="{Binding ResultsViewModel}"/>
 			</TabItem>
-			<TabItem Header="Information">
+			<TabItem Header="Information" IsSelected="{Binding IsInformationTabSelected}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
@@ -64,7 +64,7 @@
 				</TabItem.Header>
 				<v:ControlLogView DataContext="{Binding ControlLogViewModel}"/>
 			</TabItem>
-			<TabItem Header="Flags" IsVisible="{Binding IsFlagsTabVisible}">
+			<TabItem Header="Flags" IsVisible="{Binding IsFlagsTabVisible}" IsSelected="{Binding IsFlagsTabSelected}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>

@@ -105,6 +105,9 @@ public partial class App : Application
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
        => _ = _host!.StopAsync(_cancellationTokenSource!.Token);
 
+    public T GetService<T>() where T : class
+        => _host!.Services.GetRequiredService<T>();
+
     [Transient(typeof(EventClient))]
     [Singleton(typeof(HubClient))]
     [Transient(typeof(OrganizationClient))]
