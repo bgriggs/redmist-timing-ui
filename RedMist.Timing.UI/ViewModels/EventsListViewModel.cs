@@ -1,8 +1,11 @@
 ﻿using Avalonia.Threading;
 using BigMission.Avalonia.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -114,5 +117,11 @@ public partial class EventsListViewModel : ObservableObject
     public void RefreshEvents()
     {
         _ = Task.Run(Initialize);
+    }
+
+    public void SetDriverMode()
+    {
+        var routerEvent = new RouterEvent { Path = "InCarDriverSettings" };
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
     }
 }

@@ -3,13 +3,12 @@ using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.InCarDriverMode;
 using RedMist.TimingCommon.Models.InCarVideo;
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -28,6 +27,7 @@ public class HubClient : HubClientBase
     private HubConnection? hub;
     private ILogger Logger { get; }
     private int? subscribedEventId;
+    private (int eventId, string car)? subscribedInCarDriverEventIdAndCar;
     private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(5));
 
 
@@ -44,12 +44,17 @@ public class HubClient : HubClientBase
             return;
         try
         {
-            if (hub.State == HubConnectionState.Connected && subscribedEventId != null)
+            if (hub.State == HubConnectionState.Connected)
             {
-                _ = debouncer.ExecuteAsync(async () =>
+                if (subscribedEventId != null)
                 {
-                    await hub.InvokeAsync("SubscribeToEvent", subscribedEventId);
-                });
+                    _ = debouncer.ExecuteAsync(async () => await hub.InvokeAsync("SubscribeToEvent", subscribedEventId));
+                }
+                else if (subscribedInCarDriverEventIdAndCar != null)
+                {
+                    _ = debouncer.ExecuteAsync(async () =>
+                        await hub.InvokeAsync("SubscribeToInCarDriverEvent", subscribedInCarDriverEventIdAndCar.Value.eventId, subscribedInCarDriverEventIdAndCar.Value.car));
+                }
             }
         }
         catch (Exception ex)
@@ -65,7 +70,7 @@ public class HubClient : HubClientBase
 
     #region Car Timing Status
 
-    public async Task SubscribeToEvent(int eventId)
+    public async Task SubscribeToEventAsync(int eventId)
     {
         if (hub != null)
         {
@@ -89,14 +94,16 @@ public class HubClient : HubClientBase
         hub.On("ReceiveInCarVideoMetadata", (string s) => ProcessInCarVideoMetadata(s));
     }
 
-    public async Task UnsubscribeFromEvent(int eventId)
+    public async Task UnsubscribeFromEventAsync(int eventId)
     {
         subscribedEventId = null;
+
         if (hub == null)
             return;
-        await hub.InvokeAsync("UnsubscribeFromEvent", eventId);
+        
         try
         {
+            await hub.InvokeAsync("UnsubscribeFromEvent", eventId);
             await hub.DisposeAsync();
             hub = null;
         }
@@ -111,7 +118,7 @@ public class HubClient : HubClientBase
         try
         {
             int compressedLength = 0;
-            if (!message.StartsWith("{"))
+            if (!message.StartsWith('{'))
             {
                 compressedLength = message.Length;
                 var compressedBytes = Convert.FromBase64String(message);
@@ -143,7 +150,7 @@ public class HubClient : HubClientBase
 
     #region Control Logs
 
-    public async Task SubscribeToControlLogs(int eventId)
+    public async Task SubscribeToControlLogsAsync(int eventId)
     {
         if (hub == null)
             return;
@@ -153,14 +160,14 @@ public class HubClient : HubClientBase
         hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
     }
 
-    public async Task UnsubscribeFromControlLogs(int eventId)
+    public async Task UnsubscribeFromControlLogsAsync(int eventId)
     {
         if (hub == null)
             return;
         await hub.InvokeAsync("UnsubscribeFromControlLogs", eventId);
     }
 
-    public async Task SubscribeToCarControlLogs(int eventId, string carNum)
+    public async Task SubscribeToCarControlLogsAsync(int eventId, string carNum)
     {
         if (hub == null)
             return;
@@ -170,7 +177,7 @@ public class HubClient : HubClientBase
         hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
     }
 
-    public async Task UnsubscribeFromCarControlLogs(int eventId, string carNum)
+    public async Task UnsubscribeFromCarControlLogsAsync(int eventId, string carNum)
     {
         if (hub == null)
             return;
@@ -208,6 +215,76 @@ public class HubClient : HubClientBase
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to process in-car video metadata message");
+        }
+    }
+
+    #endregion
+
+    #region Driver Mode
+
+    public async Task SubscribeToInCarDriverEventAsync(int eventId, string car)
+    {
+        if (hub != null)
+        {
+            try
+            {
+                await hub.DisposeAsync();
+                hub = null;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to dispose hub connection");
+            }
+        }
+        subscribedInCarDriverEventIdAndCar = (eventId, car);
+        hub = StartConnection();
+
+        hub.Remove("ReceiveInCarUpdate");
+        hub.On("ReceiveInCarUpdate", async (string s) => await ProcessInCarPayloadAsync(s));
+    }
+
+    public async Task UnsubscribeFromInCarDriverEventAsync(int eventId, string car)
+    {
+        subscribedInCarDriverEventIdAndCar = null;
+
+        if (hub == null)
+            return;
+
+        try
+        {
+            await hub.InvokeAsync("UnsubscribeFromInCarDriverEvent", eventId, car);
+            await hub.DisposeAsync();
+            hub = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to dispose hub connection");
+        }
+    }
+
+    private async Task ProcessInCarPayloadAsync(string compressedMessage)
+    {
+        try
+        {
+            var compressedBytes = Convert.FromBase64String(compressedMessage);
+            using var input = new MemoryStream(compressedBytes);
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var output = new MemoryStream();
+
+            await gzip.CopyToAsync(output);
+            var decompressedBytes = output.ToArray();
+
+            var json = Encoding.UTF8.GetString(decompressedBytes);
+            var payload = JsonSerializer.Deserialize<InCarPayload>(json);
+            if (payload == null)
+                return;
+
+            Logger.LogInformation("RX-in-Car: {len} bytes", compressedMessage.Length * 8);
+            WeakReferenceMessenger.Default.Send(new InCarPositionUpdate(payload));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to process in-car payload");
         }
     }
 

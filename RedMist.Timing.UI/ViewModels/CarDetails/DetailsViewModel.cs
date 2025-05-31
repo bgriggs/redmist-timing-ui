@@ -68,7 +68,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             Dispatcher.UIThread.Post(() => IsLoading = true);
             // Subscribe to get control logs
-            _ = hubClient.SubscribeToCarControlLogs(eventId, carNumber);
+            _ = hubClient.SubscribeToCarControlLogsAsync(eventId, carNumber);
 
             // Load Competitor Metadata
             _ = serverClient.LoadCompetitorMetadataAsync(eventId, carNumber).ContinueWith(t =>
@@ -156,7 +156,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     {
         try
         {
-            _ = hubClient.UnsubscribeFromCarControlLogs(eventId, carNumber);
+            _ = hubClient.UnsubscribeFromCarControlLogsAsync(eventId, carNumber);
         }
         catch { }
         finally

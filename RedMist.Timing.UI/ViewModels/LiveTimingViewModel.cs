@@ -166,7 +166,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         ResetEvent();
         try
         {
-            await hubClient.SubscribeToEvent(EventModel.EventId);
+            await hubClient.SubscribeToEventAsync(EventModel.EventId);
             IsLive = true;
         }
         catch (Exception ex)
@@ -192,7 +192,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     {
         try
         {
-            await hubClient.UnsubscribeFromEvent(EventModel.EventId);
+            await hubClient.UnsubscribeFromEventAsync(EventModel.EventId);
         }
         catch (Exception ex)
         {

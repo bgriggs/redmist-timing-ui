@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
+using RedMist.Timing.UI.ViewModels.InCarDriverMode;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Linq;
@@ -22,8 +23,6 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private bool isEventsListVisible = true;
     [ObservableProperty]
-    private bool isTimingVisible = false;
-    [ObservableProperty]
     private ResultsViewModel? resultsViewModel;
     [ObservableProperty]
     private EventInformationViewModel? eventInformationViewModel;
@@ -31,6 +30,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private ControlLogViewModel? controlLogViewModel;
     [ObservableProperty]
     private FlagsViewModel? flagsViewModel;
+    [ObservableProperty]
+    private InCarSettingsViewModel? inCarSettingsViewModel;
 
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
@@ -39,7 +40,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     [ObservableProperty]
     private bool isContentVisible = false;
-
+    [ObservableProperty]
+    private bool isTimingTabStripVisible = false;
     [ObservableProperty]
     private bool isLiveTimingTabVisible;
     [ObservableProperty]
@@ -87,6 +89,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private bool isFlagsTabSelected;
     private const int FlagShowWidth = 500;
+
+    [ObservableProperty]
+    private bool isDriverModeVisible = false;
 
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
@@ -177,7 +182,6 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
                 ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient);
                 FlagsViewModel = new FlagsViewModel(eventModel);
-                IsTimingVisible = true;
                 IsControlLogTabVisible = eventModel.HasControlLog;
 
                 IsResultsTabSelected = !eventModel.IsLive;
@@ -191,7 +195,22 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             _ = ControlLogViewModel?.UnsubscribeFromControlLogs();
 
             IsEventsListVisible = true;
-            IsTimingVisible = false;
+
+            IsTimingTabStripVisible = false;
+            IsDriverModeVisible = false;
+        }
+        else if (router.Path == "InCarDriverSettings")
+        {
+            InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient);
+            _ = InCarSettingsViewModel.Initialize();
+            IsDriverModeVisible = true;
+
+            IsEventsListVisible = false;
+            IsTimingTabStripVisible = false;
+        }
+        else if (router.Path == "InCarDriverActiveSettings")
+        {
+            InCarSettingsViewModel?.BackToSettings();
         }
     }
 

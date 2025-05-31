@@ -1,0 +1,95 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:model="using:RedMist.Timing.UI.ViewModels.InCarDriverMode"
+			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
+			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
+             mc:Ignorable="d" d:DesignWidth="340" d:DesignHeight="600"
+             x:Class="RedMist.Timing.UI.Views.InCarDriverMode.InCarPositions"
+			 x:DataType="model:InCarPositionsViewModel">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<design:DesignInCarPositionsViewModel />
+	</Design.DataContext>
+
+	<UserControl.Resources>
+		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
+			<Border BorderThickness="1" BorderBrush="Black" Background="{Binding RowBackground}" CornerRadius="3" Margin="5,1">
+				<Viewbox>
+					<Grid RowDefinitions="Auto,Auto,Auto,Auto">
+						<Grid ColumnDefinitions="*,Auto">
+							<TextBlock Text="{Binding TeamShortName}" FontSize="29" Margin="0,0,8,0"/>
+							<TextBlock Text="{Binding Number, StringFormat='#{0}'}" FontSize="32" Grid.Column="1"/>
+						</Grid>
+
+						<Grid ColumnDefinitions="Auto,Auto" Grid.Row="1" IsVisible="{Binding ShowDriverNameOrType}">
+							<TextBlock Text="{Binding DriverNameShort}" FontSize="17" Margin="0,0,10,0"/>
+							<TextBlock Text="{Binding CarTypeShort}" Grid.Column="1" FontSize="17"/>
+						</Grid>
+
+						<TextBlock Text="{Binding LastLapTime, StringFormat='Last:{0}'}" FontSize="32" Grid.Row="2"/>
+
+						<Grid ColumnDefinitions="*,*" Grid.Row="3" IsVisible="{Binding ShowGainLoss}">
+							<TextBlock Text="{Binding Gap, StringFormat='Gap:{0}'}" FontSize="32" Margin="2,0,20,0"/>
+							<StackPanel Orientation="Horizontal" Grid.Column="1">
+								<TextBlock Text="{Binding GainLossStr}" FontSize="32"/>
+								<TextBlock Text="{Binding GainLoss}" FontSize="32"/>
+							</StackPanel>
+						</Grid>
+					</Grid>
+				</Viewbox>
+			</Border>
+		</DataTemplate>
+
+		<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
+	</UserControl.Resources>
+	<UserControl.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+		<Style Selector="TextBlock.h1">
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+	</UserControl.Styles>
+
+	<Border Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+		<Grid RowDefinitions="Auto,*,Auto">
+			<!--Position-->
+			<Grid ColumnDefinitions="Auto,*,Auto">
+				<Button Classes="back" Grid.RowSpan="3" Margin="4,0,10,0" Command="{Binding Back}"/>
+				<TextBlock Text="{Binding PositionInClass, StringFormat='P{0}'}" FontSize="54" Classes="h1" Grid.Column="1" VerticalAlignment="Center"/>
+				<TextBlock Text="{Binding PositionOverall, StringFormat='Overall:{0}'}" FontSize="28" Classes="h1" Grid.Column="2" VerticalAlignment="Center" Margin="20,0,10,0"/>
+			</Grid>
+			
+			<Grid RowDefinitions="*,*,*,*" IsVisible="{Binding IsAheadOutOfClassVisible}" Grid.Row="1">
+				<!--Car Ahead-->
+				<ContentControl Content="{Binding CarAhead}" Grid.Row="0" ContentTemplate="{StaticResource carTemplate}"/>
+
+				<!--Car Ahead out of Class-->
+				<ContentControl Content="{Binding CarAheadOutOfClass}" Grid.Row="1" ContentTemplate="{StaticResource carTemplate}"/>
+
+				<!--Driver's Car-->
+				<ContentControl Content="{Binding DriversCar}" Grid.Row="2" ContentTemplate="{StaticResource carTemplate}"/>
+
+				<!--Car Behind-->
+				<ContentControl Content="{Binding CarBehind}" Grid.Row="3" ContentTemplate="{StaticResource carTemplate}"/>
+			</Grid>
+			
+			<Grid RowDefinitions="*,*,*" IsVisible="{Binding !IsAheadOutOfClassVisible}" Grid.Row="1">
+				<!--Car Ahead-->
+				<ContentControl Content="{Binding CarAhead}" Grid.Row="0" ContentTemplate="{StaticResource carTemplate}"/>
+
+				<!--Driver's Car-->
+				<ContentControl Content="{Binding DriversCar}" Grid.Row="1" ContentTemplate="{StaticResource carTemplate}"/>
+
+				<!--Car Behind-->
+				<ContentControl Content="{Binding CarBehind}" Grid.Row="2" ContentTemplate="{StaticResource carTemplate}"/>
+			</Grid>
+			
+			<!--Message-->
+			<TextBlock Text="{Binding Message}" Classes="h1" FontSize="9" Grid.Row="2" Margin="7,0,0,2"/>
+		</Grid>
+	</Border>
+</UserControl>

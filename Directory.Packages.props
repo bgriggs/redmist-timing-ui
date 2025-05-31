@@ -14,6 +14,7 @@
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.3.0" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.Maui.Essentials" Version="9.0.70" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="25.1.1" />
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.1.1" />
@@ -26,7 +27,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
     <PackageVersion Include="RestSharp" Version="112.1.0" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.10.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.11.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
   </ItemGroup>
 </Project>

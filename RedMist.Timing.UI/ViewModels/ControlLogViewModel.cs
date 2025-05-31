@@ -114,7 +114,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
             Dispatcher.UIThread.Post(() => IsLoading = true);
             var controlLogEntries = await eventClient.LoadControlLogAsync(EventModel.EventId);
             await ProcessControlLogs(new ControlLogNotification(new CarControlLogs { ControlLogEntries = controlLogEntries }));
-            await hubClient.SubscribeToControlLogs(EventModel.EventId);
+            await hubClient.SubscribeToControlLogsAsync(EventModel.EventId);
         }
         catch (Exception)
         {
@@ -130,7 +130,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     {
         try
         {
-            await hubClient.UnsubscribeFromControlLogs(EventModel.EventId);
+            await hubClient.UnsubscribeFromControlLogsAsync(EventModel.EventId);
         }
         catch (Exception)
         {

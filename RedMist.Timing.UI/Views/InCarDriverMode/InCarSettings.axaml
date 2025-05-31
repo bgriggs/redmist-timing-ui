@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:model="using:RedMist.Timing.UI.ViewModels.InCarDriverMode"
+			 xmlns:v="using:RedMist.Timing.UI.Views.InCarDriverMode"
+             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="450"
+             x:Class="RedMist.Timing.UI.Views.InCarDriverMode.InCarSettings"
+			 x:DataType="model:InCarSettingsViewModel">
+	<Grid>
+		<!--Settings-->
+		<Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding !IsPositionsVisible}">
+			<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
+				<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}"/>
+				<TextBlock Text="In-Car Driver Settings" Classes="title" Grid.Column="2" VerticalAlignment="Center"/>
+			</Grid>
+
+			<Border Background="{DynamicResource lightAppBackground}" Margin="15,15,15,0" Padding="8" CornerRadius="4" Grid.Row="1">
+				<StackPanel>
+					<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title"/>
+					<TextBox Text="{Binding CarNumber}" Watermark="Car Number" Margin="1" Width="120" HorizontalAlignment="Left"/>
+					<TextBlock Text="Select Event" Margin="1,7,0,0"/>
+					<ComboBox ItemsSource="{Binding Events}" SelectedItem="{Binding SelectedEvent}" HorizontalAlignment="Stretch">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Name}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<CheckBox Content="Show in-class cars only" IsChecked="{Binding IsInClassOnly}"/>
+					<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="2" TextWrapping="Wrap" FontSize="9" Margin="2,20,2,0"/>
+				</StackPanel>
+			</Border>
+
+			<Button Content="OK" Grid.Row="2" Command="{Binding Ok}" HorizontalAlignment="Right" Margin="0,4,15,4"/>
+		</Grid>
+
+		<!-- In-Car Positions View -->
+		<ContentControl IsVisible="{Binding IsPositionsVisible}">
+			<v:InCarPositions DataContext="{Binding InCarPositionsViewModel}"/>
+		</ContentControl>
+	</Grid>
+</UserControl>
