@@ -1,7 +1,9 @@
 ﻿using Android.App;
 using Android.Content.PM;
+using Android.OS;
 using Avalonia;
 using Avalonia.Android;
+using Microsoft.Maui.ApplicationModel;
 using RedMist.Timing.UI.ViewModels;
 
 namespace RedMist.Timing.UI.Android;
@@ -20,6 +22,12 @@ public class MainActivity : AvaloniaMainActivity<App>
             .WithInterFont();
     }
 
+    protected override void OnCreate(Bundle? savedInstanceState)
+    {
+        base.OnCreate(savedInstanceState);
+        Platform.Init(this, savedInstanceState);
+    }
+
     public override void OnBackPressed()
     {
         if (App.Current is App app)
@@ -36,5 +44,4 @@ public class MainActivity : AvaloniaMainActivity<App>
             base.OnBackPressed();
         }
     }
-
 }

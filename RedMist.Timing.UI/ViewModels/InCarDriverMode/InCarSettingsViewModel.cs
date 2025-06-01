@@ -120,7 +120,7 @@ public partial class InCarSettingsViewModel : ObservableValidator
     }
 
 
-    public async Task Ok()
+    public void Ok()
     {
         ValidateAllProperties();
         if (HasErrors)

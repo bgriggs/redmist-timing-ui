@@ -295,7 +295,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             lastFullPayload = status;
         }
 
-        Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
+        //Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
     }
 
     private void ApplyEntries(List<EventEntry> entries, bool isDeltaUpdate = false)

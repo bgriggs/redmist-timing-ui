@@ -12,6 +12,7 @@
 		<AndroidPackageFormat>aab</AndroidPackageFormat>
 		<AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
 		<RunAOTCompilation>false</RunAOTCompilation>
+		<UserSecretsId>8c31261b-5551-40d9-a50a-bfb280d7f018</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.iOS;
-
 using Foundation;
 
 namespace RedMist.Timing.UI.iOS;

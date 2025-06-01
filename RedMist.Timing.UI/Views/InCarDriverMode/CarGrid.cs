@@ -47,14 +47,5 @@ public class CarGrid : Grid
             SetRow(carControl, RowDefinitions.Count - 1);
             Children.Add(carControl);
         }
-
-        InvalidateMeasure();
-        InvalidateArrange();
-
-        if (Parent is Grid g)
-        {
-            g.InvalidateMeasure();
-            g.InvalidateArrange();
-        }
     }
 }
