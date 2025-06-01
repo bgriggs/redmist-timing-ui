@@ -184,6 +184,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 FlagsViewModel = new FlagsViewModel(eventModel);
                 IsControlLogTabVisible = eventModel.HasControlLog;
 
+                IsTimingTabStripVisible = true;
                 IsResultsTabSelected = !eventModel.IsLive;
                 IsLiveTimingTabVisible = eventModel.IsLive;
             }

@@ -1,6 +1,7 @@
 ﻿using BigMission.Shared.Auth;
 using Microsoft.Extensions.Configuration;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.InCarDriverMode;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -87,5 +88,13 @@ public class EventClient
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("car", car);
         return await restClient.GetAsync<CarControlLogs?>(request);
+    }
+
+    public virtual async Task<InCarPayload?> LoadInCarDriverModePayload(int eventId, string car)
+    {
+        var request = new RestRequest("LoadInCarPayload", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("car", car);
+        return await restClient.GetAsync<InCarPayload?>(request);
     }
 }

@@ -5,7 +5,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignInCarPositionsViewModel : InCarPositionsViewModel
 {
-    public DesignInCarPositionsViewModel() : base(new DesignHubClient())
+    public DesignInCarPositionsViewModel() : base(new DesignHubClient(), new DesignEventClient(new DesignConfiguration()))
     {
         ShowInClassOnly = false;
         var payload = new InCarPayload
@@ -63,7 +63,7 @@ public class DesignInCarPositionsViewModel : InCarPositionsViewModel
             Gap = "2.345",
         };
 
-        payload.Cars = [ahead,  driver, behind];
+        payload.Cars = [ahead, aheadOutOfClass, driver, behind];
 
         Receive(new Models.InCarPositionUpdate(payload));
     }

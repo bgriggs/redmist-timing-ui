@@ -5,6 +5,7 @@
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels.InCarDriverMode"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
+			 xmlns:v="clr-namespace:RedMist.Timing.UI.Views.InCarDriverMode"
              mc:Ignorable="d" d:DesignWidth="340" d:DesignHeight="600"
              x:Class="RedMist.Timing.UI.Views.InCarDriverMode.InCarPositions"
 			 x:DataType="model:InCarPositionsViewModel">
@@ -62,34 +63,14 @@
 				<TextBlock Text="{Binding PositionInClass, StringFormat='P{0}'}" FontSize="54" Classes="h1" Grid.Column="1" VerticalAlignment="Center"/>
 				<TextBlock Text="{Binding PositionOverall, StringFormat='Overall:{0}'}" FontSize="28" Classes="h1" Grid.Column="2" VerticalAlignment="Center" Margin="20,0,10,0"/>
 			</Grid>
-			
-			<Grid RowDefinitions="*,*,*,*" IsVisible="{Binding IsAheadOutOfClassVisible}" Grid.Row="1">
-				<!--Car Ahead-->
-				<ContentControl Content="{Binding CarAhead}" Grid.Row="0" ContentTemplate="{StaticResource carTemplate}"/>
 
-				<!--Car Ahead out of Class-->
-				<ContentControl Content="{Binding CarAheadOutOfClass}" Grid.Row="1" ContentTemplate="{StaticResource carTemplate}"/>
+			<v:CarGrid Cars="{Binding Cars}" ItemTemplate="{StaticResource carTemplate}" Grid.Row="1"/>
 
-				<!--Driver's Car-->
-				<ContentControl Content="{Binding DriversCar}" Grid.Row="2" ContentTemplate="{StaticResource carTemplate}"/>
-
-				<!--Car Behind-->
-				<ContentControl Content="{Binding CarBehind}" Grid.Row="3" ContentTemplate="{StaticResource carTemplate}"/>
+			<Grid ColumnDefinitions="*,Auto" Grid.Row="2">
+				<!--Message-->
+				<TextBlock Text="{Binding Message}" Classes="h1" FontSize="9" Margin="7,0,0,2"/>
+				<TextBlock Text="{Binding ConnectionStatus}" Classes="h1" FontSize="9" Grid.Column="1" Margin="7,0,7,2"/>
 			</Grid>
-			
-			<Grid RowDefinitions="*,*,*" IsVisible="{Binding !IsAheadOutOfClassVisible}" Grid.Row="1">
-				<!--Car Ahead-->
-				<ContentControl Content="{Binding CarAhead}" Grid.Row="0" ContentTemplate="{StaticResource carTemplate}"/>
-
-				<!--Driver's Car-->
-				<ContentControl Content="{Binding DriversCar}" Grid.Row="1" ContentTemplate="{StaticResource carTemplate}"/>
-
-				<!--Car Behind-->
-				<ContentControl Content="{Binding CarBehind}" Grid.Row="2" ContentTemplate="{StaticResource carTemplate}"/>
-			</Grid>
-			
-			<!--Message-->
-			<TextBlock Text="{Binding Message}" Classes="h1" FontSize="9" Grid.Row="2" Margin="7,0,0,2"/>
 		</Grid>
 	</Border>
 </UserControl>

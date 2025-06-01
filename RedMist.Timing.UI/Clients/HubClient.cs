@@ -240,7 +240,7 @@ public class HubClient : HubClientBase
         hub = StartConnection();
 
         hub.Remove("ReceiveInCarUpdate");
-        hub.On("ReceiveInCarUpdate", async (string s) => await ProcessInCarPayloadAsync(s));
+        hub.On("ReceiveInCarUpdate", (string s) => ProcessInCarPayloadAsync(s));
     }
 
     public async Task UnsubscribeFromInCarDriverEventAsync(int eventId, string car)

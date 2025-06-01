@@ -54,7 +54,7 @@ public partial class InCarSettingsViewModel : ObservableValidator
     {
         this.eventClient = eventClient;
         this.hubClient = hubClient;
-        inCarPositionsViewModel = new(hubClient);
+        inCarPositionsViewModel = new(hubClient, eventClient);
     }
 
 
@@ -91,14 +91,7 @@ public partial class InCarSettingsViewModel : ObservableValidator
                 Message = "No events found - null";
             }
 
-            try
-            {
-                CarNumber = Preferences.Get(CAR_NUM_KEY, string.Empty);
-                IsInClassOnly = Preferences.Get(IN_CLASS_KEY, false);
-            }
-            catch
-            {
-            }
+            TryLoadSettings();
         }
         catch (Exception ex)
         {
@@ -143,13 +136,38 @@ public partial class InCarSettingsViewModel : ObservableValidator
         else
         {
             Message = string.Empty;
-            Preferences.Set(CAR_NUM_KEY, CarNumber);
-            Preferences.Set(IN_CLASS_KEY, IsInClassOnly);
+
+            TrySaveSettings();
 
             // Show driver mode content
             IsPositionsVisible = true;
-            InCarPositionsViewModel = new InCarPositionsViewModel(hubClient);
-            await InCarPositionsViewModel.Initialize(SelectedEvent?.EventModel.Id ?? 0, CarNumber, IsInClassOnly);
+            InCarPositionsViewModel = new InCarPositionsViewModel(hubClient, eventClient);
+            InCarPositionsViewModel.Initialize(SelectedEvent?.EventModel.Id ?? 0, CarNumber, IsInClassOnly);
+        }
+    }
+
+    private void TryLoadSettings()
+    {
+        try
+        {
+            CarNumber = Preferences.Get(CAR_NUM_KEY, string.Empty);
+            IsInClassOnly = Preferences.Get(IN_CLASS_KEY, false);
+        }
+        catch
+        {
+            // Ignore errors in loading settings
+        }
+    }
+
+    private void TrySaveSettings()
+    {
+        try
+        {
+            Preferences.Set(CAR_NUM_KEY, CarNumber);
+            Preferences.Set(IN_CLASS_KEY, IsInClassOnly);
+        }
+        catch
+        {
         }
     }
 }

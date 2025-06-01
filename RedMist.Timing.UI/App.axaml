@@ -70,10 +70,10 @@
 					<SolidColorBrush x:Key="eventLiveForeground">Black</SolidColorBrush>
 
 					<!--In Car Driver Mode-->
-					<Color x:Key="carRowGainBackgroundBrush">#6cff00</Color>
-					<Color x:Key="carRowLossBackgroundBrush">Red</Color>
-					<Color x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</Color>
-					<Color x:Key="carRowDriverBackgroundBrush">#7fccf7</Color>
+					<SolidColorBrush x:Key="carRowGainBackgroundBrush">#087800</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowLossBackgroundBrush">Red</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
 				</ResourceDictionary>
 				<ResourceDictionary x:Key="Dark">
 					<SolidColorBrush x:Key="TextTitleForegroundBrush">White</SolidColorBrush>
@@ -121,10 +121,10 @@
 					<SolidColorBrush x:Key="eventLiveForeground">#878787</SolidColorBrush>
 
 					<!--In Car Driver Mode-->
-					<Color x:Key="carRowGainBackgroundBrush">#26a31e</Color>
-					<Color x:Key="carRowLossBackgroundBrush">Red</Color>
-					<Color x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</Color>
-					<Color x:Key="carRowDriverBackgroundBrush">#7fccf7</Color>
+					<SolidColorBrush x:Key="carRowGainBackgroundBrush">#087800</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowLossBackgroundBrush">Red</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
 				</ResourceDictionary>
 			</ResourceDictionary.ThemeDictionaries>
 		</ResourceDictionary>

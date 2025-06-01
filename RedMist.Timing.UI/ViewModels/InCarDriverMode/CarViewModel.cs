@@ -4,6 +4,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RedMist.TimingCommon.Models.InCarDriverMode;
 using System;
+using System.Globalization;
 
 namespace RedMist.Timing.UI.ViewModels.InCarDriverMode;
 
@@ -84,25 +85,38 @@ public partial class CarViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RowBackground))]
     private string rowBackgroundKey = GAIN_BACKGROUNDBRUSH;
-    public Color RowBackground
+    public IBrush RowBackground
     {
         get
         {
             if (!string.IsNullOrEmpty(rowBackgroundOverrideKey))
             {
-                return (Color?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, rowBackgroundOverrideKey) ?? Colors.Transparent;
+                return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, rowBackgroundOverrideKey) ?? Brushes.Transparent;
             }
-            return (Color?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, RowBackgroundKey) ?? Colors.Transparent;
+            return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, RowBackgroundKey) ?? Brushes.Transparent;
         }
     }
     private string rowBackgroundOverrideKey = string.Empty;
 
-    public void Update(CarStatus model)
+    public void Update(CarStatus? model)
     {
+        if (model == null)
+        {
+            Number = string.Empty;
+            TeamName = string.Empty;
+            LastLapTime = string.Empty;
+            GainLoss = string.Empty;
+            Gap = string.Empty;
+            DriverName = string.Empty;
+            CarType = string.Empty;
+            RowBackgroundKey = OUTOFCLASS_BACKGROUNDBRUSH;
+            return;
+        }
+
         Number = model.Number;
         CarType = model.CarType;
         TeamName = model.Team;
-        LastLapTime = model.LastLap;
+        LastLapTime = ToShortTime(model.LastLap);
         GainLoss = model.GainLoss;
         Gap = model.Gap;
         DriverName = model.Driver;
@@ -115,6 +129,15 @@ public partial class CarViewModel : ObservableObject
         {
             RowBackgroundKey = GAIN_BACKGROUNDBRUSH;
         }
+    }
+
+    private string ToShortTime(string time)
+    {
+        if (DateTime.TryParseExact(time, "hh:mm:ss.fff", null, DateTimeStyles.None, out DateTime t))
+        {
+            return t.ToString("m:ss.fff");
+        }
+        return string.Empty;
     }
 
     public void SetAsDriver()
