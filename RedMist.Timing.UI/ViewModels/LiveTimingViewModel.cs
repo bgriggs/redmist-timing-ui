@@ -305,7 +305,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService);
+                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService) { CurrentGroupMode = CurrentGrouping };
                 vm.ApplyEntry(entry);
                 carCache.AddOrUpdate(vm);
 
@@ -464,6 +464,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
                 // Reset the event
                 carCache.Clear();
                 Cars.Clear();
+                GroupedCars.Clear();
                 ProcessUpdate(lastFullPayload);
                 lastConsistencyCheckReset = DateTime.Now;
             }
@@ -591,13 +592,22 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             Class = "Test Class",
             OverallPosition = 1,
         };
-        if (Cars.Count > 0)
+        if (Cars.Count > 0 && CurrentGrouping == GroupMode.Overall)
         {
             var c = Cars.First();
             if (c.LastCarPosition != null)
             {
                 vm.ApplyStatus(c.LastCarPosition);
                 Cars.Insert(0, vm);
+            }
+        }
+        else if (CurrentGrouping == GroupMode.Class && GroupedCars.Count > 0)
+        {
+            var c = GroupedCars[0].First();
+            if (c.LastCarPosition != null)
+            {
+                vm.ApplyStatus(c.LastCarPosition);
+                GroupedCars[0].Insert(0, vm);
             }
         }
     }
