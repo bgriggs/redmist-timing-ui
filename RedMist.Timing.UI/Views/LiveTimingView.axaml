@@ -324,7 +324,7 @@
 						<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
 					</StackPanel>
 				</Button>
-				<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,1,0,0" Padding="3" Width="55">
+				<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,4,0,0" Padding="3" Width="55">
 					<StackPanel Orientation="Vertical">
 						<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
 						<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
