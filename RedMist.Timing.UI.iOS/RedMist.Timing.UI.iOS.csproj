@@ -25,5 +25,8 @@
 		<ProjectReference Include="..\RedMist.Timing.UI\RedMist.Timing.UI.csproj" />
 	</ItemGroup>
 	
+	<ItemGroup>
+		<BundleResource Include="Resources/Launch.storyboard" />
+	</ItemGroup>
 	
 </Project>
