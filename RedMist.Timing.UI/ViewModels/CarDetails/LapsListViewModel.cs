@@ -47,9 +47,10 @@ public class LapsListViewModel
         }
 
         // Update gained/lost position
-        for (int i = 0; i < lapCache.Items.Count; i++)
+        var laps = lapCache.Items.OrderBy(l => l.LapNumber).ToList();
+        for (int i = 0; i < laps.Count; i++)
         {
-            var lap = lapCache.Items[i];
+            var lap = laps[i];
             if (i == 0)
             {
                 lap.GainedOverallPosition = false;
@@ -59,10 +60,10 @@ public class LapsListViewModel
             }
             else
             {
-                lap.GainedOverallPosition = lapCache.Items[i - 1].OverallPosition > lap.OverallPosition;
-                lap.LostOverallPosition = lapCache.Items[i - 1].OverallPosition < lap.OverallPosition;
-                lap.GainedClassPosition = lapCache.Items[i - 1].ClassPosition > lap.ClassPosition;
-                lap.LostClassPosition = lapCache.Items[i - 1].ClassPosition < lap.ClassPosition;
+                lap.GainedOverallPosition = laps[i - 1].OverallPosition > lap.OverallPosition;
+                lap.LostOverallPosition = laps[i - 1].OverallPosition < lap.OverallPosition;
+                lap.GainedClassPosition = laps[i - 1].ClassPosition > lap.ClassPosition;
+                lap.LostClassPosition = laps[i - 1].ClassPosition < lap.ClassPosition;
             }
         }
     }
