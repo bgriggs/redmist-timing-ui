@@ -18,7 +18,7 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Create secrets.release.json
-        run: 'echo "{\"Keycloak\": { \"Realm\": \"${{ vars.KEYCLOAKREALM }}\", \"ClientId\": \"${{ secrets.KEYCLOAKCLIENTID }}\", \"ClientSecret\": \"${{ secrets.KEYCLOAKCLIENTSECRET }}\" }}" > secrets.release.json'
+        run: 'echo "{\"Keycloak\": { \"Realm\": \"${{ vars.KEYCLOAKREALM }}\", \"ClientId\": \"${{ secrets.KC_BROWSER_CLIENT_ID }}\", \"ClientSecret\": \"${{ secrets.KC_BROWSER_CLIENT_SECRET }}\" }}" > secrets.release.json'
           
       - name: Publish
         run: dotnet publish "RedMist.Timing.UI.Browser/RedMist.Timing.UI.Browser.csproj" -p:PublishTrimmed=false -o ${{ github.workspace }}\publish-output
