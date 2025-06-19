@@ -9,7 +9,6 @@
 		<ApplicationTitle>Red Mist Timing</ApplicationTitle>
 		<ApplicationId>com.bigmission.redmist</ApplicationId>
 		<ApplicationVersion>$(SharedVersion)</ApplicationVersion>
-		<ArchiveOnBuild>true</ArchiveOnBuild>
 		<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
 	</PropertyGroup>
 
