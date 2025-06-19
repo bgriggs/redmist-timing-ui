@@ -8,7 +8,7 @@ internal class Program
     const int INSTANCES = 100;
     const int EVENT_ID = 29;
 
-    static void Main(string[] args)
+    static void Main()
     {
         Console.WriteLine($"Starting {INSTANCES} instances.");
 
@@ -17,7 +17,7 @@ internal class Program
         {
             var si = new ProcessStartInfo(EXE_PATH, EVENT_ID.ToString());
             var p = Process.Start(si);
-            processIds.Add(p.Id);
+            processIds.Add(p!.Id);
             Console.WriteLine($"Started {p.Id}");
         }
 

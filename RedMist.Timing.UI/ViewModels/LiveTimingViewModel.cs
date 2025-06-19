@@ -281,13 +281,16 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         var carPositions = status.CarPositions.Concat(status.CarPositionUpdates);
         UpdateCarTiming([.. carPositions]);
 
-        if (carCache.Count > 0)
+        lock (carCache)
         {
-            TotalLaps = carCache.Items.Max(c => c.LastLap).ToString();
-        }
-        else
-        {
-            TotalLaps = string.Empty;
+            if (carCache.Count > 0)
+            {
+                TotalLaps = carCache.Items.Max(c => c.LastLap).ToString();
+            }
+            else
+            {
+                TotalLaps = string.Empty;
+            }
         }
 
         if (status.CarPositions.Count > 0)
@@ -300,34 +303,37 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private void ApplyEntries(List<EventEntry> entries, bool isDeltaUpdate = false)
     {
-        foreach (var entry in entries)
+        lock (carCache)
         {
-            var carVm = carCache.Lookup(entry.Number);
-            if (!carVm.HasValue && !isDeltaUpdate)
+            foreach (var entry in entries)
             {
-                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService) { CurrentGroupMode = CurrentGrouping };
-                vm.ApplyEntry(entry);
-                carCache.AddOrUpdate(vm);
-
-                if (CurrentSortMode == SortMode.Fastest)
+                var carVm = carCache.Lookup(entry.Number);
+                if (!carVm.HasValue && !isDeltaUpdate)
                 {
-                    UpdatePositionsByFastestTime();
+                    var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService) { CurrentGroupMode = CurrentGrouping };
+                    vm.ApplyEntry(entry);
+                    carCache.AddOrUpdate(vm);
+
+                    if (CurrentSortMode == SortMode.Fastest)
+                    {
+                        UpdatePositionsByFastestTime();
+                    }
+                }
+                else if (carVm.HasValue)
+                {
+                    carVm.Value.ApplyEntry(entry);
                 }
             }
-            else if (carVm.HasValue)
-            {
-                carVm.Value.ApplyEntry(entry);
-            }
-        }
 
-        if (!isDeltaUpdate)
-        {
-            // Remove cars not in entries
-            foreach (var num in carCache.Keys)
+            if (!isDeltaUpdate)
             {
-                if (!entries.Any(e => e.Number == num))
+                // Remove cars not in entries
+                foreach (var num in carCache.Keys)
                 {
-                    carCache.RemoveKey(num);
+                    if (!entries.Any(e => e.Number == num))
+                    {
+                        carCache.RemoveKey(num);
+                    }
                 }
             }
         }
@@ -335,63 +341,69 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private void UpdateCarTiming(List<CarPosition> carPositions)
     {
-        foreach (var carUpdate in carPositions)
+        lock (carCache)
         {
-            if (carUpdate.Number == null)
-                continue;
-
-            bool bestLapTimeChanged = false;
-            var carVm = carCache.Lookup(carUpdate.Number);
-            if (carVm.HasValue)
+            foreach (var carUpdate in carPositions)
             {
-                int lastBestLapTime = 0;
-                if (CurrentSortMode == SortMode.Fastest)
+                if (carUpdate.Number == null)
+                    continue;
+
+                bool bestLapTimeChanged = false;
+                var carVm = carCache.Lookup(carUpdate.Number);
+                if (carVm.HasValue)
                 {
-                    lastBestLapTime = carVm.Value.BestTimeMs;
+                    int lastBestLapTime = 0;
+                    if (CurrentSortMode == SortMode.Fastest)
+                    {
+                        lastBestLapTime = carVm.Value.BestTimeMs;
+                    }
+
+                    // Update the car data
+                    carVm.Value.ApplyStatus(carUpdate);
+
+                    if (!bestLapTimeChanged && CurrentSortMode == SortMode.Fastest && lastBestLapTime != carVm.Value.BestTimeMs)
+                    {
+                        bestLapTimeChanged = true;
+                    }
                 }
 
-                // Update the car data
-                carVm.Value.ApplyStatus(carUpdate);
-
-                if (!bestLapTimeChanged && CurrentSortMode == SortMode.Fastest && lastBestLapTime != carVm.Value.BestTimeMs)
+                if (bestLapTimeChanged)
                 {
-                    bestLapTimeChanged = true;
+                    UpdatePositionsByFastestTime();
                 }
-            }
-
-            if (bestLapTimeChanged)
-            {
-                UpdatePositionsByFastestTime();
-            }
-            else if (CurrentSortMode == SortMode.Position)
-            {
-                // Reset position override
-                ResetPositionOverrides();
+                else if (CurrentSortMode == SortMode.Position)
+                {
+                    // Reset position override
+                    ResetPositionOverrides();
+                }
             }
         }
     }
 
     private void UpdatePositionsByFastestTime()
     {
-        // Sort the cars by fastest time
-        if (CurrentGrouping == GroupMode.Overall)
+        lock (carCache)
         {
-            var sortedCars = carCache.Items.OrderBy(c => c.BestTimeMs).ToList();
-            for (int i = 0; i < sortedCars.Count; i++)
+            // Sort the cars by fastest time
+            if (CurrentGrouping == GroupMode.Overall)
             {
-                sortedCars[i].OverridePosition(i + 1);
-            }
-        }
-        else if (CurrentGrouping == GroupMode.Class)
-        {
-            // Sort the cars by class and then by fastest time
-            var sortedCars = carCache.Items.GroupBy(c => c.Class);
-            foreach (var group in sortedCars)
-            {
-                var sortedGroup = group.OrderBy(c => c.BestTimeMs).ToList();
-                for (int i = 0; i < sortedGroup.Count; i++)
+                var sortedCars = carCache.Items.OrderBy(c => c.BestTimeMs).ToList();
+                for (int i = 0; i < sortedCars.Count; i++)
                 {
-                    sortedGroup[i].OverridePosition(i + 1);
+                    sortedCars[i].OverridePosition(i + 1);
+                }
+            }
+            else if (CurrentGrouping == GroupMode.Class)
+            {
+                // Sort the cars by class and then by fastest time
+                var sortedCars = carCache.Items.GroupBy(c => c.Class);
+                foreach (var group in sortedCars)
+                {
+                    var sortedGroup = group.OrderBy(c => c.BestTimeMs).ToList();
+                    for (int i = 0; i < sortedGroup.Count; i++)
+                    {
+                        sortedGroup[i].OverridePosition(i + 1);
+                    }
                 }
             }
         }
@@ -399,7 +411,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     private void ResetPositionOverrides()
     {
-        carCache.Items.ToList().ForEach(car => car.OverridePosition(null));
+        lock (carCache)
+        {
+            carCache.Items.ToList().ForEach(car => car.OverridePosition(null));
+        }
     }
 
     private void ResetEvent()
@@ -408,13 +423,16 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         // suppress the resets to reduce user confusion
         if (string.IsNullOrWhiteSpace(Flag))
         {
-            carCache.Clear();
-            EventName = string.Empty;
-            Flag = string.Empty;
-            TimeToGo = string.Empty;
-            RaceTime = string.Empty;
-            LocalTime = string.Empty;
-            TotalLaps = string.Empty;
+            lock (carCache)
+            {
+                carCache.Clear();
+                EventName = string.Empty;
+                Flag = string.Empty;
+                TimeToGo = string.Empty;
+                RaceTime = string.Empty;
+                LocalTime = string.Empty;
+                TotalLaps = string.Empty;
+            }
         }
     }
 
@@ -426,53 +444,56 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         if (lastConsistencyCheckReset != null && (DateTime.Now - lastConsistencyCheckReset) < TimeSpan.FromSeconds(60))
             return;
 
-        bool isValid = true;
-        if (CurrentGrouping == GroupMode.Overall)
+        lock (carCache)
         {
-            var cars = Cars.ToList();
-            isValid = ValidateSequential(cars, car => car.OverallPosition);
-            if (!isValid)
+            bool isValid = true;
+            if (CurrentGrouping == GroupMode.Overall)
             {
-                Logger.LogWarning("Consistency check failed for overall positions");
-            }
-        }
-        else
-        {
-            var groupedCars = GroupedCars.ToList();
-            foreach (var group in groupedCars)
-            {
-                var cars = group.ToList();
-                isValid = ValidateSequential(cars, car => car.ClassPosition);
+                var cars = Cars.ToList();
+                isValid = ValidateSequential(cars, car => car.OverallPosition);
                 if (!isValid)
                 {
-                    Logger.LogWarning("Consistency check failed for group {GroupName}", group.Name);
-                    break;
+                    Logger.LogWarning("Consistency check failed for overall positions");
                 }
             }
-        }
-
-        if (!isValid)
-        {
-            Logger.LogWarning("Consistency check failed for event {EventId}", EventModel.EventId);
-            consistencyCheckFailures++;
-
-            if (consistencyCheckFailures > 3)
+            else
             {
-                Logger.LogWarning("Consistency check failures exceeded, resetting event");
-                consistencyCheckFailures = 0;
-
-                // Reset the event
-                carCache.Clear();
-                Cars.Clear();
-                GroupedCars.Clear();
-                ProcessUpdate(lastFullPayload);
-                lastConsistencyCheckReset = DateTime.Now;
+                var groupedCars = GroupedCars.ToList();
+                foreach (var group in groupedCars)
+                {
+                    var cars = group.ToList();
+                    isValid = ValidateSequential(cars, car => car.ClassPosition);
+                    if (!isValid)
+                    {
+                        Logger.LogWarning("Consistency check failed for group {GroupName}", group.Name);
+                        break;
+                    }
+                }
             }
-        }
-        else if (consistencyCheckFailures > 0)
-        {
-            Logger.LogInformation("Consistency check passed, resetting counter");
-            consistencyCheckFailures = 0;
+
+            if (!isValid)
+            {
+                Logger.LogWarning("Consistency check failed for event {EventId}", EventModel.EventId);
+                consistencyCheckFailures++;
+
+                if (consistencyCheckFailures > 3)
+                {
+                    Logger.LogWarning("Consistency check failures exceeded, resetting event");
+                    consistencyCheckFailures = 0;
+
+                    // Reset the event
+                    carCache.Clear();
+                    Cars.Clear();
+                    GroupedCars.Clear();
+                    ProcessUpdate(lastFullPayload);
+                    lastConsistencyCheckReset = DateTime.Now;
+                }
+            }
+            else if (consistencyCheckFailures > 0)
+            {
+                Logger.LogInformation("Consistency check passed, resetting counter");
+                consistencyCheckFailures = 0;
+            }
         }
     }
 
@@ -498,7 +519,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     {
         try
         {
-            var cars = carCache.Items.ToArray();
+            CarViewModel[] cars;
+            lock (carCache)
+            {
+                cars = [.. carCache.Items];
+            }
+
             foreach (var car in cars)
             {
                 if (car.LastCarPosition == null)
@@ -551,9 +577,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             CurrentGrouping = GroupMode.Overall;
         }
 
-        foreach (var car in carCache.Items)
+        lock (carCache)
         {
-            car.CurrentGroupMode = CurrentGrouping;
+            foreach (var car in carCache.Items)
+            {
+                car.CurrentGroupMode = CurrentGrouping;
+            }
         }
 
         if (CurrentSortMode == SortMode.Fastest)
@@ -610,6 +639,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
                 GroupedCars[0].Insert(0, vm);
             }
         }
+    }
+
+    public void InsertDuplicateView()
+    {
+        var v = Cars.First();
+        Cars.Insert(0, v);
     }
 
     #endregion

@@ -61,6 +61,8 @@
 		<PackageReference Include="DynamicData" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
 		<PackageReference Include="BigMission.Avalonia.Utilities" />
+		<PackageReference Include="BigMission.Shared" />
+		<PackageReference Include="RedMist.TimingCommon" />
 		<PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" />
 		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client">
 			<PrivateAssets>all</PrivateAssets>
@@ -71,15 +73,5 @@
 		<PackageReference Include="Microsoft.Maui.Essentials" />
 		<PackageReference Include="RestSharp" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\bigmission-shared\BigMission.Shared\BigMission.Shared.csproj" />
-		<ProjectReference Include="..\redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj" />
-	</ItemGroup>
-
-	<!--<ItemGroup>
-		<Compile Update="Views\LiveTimingView.axaml.cs">
-			<DependentUpon>LiveTimingView.axaml</DependentUpon>
-		</Compile>
-	</ItemGroup>-->
+	
 </Project>

@@ -12,12 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.Desktop",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.Timing.UI.iOS", "RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj", "{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMist.TimingCommon", "redmist-timing-common\RedMist.TimingCommon\RedMist.TimingCommon.csproj", "{0E3292A9-D018-8A12-0037-2B5F75C52CFA}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodules", "submodules", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigMission.Shared", "bigmission-shared\BigMission.Shared\BigMission.Shared.csproj", "{B4143355-4E45-84AE-0D47-ADCF5651B041}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EBB828D8-2DD4-446E-AEA2-9C4C30174204}"
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
@@ -61,14 +55,6 @@ Global
 		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A79C4BB-A68D-088F-0F69-2E61E7E239B1}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0E3292A9-D018-8A12-0037-2B5F75C52CFA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B4143355-4E45-84AE-0D47-ADCF5651B041}.Release|Any CPU.Build.0 = Release|Any CPU
 		{31BE7FC8-56BF-4ABC-9662-99471C5D1B28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{31BE7FC8-56BF-4ABC-9662-99471C5D1B28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31BE7FC8-56BF-4ABC-9662-99471C5D1B28}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -78,8 +64,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{0E3292A9-D018-8A12-0037-2B5F75C52CFA} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{B4143355-4E45-84AE-0D47-ADCF5651B041} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{31BE7FC8-56BF-4ABC-9662-99471C5D1B28} = {CC249980-EC29-403E-9F0C-28CDEF9050E5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

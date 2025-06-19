@@ -312,8 +312,12 @@
 					</Button>
 				</StackPanel>
 			</StackPanel>
-			
-			<!--<Button Grid.Column="2" Command="{Binding InsertDuplicateCar}"/>-->
+
+			<!--Test Buttons-->
+			<!--<StackPanel Grid.Column="2">
+				<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
+				<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
+			</StackPanel>-->
 
 			<Image Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
 

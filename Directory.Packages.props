@@ -1,33 +1,35 @@
 <Project>
-  <ItemGroup>
-    <!-- Avalonia packages -->
-    <!-- Important: keep version in sync! -->
-    <PackageVersion Include="Avalonia" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Desktop" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.iOS" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Browser" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Android" Version="11.3.0" />
-    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.3.0" />
-    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.Maui.Essentials" Version="9.0.70" />
-    <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
-    <PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="25.1.1" />
-    <PackageVersion Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.1.1" />
-    <PackageVersion Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250319-build.2093" />
-    <PackageVersion Include="DynamicData" Version="9.3.2" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.5" />
-    <PackageVersion Include="BigMission.Avalonia.Utilities" Version="1.0.3" />
-    <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
-    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
-    <PackageVersion Include="RestSharp" Version="112.1.0" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.11.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- Avalonia packages -->
+		<!-- Important: keep version in sync! -->
+		<PackageVersion Include="Avalonia" Version="11.3.1" />
+		<PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.1" />
+		<PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.1" />
+		<PackageVersion Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
+		<PackageVersion Include="Avalonia.Diagnostics" Version="11.3.1" />
+		<PackageVersion Include="Avalonia.Desktop" Version="11.3.0" />
+		<PackageVersion Include="Avalonia.iOS" Version="11.3.0" />
+		<PackageVersion Include="Avalonia.Browser" Version="11.3.0" />
+		<PackageVersion Include="Avalonia.Android" Version="11.3.0" />
+		<PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.3.1" />
+		<PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="9.0.4" />
+		<PackageVersion Include="Microsoft.Maui.Essentials" Version="9.0.80" />
+		<PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
+		<PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="25.2.0" />
+		<PackageVersion Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.2.0" />
+		<PackageVersion Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250319-build.2093" />
+		<PackageVersion Include="DynamicData" Version="9.4.1" />
+		<PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.6" />
+		<PackageVersion Include="BigMission.Avalonia.Utilities" Version="1.0.3" />
+		<PackageVersion Include="BigMission.Shared" Version="1.0.1" />
+		<PackageVersion Include="RedMist.TimingCommon" Version="1.0.0" />
+		<PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
+		<PackageVersion Include="Microsoft.Extensions.ApiDescription.Client" Version="9.0.6" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.6" />
+		<PackageVersion Include="RestSharp" Version="112.1.0" />
+		<PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.11.0" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
+	</ItemGroup>
 </Project>

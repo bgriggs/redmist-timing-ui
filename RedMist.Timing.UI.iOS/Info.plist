@@ -7,9 +7,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.bigmission.redmist</string>
 	<key>CFBundleShortVersionString</key>
-	<string>29</string>
+	<string>30</string>
 	<key>CFBundleVersion</key>
-	<string>33</string>
+	<string>34</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>

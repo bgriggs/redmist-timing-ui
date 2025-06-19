@@ -1,6 +1,0 @@
-[submodule "redmist-timing-common"]
-	path = redmist-timing-common
-	url = https://github.com/bgriggs/redmist-timing-common.git
-[submodule "bigmission-shared"]
-	path = bigmission-shared
-	url = https://github.com/bgriggs/bigmission-shared.git
