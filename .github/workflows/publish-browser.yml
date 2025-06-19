@@ -17,6 +17,15 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Clear nuget
+        run: dotnet nuget locals all --clear
+      
+      - name: Workload update
+        run: dotnet workload update
+      
+      - name: wasm-tools
+        run: dotnet workload install wasm-tools
+
       - name: Create secrets.release.json
         run: 'echo "{\"Keycloak\": { \"Realm\": \"${{ vars.KEYCLOAKREALM }}\", \"ClientId\": \"${{ secrets.KC_BROWSER_CLIENT_ID }}\", \"ClientSecret\": \"${{ secrets.KC_BROWSER_CLIENT_SECRET }}\" }}" > secrets.release.json'
           
