@@ -1,0 +1,79 @@
+name: Publish ClickOnce App
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish
+        run: dotnet publish "./RedMist.Timing.UI.Browser.csproj" -p:PublishTrimmed=false -o ${{ github.workspace }}\publish-output
+
+      - name: Upload published app
+        uses: actions/upload-artifact@v4
+        with:
+          name: clickonce-artifacts
+          path: ${{ github.workspace }}\publish-output
+
+      - name: Upload files to Bunny CDN via FTP
+        shell: pwsh
+        run: |
+            $filesToUpload = @("publish-output/wwwroot")
+
+            $ftpHost = "${{ secrets.BUNNY_STORAGE_HOST }}"
+            $ftpUser = "${{ secrets.BUNNY_STORAGE_NAME }}"
+            $ftpPass = "${{ secrets.BUNNY_STORAGE_KEY }}"
+            $ftpBase = "ftp://$ftpHost/relay/"
+
+            foreach ($file in $filesToUpload) {
+                if (Test-Path $file) {
+                if ((Get-Item $file).PSIsContainer) {
+                    $allFiles = Get-ChildItem -Recurse $file
+                } else {
+                    $allFiles = @(Get-Item $file)
+                }
+
+                foreach ($item in $allFiles) {
+                    if (-not $item.PSIsContainer) {
+                    $rootToTrim = Join-Path (Get-Location) "publish-output"
+                    $relativePath = $item.FullName.Substring($rootToTrim.Length + 1).Replace("\", "/")
+                    $targetUrl = "$ftpBase$relativePath"
+
+                    Write-Host "Uploading $relativePath -> $targetUrl"
+
+                    $ftpReq = [System.Net.FtpWebRequest]::Create($targetUrl)
+                    $ftpReq.Credentials = New-Object System.Net.NetworkCredential($ftpUser, $ftpPass)
+                    $ftpReq.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+                    $ftpReq.UseBinary = $true
+                    $ftpReq.UsePassive = $true
+
+                    $content = [System.IO.File]::ReadAllBytes($item.FullName)
+                    $ftpStream = $ftpReq.GetRequestStream()
+                    $ftpStream.Write($content, 0, $content.Length)
+                    $ftpStream.Close()
+                    }
+                }
+                } else {
+                Write-Host "Skipping missing file/folder: $file"
+                }
+            }
+
+      - name: Purge BunnyCDN Cache
+        run: |
+          $headers = @{
+            "AccessKey" = "${{ secrets.BUNNY_API_KEY }}"
+            "Content-Type" = "application/json"
+          }
+          Invoke-RestMethod -Uri https://api.bunny.net/pullzone/4107592/purgeCache -Method Post -Headers $headers
+        shell: pwsh
