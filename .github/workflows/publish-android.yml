@@ -34,7 +34,7 @@ jobs:
       - name: Decode Keystore
         shell: pwsh
         run: |
-          [IO.File]::WriteAllBytes("release.keystore", [Convert]::FromBase64String("${{ secrets.ANDROID_KEYSTORE_BASE64 }}"))
+          [IO.File]::WriteAllBytes("${{ github.workspace }}\release.keystore", [Convert]::FromBase64String("${{ secrets.ANDROID_KEYSTORE_BASE64 }}"))
 
       - name: Decode Play Store service account
         shell: pwsh
@@ -42,7 +42,7 @@ jobs:
           Set-Content -Path service_account.json -Value '${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}' -Encoding UTF8
 
       - name: Build and sign AAB
-        run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android -t:Bundle /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output
+        run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android -t:Bundle /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ github.workspace }}\release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output
 
       - name: Upload AAB to Google Play
         uses: r0adkll/upload-google-play@v1
