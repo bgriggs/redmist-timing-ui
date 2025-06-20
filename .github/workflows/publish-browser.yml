@@ -1,4 +1,4 @@
-name: Publish Timing APP Browser
+name: Publish Timing Browser App
 
 on:
   workflow_dispatch:
