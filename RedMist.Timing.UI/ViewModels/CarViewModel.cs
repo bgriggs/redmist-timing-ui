@@ -262,11 +262,16 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
+    private PositionChange? uiResetPositionsGainedLost = null;
     private PositionChange positionsGainedLost = new();
     public PositionChange PositionsGainedLost
     {
         get
         {
+            if (uiResetPositionsGainedLost != null)
+            {
+                return uiResetPositionsGainedLost;
+            }
             if (CurrentGroupMode == GroupMode.Overall)
             {
                 positionsGainedLost.RawPositionChange = OverallPositionsGained;
@@ -471,6 +476,11 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         OnPropertyChanged(nameof(Position));
         uiResetPosition = null;
         OnPropertyChanged(nameof(Position));
+        uiResetPositionsGainedLost = new PositionChange { RawPositionChange = 0 };
+        OnPropertyChanged(nameof(PositionsGainedLost));
+        uiResetPositionsGainedLost = null;
+        OnPropertyChanged(nameof(PositionsGainedLost));
+
 
         CarDetailsViewModel?.UpdateLaps([carPosition]);
         LastCarPosition = carPosition;
