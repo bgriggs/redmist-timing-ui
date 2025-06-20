@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlLogNotification>
+public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlLogNotification>, IRecipient<AppResumeNotification>
 {
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
     protected readonly SourceCache<ControlLogEntryViewModel, string> logCache = new(ToKey);
@@ -48,9 +48,9 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     [ObservableProperty]
     private bool isLoading = false;
 
+
     public ControlLogViewModel(Event EventModel, HubClient hubClient, EventClient eventClient)
     {
-        WeakReferenceMessenger.Default.RegisterAll(this);
         this.EventModel = EventModel;
         this.hubClient = hubClient;
         this.eventClient = eventClient;
@@ -59,12 +59,22 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
             .SortAndBind(ControlLog, SortExpressionComparer<ControlLogEntryViewModel>.Descending(t => t.LogEntry.Timestamp))
             .DisposeMany()
             .Subscribe();
+
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
 
     public void Receive(ControlLogNotification message)
     {
         _ = debouncer.ExecuteAsync(() => ProcessControlLogs(message));
+    }
+
+    /// <summary>
+    /// Handle chase where the app was in the background not getting updates and now becomes active again.
+    /// </summary>
+    public async void Receive(AppResumeNotification message)
+    {
+        await Initialize();
     }
 
     private Task ProcessControlLogs(ControlLogNotification message)

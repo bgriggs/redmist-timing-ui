@@ -1,4 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
@@ -8,7 +11,6 @@ using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels.InCarDriverMode;
 using RedMist.TimingCommon.Models;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -17,6 +19,7 @@ public enum TabTypes { LiveTiming, Results, ControlLog, EventInformation }
 
 public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<SizeChangedNotification>
 {
+    private bool isInitialized;
     public EventsListViewModel EventsListViewModel { get; }
     public LiveTimingViewModel LiveTimingViewModel { get; }
 
@@ -104,8 +107,21 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.loggerFactory = loggerFactory;
         this.viewSizeService = viewSizeService;
         WeakReferenceMessenger.Default.RegisterAll(this);
+
+        if (Application.Current?.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
+        {
+            activatableLifetime.Activated += ActivatableLifetime_Activated;
+            //activatableLifetime.Deactivated += OnDeactivated;
+        }
     }
 
+    private void ActivatableLifetime_Activated(object? sender, ActivatedEventArgs e)
+    {
+        if (e.Kind == ActivationKind.Reopen && isInitialized)
+        {
+            WeakReferenceMessenger.Default.Send(new AppResumeNotification());
+        }
+    }
 
     public async Task Initialize()
     {
@@ -145,6 +161,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
 
         IsContentVisible = true;
+        isInitialized = true;
     }
 
     public async void Receive(ValueChangedMessage<RouterEvent> message)

@@ -26,6 +26,7 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         base.OnCreate(savedInstanceState);
         Platform.Init(this, savedInstanceState);
+        //OnBackPressedDispatcher.AddCallback(this, new MyBackPressedCallback(true));
     }
 
     public override void OnBackPressed()

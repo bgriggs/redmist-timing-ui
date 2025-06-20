@@ -39,7 +39,7 @@ public partial class App : Application
         // Line below is needed to remove Avalonia data validation.
         // Without this line you will get duplicate validations from both Avalonia and CT
         BindingPlugins.DataValidators.RemoveAt(0);
-
+        
         // Dependency injection: https://github.com/stevemonaco/AvaloniaViewModelFirstDemos
         // NuGet source: https://pkgs.dev.azure.com/dotnet/CommunityToolkit/_packaging/CommunityToolkit-Labs/nuget/v3/index.json
         var locator = new ViewLocator();
@@ -118,8 +118,4 @@ public partial class App : Application
     [Singleton(typeof(EventsListViewModel))]
     [Singleton(typeof(LiveTimingViewModel))]
     internal static partial void ConfigureViewModels(IServiceCollection services);
-
-    //[Singleton(typeof(MainView))]
-    //[Singleton(typeof(EventsListView))]
-    //internal static partial void ConfigureViews(IServiceCollection services);
 }

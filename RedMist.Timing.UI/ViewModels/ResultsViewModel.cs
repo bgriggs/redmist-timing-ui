@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>
+public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<AppResumeNotification>
 {
     public ObservableCollection<SessionViewModel> Sessions { get; } = [];
     public Event EventModel { get; }
@@ -145,5 +145,13 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 //logger.LogError(ex, "Error loading sessions");
             }
         });
+    }
+
+    /// <summary>
+    /// Handle chase where the app was in the background not getting updates and now becomes active again.
+    /// </summary>
+    public void Receive(AppResumeNotification message)
+    {
+        RefreshSessions();
     }
 }

@@ -18,7 +18,7 @@ namespace RedMist.Timing.UI.ViewModels;
 /// <summary>
 /// Available events to select from.
 /// </summary>
-public partial class EventsListViewModel : ObservableObject
+public partial class EventsListViewModel : ObservableObject, IRecipient<AppResumeNotification>
 {
     private readonly EventClient eventClient;
     private readonly OrganizationClient organizationClient;
@@ -44,6 +44,7 @@ public partial class EventsListViewModel : ObservableObject
         this.eventClient = eventClient;
         this.organizationClient = organizationClient;
         Logger = loggerFactory.CreateLogger(GetType().Name);
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
 
@@ -117,6 +118,14 @@ public partial class EventsListViewModel : ObservableObject
     public void RefreshEvents()
     {
         _ = Task.Run(Initialize);
+    }
+
+    /// <summary>
+    /// Handle chase where the app was in the background not getting updates and now becomes active again.
+    /// </summary>
+    public async void Receive(AppResumeNotification message)
+    {
+        await Initialize();
     }
 
     public void SetDriverMode()

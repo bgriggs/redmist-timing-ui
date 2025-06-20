@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IDisposable
+public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IRecipient<AppResumeNotification>, IDisposable
 {
     private readonly int eventId;
     private readonly int sessionId;
@@ -134,6 +134,14 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
                 catch { }
             });
         }
+    }
+
+    /// <summary>
+    /// Handle chase where the app was in the background not getting updates and now becomes active again.
+    /// </summary>
+    public async void Receive(AppResumeNotification message)
+    {
+        await Initialize();
     }
 
     private void UpdateCompetitorMetadata(CompetitorMetadata cm)
