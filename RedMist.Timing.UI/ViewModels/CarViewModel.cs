@@ -460,6 +460,9 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             LapDataFontWeight = FontWeight.Normal;
         }
 
+        // Force update of the position as these are getting dropped at times
+        OnPropertyChanged(nameof(Position));
+
         CarDetailsViewModel?.UpdateLaps([carPosition]);
         LastCarPosition = carPosition;
     }
