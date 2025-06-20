@@ -1,8 +1,9 @@
 name: Publish Timing APP Browser
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+  # release:
+  #   types: [published]
 
 jobs:
   publish:

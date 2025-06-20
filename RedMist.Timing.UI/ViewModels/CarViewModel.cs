@@ -471,7 +471,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             LapDataFontWeight = FontWeight.Normal;
         }
 
-        // Force update of the position as these are getting dropped at times
+        // Force update of the position as these are getting dropped at times such as 
+        // changing from overall to class mode. Simply firing a property changed does not work.
         uiResetPosition = 0;
         OnPropertyChanged(nameof(Position));
         uiResetPosition = null;
@@ -480,7 +481,6 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         OnPropertyChanged(nameof(PositionsGainedLost));
         uiResetPositionsGainedLost = null;
         OnPropertyChanged(nameof(PositionsGainedLost));
-
 
         CarDetailsViewModel?.UpdateLaps([carPosition]);
         LastCarPosition = carPosition;

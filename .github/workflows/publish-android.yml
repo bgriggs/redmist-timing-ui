@@ -1,0 +1,56 @@
+name: Publish Timing Android App
+
+# on:
+#   release:
+#     types: [published]
+on:
+  workflow_dispatch: # Run manually
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Create secrets.release.json
+        run: |
+          @echo off
+          echo { > secrets.release.json
+          echo   "Keycloak": { >> secrets.release.json
+          echo     "Realm": "${{ vars.KEYCLOAKREALM }}", >> secrets.release.json
+          echo     "ClientId": "${{ secrets.KC_BROWSER_CLIENT_ID }}", >> secrets.release.json
+          echo     "ClientSecret": "${{ secrets.KC_BROWSER_CLIENT_SECRET }}" >> secrets.release.json
+          echo   } >> secrets.release.json
+          echo } >> secrets.release.json
+        shell: cmd
+
+      - name: Decode Keystore
+        shell: pwsh
+        run: |
+          [IO.File]::WriteAllBytes("release.keystore", [Convert]::FromBase64String("${{ secrets.ANDROID_KEYSTORE_BASE64 }}"))
+
+      - name: Decode Play Store service account
+        shell: pwsh
+        run: |
+          Set-Content -Path service_account.json -Value '${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}' -Encoding UTF8
+
+      - name: Build and sign AAB
+        run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android -t:Bundle /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output
+
+      - name: Upload AAB to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: service_account.json
+          packageName: com.bigmissionmotorsports.redmist
+          releaseFiles: ${{ github.workspace }}\publish-output\*.aab
+          track: internal
+          status: completed
+
+      
