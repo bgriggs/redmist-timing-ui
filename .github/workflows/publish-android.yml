@@ -44,6 +44,10 @@ jobs:
       - name: Build and sign AAB
         run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android /p:AndroidPackageFormat=aab /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ github.workspace }}\release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output
 
+      - name: List publish-output contents
+        shell: pwsh
+        run: Get-ChildItem -Path ${{ github.workspace }}\publish-output -Recurse | Format-List FullName
+
       - name: Upload AAB to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
