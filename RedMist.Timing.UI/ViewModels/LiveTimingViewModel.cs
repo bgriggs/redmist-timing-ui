@@ -22,7 +22,8 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>, IRecipient<SizeChangedNotification>, IRecipient<InCarVideoMetadataNotification>
+public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>, IRecipient<SizeChangedNotification>, 
+    IRecipient<InCarVideoMetadataNotification>, IRecipient<AppResumeNotification>
 {
     // Flat collection for the view
     public ObservableCollection<CarViewModel> Cars { get; } = [];
@@ -35,6 +36,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private readonly ViewSizeService viewSizeService;
 
     private ILogger Logger { get; }
+
+    [ObservableProperty]
+    private bool isLoading = false;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(OrganizationLogo))]
@@ -128,7 +132,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private bool allowEventList = true;
 
 
-
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
     {
         this.hubClient = hubClient;
@@ -160,32 +163,38 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
 
     public async Task InitializeLiveAsync(Event eventModel)
     {
-        EventModel = eventModel;
-        Flag = string.Empty;
-        pitTracking.Clear();
-        ResetEvent();
         try
         {
-            await hubClient.SubscribeToEventAsync(EventModel.EventId);
-            IsLive = true;
+            Dispatcher.UIThread.Post(() => IsLoading = true);
+            EventModel = eventModel;
+            Flag = string.Empty;
+            pitTracking.Clear();
+            ResetEvent();
+            try
+            {
+                await hubClient.SubscribeToEventAsync(EventModel.EventId);
+                IsLive = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
+            }
+
+            if (consistencyCheckInterval != null)
+            {
+                try
+                {
+                    consistencyCheckInterval.Dispose();
+                }
+                catch { }
+                consistencyCheckInterval = null;
+            }
+            consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(3)).Subscribe(_ => RunConsistencyCheck());
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
+            Logger.LogError(ex, "Error initializing live timing.");
         }
-
-        if (consistencyCheckInterval != null)
-        {
-            try
-            {
-                consistencyCheckInterval.Dispose();
-            }
-            catch { }
-            consistencyCheckInterval = null;
-        }
-        consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(3)).Subscribe(_ => RunConsistencyCheck());
-
-        
     }
 
     public async Task UnsubscribeLiveAsync()
@@ -230,75 +239,104 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         Dispatcher.UIThread.Post(() => ProcessInCarVideoUpdate(message.Value), DispatcherPriority.Background);
     }
 
+    /// <summary>
+    /// Handle chase where the app was in the background not getting updates and now becomes active again.
+    /// </summary>
+    public void Receive(AppResumeNotification message)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            try
+            {
+                lock (carCache)
+                {
+                    carCache.Clear();
+                    Cars.Clear();
+                    GroupedCars.Clear();
+                    IsLoading = true;
+                }
+            }
+            catch { }
+        });
+    }
+
     public void ProcessUpdate(Payload status)
     {
-        if (status.IsReset)
+        try
         {
-            ResetEvent();
-            return;
-        }
-
-        if (status.EventName != null)
-        {
-            EventName = status.EventName;
-        }
-
-        if (status.EventStatus != null)
-        {
-            Flag = status.EventStatus.Flag.ToString();
-            TimeToGo = status.EventStatus.TimeToGo;
-            RaceTime = status.EventStatus.RunningRaceTime;
-            if (DateTime.TryParseExact(status.EventStatus.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var tod))
+            IsLoading = false;
+            if (status.IsReset)
             {
-                LocalTime = tod.ToString("h:mm:ss tt");
+                ResetEvent();
+                return;
             }
-            if (lastIsQualifying == null || lastIsQualifying != status.EventStatus.IsPracticeQualifying)
+
+            if (status.EventName != null)
             {
-                // Only update the sort if it has changed to avoid overriding the user
-                if (status.EventStatus.IsPracticeQualifying && CurrentSortMode != SortMode.Fastest)
+                EventName = status.EventName;
+            }
+
+            if (status.EventStatus != null)
+            {
+                Flag = status.EventStatus.Flag.ToString();
+                TimeToGo = status.EventStatus.TimeToGo;
+                RaceTime = status.EventStatus.RunningRaceTime;
+                if (DateTime.TryParseExact(status.EventStatus.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var tod))
                 {
-                    ToggleSortMode();
+                    LocalTime = tod.ToString("h:mm:ss tt");
                 }
-                else if (!status.EventStatus.IsPracticeQualifying && CurrentSortMode != SortMode.Position)
+                if (lastIsQualifying == null || lastIsQualifying != status.EventStatus.IsPracticeQualifying)
                 {
-                    ToggleSortMode();
+                    // Only update the sort if it has changed to avoid overriding the user
+                    if (status.EventStatus.IsPracticeQualifying && CurrentSortMode != SortMode.Fastest)
+                    {
+                        ToggleSortMode();
+                    }
+                    else if (!status.EventStatus.IsPracticeQualifying && CurrentSortMode != SortMode.Position)
+                    {
+                        ToggleSortMode();
+                    }
+                    lastIsQualifying = status.EventStatus.IsPracticeQualifying;
                 }
-                lastIsQualifying = status.EventStatus.IsPracticeQualifying;
             }
-        }
 
-        // Update event entries
-        if (status.EventEntries.Count > 0)
-        {
-            ApplyEntries(status.EventEntries, isDeltaUpdate: false);
-        }
-        else if (status.EventEntryUpdates.Count > 0)
-        {
-            ApplyEntries(status.EventEntryUpdates, isDeltaUpdate: true);
-        }
-
-        // Apply car position updates
-        var carPositions = status.CarPositions.Concat(status.CarPositionUpdates);
-        UpdateCarTiming([.. carPositions]);
-
-        lock (carCache)
-        {
-            if (carCache.Count > 0)
+            // Update event entries
+            if (status.EventEntries.Count > 0)
             {
-                TotalLaps = carCache.Items.Max(c => c.LastLap).ToString();
+                ApplyEntries(status.EventEntries, isDeltaUpdate: false);
             }
-            else
+            else if (status.EventEntryUpdates.Count > 0)
             {
-                TotalLaps = string.Empty;
+                ApplyEntries(status.EventEntryUpdates, isDeltaUpdate: true);
             }
-        }
 
-        if (status.CarPositions.Count > 0)
+            // Apply car position updates
+            var carPositions = status.CarPositions.Concat(status.CarPositionUpdates);
+            UpdateCarTiming([.. carPositions]);
+
+            lock (carCache)
+            {
+                if (carCache.Count > 0)
+                {
+                    TotalLaps = carCache.Items.Max(c => c.LastLap).ToString();
+                }
+                else
+                {
+                    TotalLaps = string.Empty;
+                }
+            }
+
+            if (status.CarPositions.Count > 0)
+            {
+                lastFullPayload = status;
+            }
+
+            //Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
+        }
+        catch (Exception ex)
         {
-            lastFullPayload = status;
+            Logger.LogError(ex, "Error updating status.");
         }
-
-        //Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
     }
 
     private void ApplyEntries(List<EventEntry> entries, bool isDeltaUpdate = false)

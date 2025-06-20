@@ -19,7 +19,6 @@ public enum TabTypes { LiveTiming, Results, ControlLog, EventInformation }
 
 public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<SizeChangedNotification>
 {
-    private bool isInitialized;
     public EventsListViewModel EventsListViewModel { get; }
     public LiveTimingViewModel LiveTimingViewModel { get; }
 
@@ -115,12 +114,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
     }
 
+
     private void ActivatableLifetime_Activated(object? sender, ActivatedEventArgs e)
     {
-        if (e.Kind == ActivationKind.Reopen && isInitialized)
-        {
-            WeakReferenceMessenger.Default.Send(new AppResumeNotification());
-        }
+        WeakReferenceMessenger.Default.Send(new AppResumeNotification());
     }
 
     public async Task Initialize()
@@ -161,7 +158,6 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
 
         IsContentVisible = true;
-        isInitialized = true;
     }
 
     public async void Receive(ValueChangedMessage<RouterEvent> message)

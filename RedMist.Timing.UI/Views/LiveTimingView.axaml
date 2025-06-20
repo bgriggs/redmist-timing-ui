@@ -294,10 +294,10 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid RowDefinitions="Auto,Auto,*,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
 		<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="4,5,4,0">
-			<Button Classes="back" Margin="0,0,15,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+			<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="{Binding EventName}" Classes="h1" FontWeight="Bold"/>
@@ -328,7 +328,7 @@
 						<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
 					</StackPanel>
 				</Button>
-				<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,4,0,0" Padding="3" Width="55">
+				<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,6,0,0" Padding="3" Width="55">
 					<StackPanel Orientation="Vertical">
 						<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
 						<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
@@ -349,9 +349,11 @@
 				<TextBlock Text="BEST LAP" Grid.Column="3" HorizontalAlignment="Right" Classes="tableheader" Margin="0,0,3,0"/>
 			</Grid>
 		</Border>
-
+		
+		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="2" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		
 		<!--Car Table-->
-		<Border Grid.Row="2" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
+		<Border Grid.Row="3" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
 			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 				<Grid>
 					<!--Flat-->
