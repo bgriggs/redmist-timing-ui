@@ -195,10 +195,16 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
+    private int? uiResetPosition = null;
+
     public int Position
     {
         get
         {
+            if (uiResetPosition != null)
+            {
+                return uiResetPosition.Value;
+            }
             if (overridePosition != null)
             {
                 return overridePosition.Value;
@@ -461,6 +467,9 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
 
         // Force update of the position as these are getting dropped at times
+        uiResetPosition = 0;
+        OnPropertyChanged(nameof(Position));
+        uiResetPosition = null;
         OnPropertyChanged(nameof(Position));
 
         CarDetailsViewModel?.UpdateLaps([carPosition]);
