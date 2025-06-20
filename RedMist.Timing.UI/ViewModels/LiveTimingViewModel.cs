@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>, IRecipient<SizeChangedNotification>, 
+public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNotification>, IRecipient<SizeChangedNotification>,
     IRecipient<InCarVideoMetadataNotification>, IRecipient<AppResumeNotification>
 {
     // Flat collection for the view
@@ -248,13 +248,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         {
             try
             {
-                lock (carCache)
-                {
-                    carCache.Clear();
-                    Cars.Clear();
-                    GroupedCars.Clear();
-                    IsLoading = true;
-                }
+                IsLoading = true;
+
+                // Invalidate the last payload as out of date
+                lastFullPayload = null;
+                lastConsistencyCheckReset = null;
+                //lock (carCache)
+                //{
+                //    carCache.Clear();
+                //    Cars.Clear();
+                //    GroupedCars.Clear();
+                //}
             }
             catch { }
         });
@@ -264,7 +268,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     {
         try
         {
-            IsLoading = false;
             if (status.IsReset)
             {
                 ResetEvent();
@@ -329,6 +332,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             if (status.CarPositions.Count > 0)
             {
                 lastFullPayload = status;
+                IsLoading = false;
             }
 
             //Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
