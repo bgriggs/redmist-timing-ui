@@ -44,6 +44,12 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     [ObservableProperty]
     private string club = string.Empty;
 
+    [ObservableProperty]
+    private bool isTableTabSelected = true;
+    [ObservableProperty]
+    private bool isChartTabSelected = false;
+    [ObservableProperty]
+    private bool isPenaltiesTabSelected = false;
 
     public ChartViewModel Chart { get; } = new ChartViewModel();
     public LapsListViewModel LapList { get; } = new LapsListViewModel();

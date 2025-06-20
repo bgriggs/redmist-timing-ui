@@ -72,7 +72,7 @@
 						<Button Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video stream" Padding="0" Height="12" Margin="5,-2,0,0">
 							<Image Source="{Binding CarStreamImage}"/>
 						</Button>
-						
+
 						<ContentControl Content="{Binding PitState}">
 							<ContentControl.DataTemplates>
 								<sel:PitIconTemplateSelector>
@@ -186,12 +186,12 @@
 						<TextBlock Text="Loading..." Classes="sm" IsVisible="{Binding IsLoading}"/>
 						<TabControl Padding="0" IsVisible="{Binding !IsLoading}">
 							<!--Laps-->
-							<TabItem Header="Laps">
+							<TabItem Header="Laps" IsSelected="{Binding IsTableTabSelected}">
 								<Grid RowDefinitions="Auto,*" Margin="10,3">
 									<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME"/>
 									<ScrollViewer MaxHeight="250" Grid.Row="1">
-										<ItemsRepeater ItemsSource="{Binding LapList.Laps}">
-											<ItemsRepeater.ItemTemplate>
+										<ItemsControl ItemsSource="{Binding LapList.Laps}">
+											<ItemsControl.ItemTemplate>
 												<DataTemplate>
 													<StackPanel Orientation="Horizontal">
 														<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
@@ -211,14 +211,14 @@
 														<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0"/>
 													</StackPanel>
 												</DataTemplate>
-											</ItemsRepeater.ItemTemplate>
-										</ItemsRepeater>
+											</ItemsControl.ItemTemplate>
+										</ItemsControl>
 									</ScrollViewer>
 								</Grid>
 							</TabItem>
 
 							<!--Positions Chart-->
-							<TabItem Header="Positions">
+							<TabItem Header="Positions" IsSelected="{Binding IsChartTabSelected}">
 								<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
 												Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
 												ZoomMode="X" Padding="0"/>-->
@@ -226,7 +226,7 @@
 							</TabItem>
 
 							<!--Penalties-->
-							<TabItem Header="Penalties">
+							<TabItem Header="Penalties" IsSelected="{Binding IsPenaltiesTabSelected}">
 								<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
 										  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
 									<DataGrid.Columns>
@@ -349,19 +349,19 @@
 				<TextBlock Text="BEST LAP" Grid.Column="3" HorizontalAlignment="Right" Classes="tableheader" Margin="0,0,3,0"/>
 			</Grid>
 		</Border>
-		
+
 		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="2" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-		
+
 		<!--Car Table-->
 		<Border Grid.Row="3" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
 			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 				<Grid>
 					<!--Flat-->
-					<ItemsRepeater ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carExpanderTemplate}" IsVisible="{Binding IsFlat}"/>
+					<ItemsControl ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carExpanderTemplate}" IsVisible="{Binding IsFlat}"/>
 
 					<!--Grouped Classes-->
-					<ItemsRepeater ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
-						<ItemsRepeater.ItemTemplate>
+					<ItemsControl ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
+						<ItemsControl.ItemTemplate>
 							<DataTemplate DataType="model:GroupHeaderViewModel">
 								<Expander Header="{Binding Name}" HorizontalAlignment="Stretch"
 										  Padding="0" CornerRadius="0" MinHeight="0"
@@ -371,11 +371,11 @@
 											<TextBlock Text="{Binding .}" Classes="lg"/>
 										</DataTemplate>
 									</Expander.HeaderTemplate>
-									<ItemsRepeater ItemsSource="{Binding .}" ItemTemplate="{StaticResource carExpanderTemplate}"/>
+									<ItemsControl ItemsSource="{Binding .}" ItemTemplate="{StaticResource carExpanderTemplate}"/>
 								</Expander>
 							</DataTemplate>
-						</ItemsRepeater.ItemTemplate>
-					</ItemsRepeater>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
 				</Grid>
 			</ScrollViewer>
 		</Border>

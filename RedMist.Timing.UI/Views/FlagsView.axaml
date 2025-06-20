@@ -33,8 +33,8 @@
 			<TextBlock Text="Duration" Classes="flagdurationheader" Width="50"/>
 		</StackPanel>
 		<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
-			<ItemsRepeater ItemsSource="{Binding Flags}" Margin="4,2,4,4">
-				<ItemsRepeater.ItemTemplate>
+			<ItemsControl ItemsSource="{Binding Flags}" Margin="4,2,4,4">
+				<ItemsControl.ItemTemplate>
 					<DataTemplate DataType="vm:FlagViewModel">
 						<Border BorderThickness="1" BorderBrush="Black" Padding="5" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" CornerRadius="3" Margin="0,0,0,1">
 							<StackPanel Orientation="Horizontal">
@@ -46,8 +46,8 @@
 							</StackPanel>
 						</Border>
 					</DataTemplate>
-				</ItemsRepeater.ItemTemplate>
-			</ItemsRepeater>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
 		</ScrollViewer>
 	</StackPanel>
 </UserControl>
