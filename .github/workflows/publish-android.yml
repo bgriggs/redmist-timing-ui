@@ -53,7 +53,7 @@ jobs:
         with:
           serviceAccountJson: service_account.json
           packageName: com.bigmissionmotorsports.redmist
-          releaseFiles: ${{ github.workspace }}\publish-output\com.bigmissionmotorsports.redmist-Signed.aab
+          releaseFiles: publish-output/com.bigmissionmotorsports.redmist-Signed.aab
           track: internal
           status: completed
 
