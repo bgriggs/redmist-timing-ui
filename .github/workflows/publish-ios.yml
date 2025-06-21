@@ -1,0 +1,81 @@
+name: Publish Timing Android App
+
+# on:
+#   release:
+#     types: [published]
+on:
+  workflow_dispatch: # Run manually
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Create secrets.release.json
+        run: |
+          @echo off
+          echo { > secrets.release.json
+          echo   "Keycloak": { >> secrets.release.json
+          echo     "Realm": "${{ vars.KEYCLOAKREALM }}", >> secrets.release.json
+          echo     "ClientId": "${{ secrets.KC_BROWSER_CLIENT_ID }}", >> secrets.release.json
+          echo     "ClientSecret": "${{ secrets.KC_BROWSER_CLIENT_SECRET }}" >> secrets.release.json
+          echo   } >> secrets.release.json
+          echo } >> secrets.release.json
+        shell: cmd
+
+      - name: Extract SharedVersion from Directory.Build.props
+        shell: pwsh
+        run: |
+          [xml]$xml = Get-Content Directory.Build.props
+          $version = $xml.Project.PropertyGroup | Where-Object { $_.SharedVersion } | Select-Object -ExpandProperty SharedVersion
+          echo "SharedVersion=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Compute Bundle Version
+        shell: pwsh
+        run: |
+          $version = "${{ env.SharedVersion }}"
+          $code = ($version -replace '\.', '') -as [int]
+          echo "BundleVersion=$code" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Echo version values
+        shell: pwsh
+        run: |
+          Write-Host "SharedVersion: $env:SharedVersion"
+          Write-Host "BundleVersion: $env:BundleVersion"
+
+      - name: Update Info.plist version numbers
+        shell: pwsh
+        run: |
+          $plistPath = "RedMist.Timing.UI.iOS/Info.plist"
+          [xml]$plist = Get-Content $plistPath
+
+          # Find the keys and update their corresponding <string> values
+          for ($i = 0; $i -lt $plist.plist.dict.childNodes.Count; $i++) {
+            if ($plist.plist.dict.childNodes[$i].InnerText -eq "CFBundleShortVersionString") {
+              $plist.plist.dict.childNodes[$i+1].InnerText = "${{ env.SharedVersion }}"
+            }
+            if ($plist.plist.dict.childNodes[$i].InnerText -eq "CFBundleVersion") {
+              $plist.plist.dict.childNodes[$i+1].InnerText = "${{ env.BundleVersion }}"
+            }
+          }
+          $plist.Save($plistPath)
+
+      - name: Clean
+        run: dotnet clean RedMist.Timing.UI.iOS.csproj -f net9.0-ios -c Release -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist" -p:ServerAddress="${{ secrets.MAC_IP }}" -p:ServerUser="${{ secrets.MAC_SERVERUSER }}" -p:ServerPassword="${{ secrets.MAC_PASSWORD }}" -p:_DotNetRootRemoteDirectory="/Users/${{ secrets.MAC_SERVERUSER }}/Library/Caches/Xamarin/XMA/SDKs/dotnet/"
+
+      - name: Build
+        run: dotnet build RedMist.Timing.UI.iOS.csproj -f net9.0-ios -c Release -p:ArchiveOnBuild=true -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist" -p:ServerAddress="${{ secrets.MAC_IP }}" -p:ServerUser="${{ secrets.MAC_SERVERUSER }}" -p:ServerPassword="${{ secrets.MAC_PASSWORD }}" -p:_DotNetRootRemoteDirectory="/Users/${{ secrets.MAC_SERVERUSER }}/Library/Caches/Xamarin/XMA/SDKs/dotnet/" -o ${{ github.workspace }}\publish-output
+
+      - name: List publish-output contents
+        shell: pwsh
+        run: Get-ChildItem -Path ${{ github.workspace }}\publish-output -Recurse | Format-List FullName
+
+      
