@@ -76,6 +76,6 @@ jobs:
 
       - name: List publish-output contents
         shell: pwsh
-        run: Get-ChildItem -Path ${{ github.workspace }}\publish-output -Recurse | Format-List FullName
+        run: Get-ChildItem -Path ${{ github.workspace }} -Recurse | Format-List FullName
 
       
