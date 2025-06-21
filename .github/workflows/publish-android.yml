@@ -61,8 +61,20 @@ jobs:
         run: |
           Set-Content -Path service_account.json -Value '${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}' -Encoding UTF8
 
+      - name: Update AndroidManifest.xml version
+        shell: pwsh
+        run: |
+          $manifestPath = "RedMist.Timing.UI.Android/Properties/AndroidManifest.xml"
+          [xml]$xml = Get-Content $manifestPath
+
+          $manifest = $xml.manifest
+          $manifest.SetAttribute("android:versionCode", $env:AndroidVersionCode)
+          $manifest.SetAttribute("android:versionName", $env:AndroidVersionCode)
+
+          $xml.Save($manifestPath)
+
       - name: Build and sign AAB
-        run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android /p:AndroidPackageFormat=aab /p:AndroidVersionCode=${{ env.AndroidVersionCode }} /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ github.workspace }}\release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output 
+        run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android /p:AndroidPackageFormat=aab /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ github.workspace }}\release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output 
 
       - name: List publish-output contents
         shell: pwsh
