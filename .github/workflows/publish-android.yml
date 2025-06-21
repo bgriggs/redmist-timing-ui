@@ -31,6 +31,26 @@ jobs:
           echo } >> secrets.release.json
         shell: cmd
 
+      - name: Extract SharedVersion from Directory.Build.props
+        shell: pwsh
+        run: |
+          [xml]$xml = Get-Content Directory.Build.props
+          $version = $xml.Project.PropertyGroup | Where-Object { $_.SharedVersion } | Select-Object -ExpandProperty SharedVersion
+          echo "SharedVersion=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Compute AndroidVersionCode
+        shell: pwsh
+        run: |
+          $version = "${{ env.SharedVersion }}"
+          $code = ($version -replace '\.', '') -as [int]
+          echo "AndroidVersionCode=$code" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Echo version values
+        shell: pwsh
+        run: |
+          Write-Host "SharedVersion: $env:SharedVersion"
+          Write-Host "AndroidVersionCode: $env:AndroidVersionCode"
+
       - name: Decode Keystore
         shell: pwsh
         run: |
@@ -42,7 +62,7 @@ jobs:
           Set-Content -Path service_account.json -Value '${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}' -Encoding UTF8
 
       - name: Build and sign AAB
-        run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android /p:AndroidPackageFormat=aab /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ github.workspace }}\release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output
+        run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net9.0-android /p:AndroidPackageFormat=aab /p:AndroidVersionCode=${{ env.AndroidVersionCode }} /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ github.workspace }}\release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output 
 
       - name: List publish-output contents
         shell: pwsh
