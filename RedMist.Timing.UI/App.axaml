@@ -47,7 +47,7 @@
 
 					<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
 					<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>
-					
+
 					<!--Timing - Car Row-->
 					<Color x:Key="carRowNormalBackgroundBrush">Transparent</Color>
 					<Color x:Key="carRowUpdatedBackgroundBrush">#fce3cf</Color>
@@ -55,7 +55,7 @@
 					<SolidColorBrush x:Key="carRowLapTextForegroundNormalBrush">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowLapTextForegroundBestBrush">#5da639</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowLapTextForegroundOverallBestBrush">Purple</SolidColorBrush>
-					
+
 					<!--Flag Background-->
 					<SolidColorBrush x:Key="timingFlagGreenBackground">#8be08c</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagYellowBackground">#fefda2</SolidColorBrush>
@@ -64,7 +64,7 @@
 					<SolidColorBrush x:Key="timingFlagWhiteBackground">WhiteSmoke</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagPurpleBackground">#e685ff</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagCheckeredBackground">White</SolidColorBrush>
-					
+
 					<!--Event-->
 					<SolidColorBrush x:Key="eventLiveBackground">Yellow</SolidColorBrush>
 					<SolidColorBrush x:Key="eventLiveForeground">Black</SolidColorBrush>
@@ -74,6 +74,8 @@
 					<SolidColorBrush x:Key="carRowLossBackgroundBrush">Red</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
+
+					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-light.png</x:String>
 				</ResourceDictionary>
 				<ResourceDictionary x:Key="Dark">
 					<SolidColorBrush x:Key="TextTitleForegroundBrush">White</SolidColorBrush>
@@ -90,7 +92,7 @@
 					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">Gray</SolidColorBrush>
 					<SolidColorBrush x:Key="TimingTableBackgroundBrush">#272727</SolidColorBrush>
 					<SolidColorBrush x:Key="CarDetailsSeperatorBackgroundBrush">#e4e4e4</SolidColorBrush>
-					
+
 					<SolidColorBrush x:Key="btnPointerOver">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="lightAppBackground">#D7412C</SolidColorBrush>
 					<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
@@ -125,6 +127,8 @@
 					<SolidColorBrush x:Key="carRowLossBackgroundBrush">Red</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
+
+					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-dark.png</x:String>
 				</ResourceDictionary>
 			</ResourceDictionary.ThemeDictionaries>
 		</ResourceDictionary>
@@ -180,7 +184,7 @@
 			<Setter Property="FontSize" Value="11"/>
 			<Setter Property="VerticalAlignment" Value="Bottom"/>
 		</Style>
-		
+
 		<Style Selector="Button.back">
 			<Setter Property="Content">
 				<Setter.Value>

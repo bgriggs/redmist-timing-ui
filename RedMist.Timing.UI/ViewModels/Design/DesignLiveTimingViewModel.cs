@@ -155,6 +155,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             TotalTime = "12:17:12.872",
             Flag = Flags.Green,
         });
+        carCache.Lookup("222").Value.HasDriverName = true;
+        carCache.Lookup("222").Value.DriverName = "John Doe";
         carCache.Lookup("222").Value?.CarDetailsViewModel?.ControlLog.Add(new ControlLogEntryViewModel(
             new ControlLogEntry
             {

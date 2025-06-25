@@ -326,7 +326,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
                 IsLoading = false;
             }
 
-            //Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
+            //Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, DriverName = "Michael Schumacher", Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
         }
         catch (Exception ex)
         {

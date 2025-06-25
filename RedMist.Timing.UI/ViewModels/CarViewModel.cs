@@ -22,7 +22,7 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNotification>
 {
-    #region Colors
+    #region Resources
 
     private const string CARROW_NORMAL_BACKGROUNDBRUSH = "carRowNormalBackgroundBrush";
     private const string CARROW_UPDATED_BACKGROUNDBRUSH = "carRowUpdatedBackgroundBrush";
@@ -31,6 +31,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     public const string CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH = "carRowLapTextForegroundNormalBrush";
     public const string CARROWLAPTEXTFOREGROUND_BEST_BRUSH = "carRowLapTextForegroundBestBrush";
     public const string CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH = "carRowLapTextForegroundOverallBestBrush";
+
+    public const string SENTINEL_IMAGE = "sentinelImage";
 
     #endregion
 
@@ -366,12 +368,18 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private bool isCarStreaming;
 
     [ObservableProperty]
-    private Bitmap? carStreamImage;
+    private IImage? carStreamImage;
 
     [ObservableProperty]
     private string? carStreamDestinationUrl;
 
     #endregion
+
+    [ObservableProperty]
+    private bool hasDriverName;
+
+    [ObservableProperty]
+    private string driverName = string.Empty;
 
 
     public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService)
@@ -553,6 +561,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             IsCarStreaming = false;
             CarStreamImage = null;
             CarStreamDestinationUrl = null;
+            HasDriverName = false;
+            DriverName = string.Empty;
             return;
         }
 
@@ -562,24 +572,41 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             CarStreamImage = GetCarSourceImage(videoMetadata.SystemType);
             CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type == VideoDestinationType.Youtube)?.Url;
             CarStreamDestinationUrl ??= videoMetadata.Destinations.FirstOrDefault()?.Url;
+            var driver = videoMetadata.DriverName?.Trim() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(driver))
+            {
+                HasDriverName = true;
+                DriverName = driver;
+            }
+            else
+            {
+                HasDriverName = false;
+                DriverName = string.Empty;
+            }
         }
         else
         {
             IsCarStreaming = false;
             CarStreamImage = null;
             CarStreamDestinationUrl = null;
+            HasDriverName = false;
+            DriverName = string.Empty;
         }
     }
 
-    private static Bitmap GetCarSourceImage(VideoSystemType type)
+    private static IImage GetCarSourceImage(VideoSystemType type)
     {
-        var imagePath = type switch
+        if (type == VideoSystemType.Sentinel)
         {
-            VideoSystemType.Sentinel => "avares://RedMist.Timing.UI/Assets/sentinel.png",
-            _ => "avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png"
-        };
+            var image = Application.Current?.FindResource(Application.Current.ActualThemeVariant, SENTINEL_IMAGE) as string;
+            if (image != null)
+            {
+                return new Bitmap(AssetLoader.Open(new Uri(image)));
+                
+            }
+        }
 
-        return new Bitmap(AssetLoader.Open(new Uri(imagePath)));
+        return new Bitmap(AssetLoader.Open(new Uri("avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png")));
     }
 
     public void LaunchInCarVideo()
