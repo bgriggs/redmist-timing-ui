@@ -1,10 +1,10 @@
 name: Publish Timing Android App
 
-on:
-  release:
-    types: [published]
-# on:
-#   workflow_dispatch: # Run manually
+#on:
+#  release:
+#    types: [published]
+ on:
+   workflow_dispatch: # Run manually
 
 jobs:
   publish:
