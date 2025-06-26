@@ -60,7 +60,7 @@ jobs:
           # Find the keys and update their corresponding <string> values
           for ($i = 0; $i -lt $plist.plist.dict.childNodes.Count; $i++) {
             if ($plist.plist.dict.childNodes[$i].InnerText -eq "CFBundleShortVersionString") {
-              $plist.plist.dict.childNodes[$i+1].InnerText = "${{ env.SharedVersion }}"
+              $plist.plist.dict.childNodes[$i+1].InnerText = "${{ env.BundleVersion }}"
             }
             if ($plist.plist.dict.childNodes[$i].InnerText -eq "CFBundleVersion") {
               $plist.plist.dict.childNodes[$i+1].InnerText = "${{ env.BundleVersion }}"
