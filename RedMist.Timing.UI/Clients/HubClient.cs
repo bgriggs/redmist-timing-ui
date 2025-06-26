@@ -91,7 +91,7 @@ public class HubClient : HubClientBase
         hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
 
         hub.Remove("ReceiveInCarVideoMetadata");
-        hub.On("ReceiveInCarVideoMetadata", (string s) => ProcessInCarVideoMetadata(s));
+        hub.On("ReceiveInCarVideoMetadata", (List<VideoMetadata> vm) => ProcessInCarVideoMetadata(vm));
     }
 
     public async Task UnsubscribeFromEventAsync(int eventId)
@@ -201,14 +201,10 @@ public class HubClient : HubClientBase
 
     #region In-Car Video Metadata
 
-    private void ProcessInCarVideoMetadata(string metadataJson)
+    private void ProcessInCarVideoMetadata(List<VideoMetadata> metadata)
     {
         try
         {
-            var metadata = JsonSerializer.Deserialize<List<VideoMetadata>>(metadataJson);
-            if (metadata == null)
-                return;
-
             Logger.LogInformation("RX In-Car Video Metadata: {c}", metadata.Count);
             WeakReferenceMessenger.Default.Send(new InCarVideoMetadataNotification(metadata));
         }

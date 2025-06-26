@@ -31,8 +31,6 @@ public class EventClient
     public virtual async Task<List<EventListSummary>> LoadRecentEventsAsync() 
     {
         var request = new RestRequest("LoadLiveAndRecentEvents", Method.Get);
-        //var startTime = DateTime.UtcNow - TimeSpan.FromDays(7);
-        //request.AddQueryParameter("startDateUtc", startTime.ToString());
         return await restClient.GetAsync<List<EventListSummary>>(request) ?? [];
     }
 
