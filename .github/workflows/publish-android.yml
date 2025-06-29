@@ -25,8 +25,8 @@ jobs:
           echo { > secrets.release.json
           echo   "Keycloak": { >> secrets.release.json
           echo     "Realm": "${{ vars.KEYCLOAKREALM }}", >> secrets.release.json
-          echo     "ClientId": "${{ secrets.KC_BROWSER_CLIENT_ID }}", >> secrets.release.json
-          echo     "ClientSecret": "${{ secrets.KC_BROWSER_CLIENT_SECRET }}" >> secrets.release.json
+          echo     "ClientId": "${{ secrets.KC_ANDROID_CLIENT_ID }}", >> secrets.release.json
+          echo     "ClientSecret": "${{ secrets.KC_ANDROID_CLIENT_SECRET }}" >> secrets.release.json
           echo   } >> secrets.release.json
           echo } >> secrets.release.json
         shell: cmd
