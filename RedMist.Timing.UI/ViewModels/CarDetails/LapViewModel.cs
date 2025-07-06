@@ -88,10 +88,9 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
     {
         get
         {
-            if (carPosition.TotalTime != null)
+            if (TryParseExtendedTime(carPosition.TotalTime, out var timeSpan))
             {
-                DateTime.TryParseExact(carPosition.TotalTime, "hh:mm:ss.fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt);
-                return dt.ToString("H:mm:ss");
+                return $"{(int)timeSpan.TotalHours:0}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
             }
             return string.Empty;
         }
@@ -106,6 +105,46 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
                 return flagToBrushConverter.Convert(carPosition.Flag, typeof(IBrush), null, CultureInfo.InvariantCulture) as IBrush ?? Brushes.Gray;
             }
             return Brushes.Gray;
+        }
+    }
+
+    /// <summary>
+    /// Parses times greater than 24 hours in the format "HH:MM:SS.fff".
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="result"></param>
+    /// <returns></returns>
+    private static bool TryParseExtendedTime(string? input, out TimeSpan result)
+    {
+        result = default;
+
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
+
+        var parts = input.Split(':');
+        if (parts.Length != 3)
+            return false;
+
+        if (!int.TryParse(parts[0], out int hours))
+            return false;
+
+        if (!int.TryParse(parts[1], out int minutes))
+            return false;
+
+        if (!double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double seconds))
+            return false;
+
+        int wholeSeconds = (int)Math.Floor(seconds);
+        int milliseconds = (int)Math.Round((seconds - wholeSeconds) * 1000);
+
+        try
+        {
+            result = new TimeSpan(0, hours, minutes, wholeSeconds, milliseconds);
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

@@ -127,7 +127,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         get
         {
-            if (DateTime.TryParseExact(LastTime, "hh:mm:ss.fff", null, System.Globalization.DateTimeStyles.None, out DateTime time))
+            if (DateTime.TryParseExact(LastTime, "hh:mm:ss.fff", null, DateTimeStyles.None, out DateTime time))
             {
                 return time.ToString("m:ss.fff");
             }
