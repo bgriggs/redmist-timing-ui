@@ -11,8 +11,6 @@ RUN apt-get install -y python3
 WORKDIR /src
 COPY ["RedMist.Timing.UI.Browser/RedMist.Timing.UI.Browser.csproj", "RedMist.Timing.UI.Browser/"]
 COPY ["RedMist.Timing.UI/RedMist.Timing.UI.csproj", "RedMist.Timing.UI/"]
-COPY ["redmist-timing-common/RedMist.TimingCommon/RedMist.TimingCommon.csproj", "redmist-timing-common/RedMist.TimingCommon/"]
-COPY ["bigmission-shared/BigMission.Shared/BigMission.Shared.csproj", "bigmission-shared/BigMission.Shared/"]
 #COPY ["nuget.config", "./"]
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
