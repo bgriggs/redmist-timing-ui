@@ -519,6 +519,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         foreach (var car in cars)
         {
             var pos = getPosition(car);
+            if (pos == 0)
+                continue; // Ignore cars with no position
+
             if (pos != lastPos + 1)
             {
                 Logger.LogWarning("Consistency check failed for {CarNumber}. Expected position {Expected}, got {Actual}", car.Number, lastPos + 1, pos);

@@ -28,7 +28,6 @@ public sealed class LapViewModelTests
     {
         var cp = new CarPosition { TotalTime = "48:00:15.989" };
         var lapVm = new LapViewModel(cp);
-        var rt = lapVm.RaceTime;
         Assert.AreEqual("48:00:15", lapVm.RaceTime);
     }
 
