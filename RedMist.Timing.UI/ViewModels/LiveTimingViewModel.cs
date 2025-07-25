@@ -462,6 +462,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
         if (lastConsistencyCheckReset != null && (DateTime.Now - lastConsistencyCheckReset) < TimeSpan.FromSeconds(60))
             return;
 
+        if (CurrentSortMode != SortMode.Position)
+            return;
+
         bool isValid = true;
         if (CurrentGrouping == GroupMode.Overall)
         {
