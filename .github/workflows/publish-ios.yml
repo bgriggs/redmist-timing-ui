@@ -21,52 +21,43 @@ jobs:
 
       - name: Create secrets.release.json
         run: |
-          @echo off
-          echo { > secrets.release.json
-          echo   "Keycloak": { >> secrets.release.json
-          echo     "Realm": "${{ vars.KEYCLOAKREALM }}", >> secrets.release.json
-          echo     "ClientId": "${{ secrets.KC_IOS_CLIENT_ID }}", >> secrets.release.json
-          echo     "ClientSecret": "${{ secrets.KC_IOS_CLIENT_SECRET }}" >> secrets.release.json
-          echo   } >> secrets.release.json
-          echo } >> secrets.release.json
-        shell: cmd
-
-      - name: Extract SharedVersion from Directory.Build.props
-        shell: pwsh
-        run: |
-          [xml]$xml = Get-Content Directory.Build.props
-          $version = $xml.Project.PropertyGroup | Where-Object { $_.SharedVersion } | Select-Object -ExpandProperty SharedVersion
-          echo "SharedVersion=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Compute Bundle Version
-        shell: pwsh
-        run: |
-          $version = "${{ env.SharedVersion }}"
-          $code = ($version -replace '\.', '') -as [int]
-          echo "BundleVersion=$code" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Echo version values
-        shell: pwsh
-        run: |
-          Write-Host "SharedVersion: $env:SharedVersion"
-          Write-Host "BundleVersion: $env:BundleVersion"
-
-      - name: Update Info.plist version numbers
-        shell: pwsh
-        run: |
-          $plistPath = "RedMist.Timing.UI.iOS/Info.plist"
-          [xml]$plist = Get-Content $plistPath
-
-          # Find the keys and update their corresponding <string> values
-          for ($i = 0; $i -lt $plist.plist.dict.childNodes.Count; $i++) {
-            if ($plist.plist.dict.childNodes[$i].InnerText -eq "CFBundleShortVersionString") {
-              $plist.plist.dict.childNodes[$i+1].InnerText = "${{ env.BundleVersion }}"
-            }
-            if ($plist.plist.dict.childNodes[$i].InnerText -eq "CFBundleVersion") {
-              $plist.plist.dict.childNodes[$i+1].InnerText = "${{ env.BundleVersion }}"
+          cat > secrets.release.json <<EOF
+          {
+            "Keycloak": {
+              "Realm": "${{ vars.KEYCLOAKREALM }}",
+              "ClientId": "${{ secrets.KC_IOS_CLIENT_ID }}",
+              "ClientSecret": "${{ secrets.KC_IOS_CLIENT_SECRET }}"
             }
           }
-          $plist.Save($plistPath)
+          EOF
+        shell: bash
+
+      - name: Extract SharedVersion from Directory.Build.props
+        run: |
+          version=$(xmllint --xpath "string(//Project/PropertyGroup/SharedVersion)" Directory.Build.props)
+          echo "SharedVersion=$version" >> "$GITHUB_ENV"
+        shell: bash
+
+      - name: Compute Bundle Version
+        shell: bash
+        run: |
+          version="${{ env.SharedVersion }}"
+          code=$(echo "$version" | tr -d '.')
+          echo "BundleVersion=$code" >> "$GITHUB_ENV"
+
+      - name: Echo version values
+        shell: bash
+        run: |
+          echo "SharedVersion: $SharedVersion"
+          echo "BundleVersion: $BundleVersion"
+
+      - name: Update Info.plist version numbers
+        shell: bash
+        run: |
+          plistPath="RedMist.Timing.UI.iOS/Info.plist"
+  
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $BundleVersion" "$plistPath"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BundleVersion" "$plistPath"
 
       - name: Clean
         run: dotnet clean RedMist.Timing.UI.iOS.csproj -p:_DotNetRootRemoteDirectory=/Users/bg/Library/Caches/Xamarin/XMA/SDKs/dotnet/ -p:DotNetRuntimePath="/usr/local/share/dotnet/dotnet"
