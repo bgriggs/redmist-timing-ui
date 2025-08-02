@@ -8,7 +8,7 @@ on:
 
 jobs:
   publish:
-    runs-on: windows-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -69,9 +69,9 @@ jobs:
           $plist.Save($plistPath)
 
       - name: Clean
-        run: dotnet clean RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj -p:ServerAddress="${{ secrets.MAC_IP }}" -p:ServerUser="${{ secrets.MAC_SERVERUSER }}" -p:ServerPassword="${{ secrets.MAC_PASSWORD }}" -p:_DotNetRootRemoteDirectory="/Users/${{ secrets.MAC_SERVERUSER }}/Library/Caches/Xamarin/XMA/SDKs/dotnet/" -p:ContinueOnDisconnected=false
+        run: dotnet clean RedMist.Timing.UI.iOS.csproj -p:_DotNetRootRemoteDirectory=/Users/bg/Library/Caches/Xamarin/XMA/SDKs/dotnet/ -p:DotNetRuntimePath="/usr/local/share/dotnet/dotnet"
 
       - name: Build
-        run: dotnet build RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj -f net9.0-ios -c Release -p:ArchiveOnBuild=true -p:ContinueOnDisconnected=false -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist" -p:ServerAddress="${{ secrets.MAC_IP }}" -p:ServerUser="${{ secrets.MAC_SERVERUSER }}" -p:ServerPassword="${{ secrets.MAC_PASSWORD }}" -p:_DotNetRootRemoteDirectory="/Users/${{ secrets.MAC_SERVERUSER }}/Library/Caches/Xamarin/XMA/SDKs/dotnet/"
+        run: dotnet build RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj -f net9.0-ios -c Release -p:ArchiveOnBuild=true -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist" -p:_DotNetRootRemoteDirectory="/Users/bg/Library/Caches/Xamarin/XMA/SDKs/dotnet/"
 
       
