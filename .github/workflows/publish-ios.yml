@@ -60,7 +60,7 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BundleVersion" "$plistPath"
 
       - name: Clean
-        run: dotnet clean RedMist.Timing.UI.iOS.csproj -p:_DotNetRootRemoteDirectory=/Users/bg/Library/Caches/Xamarin/XMA/SDKs/dotnet/ -p:DotNetRuntimePath="/usr/local/share/dotnet/dotnet"
+        run: dotnet clean RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj -p:_DotNetRootRemoteDirectory=/Users/bg/Library/Caches/Xamarin/XMA/SDKs/dotnet/ -p:DotNetRuntimePath="/usr/local/share/dotnet/dotnet"
 
       - name: Build
         run: dotnet build RedMist.Timing.UI.iOS\RedMist.Timing.UI.iOS.csproj -f net9.0-ios -c Release -p:ArchiveOnBuild=true -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist" -p:_DotNetRootRemoteDirectory="/Users/bg/Library/Caches/Xamarin/XMA/SDKs/dotnet/"
