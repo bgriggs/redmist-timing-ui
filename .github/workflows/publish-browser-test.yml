@@ -41,7 +41,7 @@ jobs:
 
       - name: Upload files to Bunny CDN via copy utility
         shell: pwsh
-        run: bunnycdn-copy\BunnyCdnCopy.exe ${{ secrets.BUNNY_STORAGE_NAME_TEST }} ${{ secrets.BUNNY_STORAGE_KEY_TEST }} de "${{ github.workspace }}\publish-output\wwwroot" / true 10
+        run: bunnycdn-copy\BunnyCdnCopy.exe ${{ secrets.BUNNY_STORAGE_NAME_TEST }} ${{ secrets.BUNNY_STORAGE_KEY_TEST }} la "${{ github.workspace }}\publish-output\wwwroot" / true 10
             
       - name: Purge BunnyCDN Cache
         run: |
