@@ -1,7 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<SharedVersion>1.0.41</SharedVersion>
+		<SharedVersion>1.0.42</SharedVersion>
 		<Nullable>enable</Nullable>
 		<AvaloniaVersion>11.3.2</AvaloniaVersion>
 	</PropertyGroup>

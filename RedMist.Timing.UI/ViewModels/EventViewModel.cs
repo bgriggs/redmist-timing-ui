@@ -24,7 +24,7 @@ public partial class EventViewModel : ObservableObject
     public EventViewModel(EventListSummary eventModel, byte[]? organizationLogo)
     {
         EventModel = eventModel;
-        if (organizationLogo is not null)
+        if (organizationLogo is not null && organizationLogo.Length > 0)
         {
             using MemoryStream ms = new(organizationLogo);
             OrganizationLogo = Bitmap.DecodeToWidth(ms, 55);
