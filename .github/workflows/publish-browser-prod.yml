@@ -1,0 +1,53 @@
+name: Publish Timing Browser-Prod
+
+on:
+  workflow_dispatch:
+  # release:
+  #   types: [published]
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Create secrets.release.json
+        run: |
+          @echo off
+          echo { > secrets.release.json
+          echo   "Keycloak": { >> secrets.release.json
+          echo     "Realm": "${{ vars.KEYCLOAKREALM }}", >> secrets.release.json
+          echo     "ClientId": "${{ secrets.KC_BROWSER_CLIENT_ID }}", >> secrets.release.json
+          echo     "ClientSecret": "${{ secrets.KC_BROWSER_CLIENT_SECRET }}" >> secrets.release.json
+          echo   } >> secrets.release.json
+          echo } >> secrets.release.json
+        shell: cmd
+
+      - name: Publish
+        run: dotnet publish "RedMist.Timing.UI.Browser/RedMist.Timing.UI.Browser.csproj" -p:PublishTrimmed=false -o ${{ github.workspace }}\publish-output
+
+      - name: Upload published app
+        uses: actions/upload-artifact@v4
+        with:
+          name: clickonce-artifacts
+          path: ${{ github.workspace }}\publish-output
+
+      - name: Upload files to Bunny CDN via copy utility
+        shell: pwsh
+        run: bunnycdn-copy\BunnyCdnCopy.exe ${{ secrets.BUNNY_STORAGE_NAME }} ${{ secrets.BUNNY_STORAGE_KEY }} de "${{ github.workspace }}\publish-output\wwwroot" / true 10
+            
+      - name: Purge BunnyCDN Cache
+        run: |
+          $headers = @{
+            "AccessKey" = "${{ secrets.BUNNY_API_KEY }}"
+            "Content-Type" = "application/json"
+          }
+          Invoke-RestMethod -Uri https://api.bunny.net/pullzone/4107592/purgeCache -Method Post -Headers $headers
+        shell: pwsh
