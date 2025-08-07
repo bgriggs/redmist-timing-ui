@@ -1,4 +1,4 @@
-name: Publish Timing Browser-Prod
+name: Publish Timing Browser-Dev
 
 on:
   workflow_dispatch:
