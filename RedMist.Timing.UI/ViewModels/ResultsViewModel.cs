@@ -44,12 +44,13 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private readonly EventClient eventClient;
     private readonly ILoggerFactory loggerFactory;
     private readonly ViewSizeService viewSizeService;
+    private readonly EventContext eventContext;
 
     public Bitmap? OrganizationLogo
     {
         get
         {
-            if (EventModel.OrganizationLogo is not null)
+            if (EventModel.OrganizationLogo is not null && EventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(EventModel.OrganizationLogo);
                 return Bitmap.DecodeToWidth(ms, 55);
@@ -62,13 +63,14 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private bool allowEventList = true;
 
 
-    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
+    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext)
     {
         EventModel = eventModel;
         this.hubClient = hubClient;
         this.eventClient = eventClient;
         this.loggerFactory = loggerFactory;
         this.viewSizeService = viewSizeService;
+        this.eventContext = eventContext;
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         InitializeSessions(eventModel.Sessions);
@@ -98,6 +100,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
             Payload? results = null;
             try
             {
+                eventContext.SetContext(EventModel.EventId, session.Id);
                 results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
             }
             catch //(Exception ex)
@@ -122,12 +125,14 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
             RefreshSessions();
             IsLiveTimingVisible = false;
             LiveTimingViewModel = null;
+            eventContext.ClearContext();
         }
         else if (message.Value.Path == "ResultsTab" && message.Value.Data is bool isResultsTabVisible && isResultsTabVisible)
         {
             RefreshSessions();
             IsLiveTimingVisible = false;
             LiveTimingViewModel = null;
+            eventContext.ClearContext();
         }
     }
 
@@ -148,7 +153,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     }
 
     /// <summary>
-    /// Handle chase where the app was in the background not getting updates and now becomes active again.
+    /// Handle case where the app was in the background not getting updates and now becomes active again.
     /// </summary>
     public void Receive(AppResumeNotification message)
     {

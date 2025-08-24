@@ -100,7 +100,7 @@ public class HubClient : HubClientBase
 
         if (hub == null)
             return;
-        
+
         try
         {
             await hub.InvokeAsync("UnsubscribeFromEvent", eventId);

@@ -95,4 +95,12 @@ public class EventClient
         request.AddQueryParameter("car", car);
         return await restClient.GetAsync<InCarPayload?>(request);
     }
+
+    public virtual async Task<List<FlagDuration>> LoadFlagsAsync(int eventId, int sessionId)
+    {
+        var request = new RestRequest("LoadFlags", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("sessionId", sessionId);
+        return await restClient.GetAsync<List<FlagDuration>>(request) ?? [];
+    }
 }

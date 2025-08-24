@@ -112,6 +112,7 @@ public partial class App : Application
     [Singleton(typeof(HubClient))]
     [Transient(typeof(OrganizationClient))]
     [Singleton(typeof(ViewSizeService))]
+    [Singleton(typeof(EventContext))]
     internal static partial void ConfigureServices(IServiceCollection services);
 
     [Singleton(typeof(MainViewModel))]

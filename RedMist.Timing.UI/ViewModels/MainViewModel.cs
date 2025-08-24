@@ -39,7 +39,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly EventClient eventClient;
     private readonly ILoggerFactory loggerFactory;
     private readonly ViewSizeService viewSizeService;
-
+    private readonly EventContext eventContext;
     [ObservableProperty]
     private bool isContentVisible = false;
     [ObservableProperty]
@@ -88,8 +88,19 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private bool isControlLogTabVisible;
     [ObservableProperty]
     private bool isFlagsTabVisible;
-    [ObservableProperty]
+    
     private bool isFlagsTabSelected;
+    public bool IsFlagsTabSelected
+    {
+        get => isFlagsTabSelected;
+        set
+        {
+            if (SetProperty(ref isFlagsTabSelected, value) && value)
+            {
+                FlagsViewModel?.Initialize();
+            }
+        }
+    }
     private const int FlagShowWidth = 500;
 
     [ObservableProperty]
@@ -97,7 +108,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
-        EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
+        EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -105,6 +116,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.eventClient = eventClient;
         this.loggerFactory = loggerFactory;
         this.viewSizeService = viewSizeService;
+        this.eventContext = eventContext;
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         if (Application.Current?.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
@@ -191,11 +203,11 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     _ = Task.Run(() => LiveTimingViewModel.InitializeLiveAsync(eventModel));
                 }
 
-                ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService);
+                ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext);
                 EventInformationViewModel = new EventInformationViewModel(eventModel);
                 ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient);
-                FlagsViewModel = new FlagsViewModel(eventModel);
-                IsControlLogTabVisible = eventModel.HasControlLog;
+                FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext);
+                IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
 
                 IsTimingTabStripVisible = true;
                 IsResultsTabSelected = !eventModel.IsLive;

@@ -6,10 +6,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignFlagsViewModel : FlagsViewModel
 {
-    public DesignFlagsViewModel() : base(new TimingCommon.Models.Event
-        {
-            EventName = "World Racing League - Barber 2025",
-        })
+    public DesignFlagsViewModel() : base(new Event { EventName = "World Racing League - Barber 2025" }, new DesignEventClient(new DesignConfiguration()), new EventContext())
     {
         var fg1 = new FlagDuration 
         { 
