@@ -2,7 +2,9 @@
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.InCarVideo;
 using System;
+using System.Collections.Generic;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
@@ -154,9 +156,18 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsInPit = true,
             TotalTime = "12:17:12.872",
             Flag = Flags.Green,
+            //IsStale = true,
         });
-        carCache.Lookup("222").Value.HasDriverName = true;
-        carCache.Lookup("222").Value.DriverName = "John Doe";
+        //carCache.Lookup("222").Value.HasDriverName = true;
+        //carCache.Lookup("222").Value.DriverName = "John Doe";
+        carCache.Lookup("222").Value.UpdateCarStream(new VideoMetadata 
+        { 
+            CarNumber = "222",
+            DriverName = "John Doe",
+            IsLive = true,
+            SystemType = VideoSystemType.Sentinel,
+            Destinations = [new() { Url = "https://example.com" }]
+        });
         carCache.Lookup("222").Value?.CarDetailsViewModel?.ControlLog.Add(new ControlLogEntryViewModel(
             new ControlLogEntry
             {
