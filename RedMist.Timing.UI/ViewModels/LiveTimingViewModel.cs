@@ -53,13 +53,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private string flag = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowTimeToGo))]
     private string timeToGo = string.Empty;
+    public bool ShowTimeToGo => !string.IsNullOrWhiteSpace(TimeToGo) && TimeToGo != "00:00:00";
 
     [ObservableProperty]
     private string localTime = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRaceTime))]
     private string raceTime = string.Empty;
+    public bool ShowRaceTime => !string.IsNullOrWhiteSpace(RaceTime) && RaceTime != "00:00:00";
 
     [ObservableProperty]
     private string totalLaps = string.Empty;
