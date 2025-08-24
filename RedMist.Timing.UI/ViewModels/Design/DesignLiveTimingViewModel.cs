@@ -10,7 +10,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignLiveTimingViewModel : LiveTimingViewModel
 {
-    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService())
+    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext())
     {
         var pitTracking = new PitTracking();
         var viewSizeService = new ViewSizeService();
@@ -54,7 +54,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
             Number = "12",
-            OriginalName = "Team Awesome Really Long Team Name 12345678",
+            OriginalName = "Team Awesome Really Long Team Name 12345678123123123123123123",
             OverallPosition = 2,
             LastLap = 33,
             LastTime = "00:02:46.872",

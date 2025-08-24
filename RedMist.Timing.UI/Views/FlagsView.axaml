@@ -28,11 +28,11 @@
 		<StackPanel Orientation="Horizontal">
 			<TextBlock Text="Flags" FontSize="16" FontWeight="Bold" Margin="4,15,4,0" Width="82"/>
 			<TextBlock Text="Start" Classes="flagdurationheader" Width="62"/>
-			<!--<TextBlock Text="-" Margin="0,0,2,0" VerticalAlignment="Bottom"/>-->
 			<TextBlock Text="End" Classes="flagdurationheader" Width="66"/>
 			<TextBlock Text="Duration" Classes="flagdurationheader" Width="50"/>
 		</StackPanel>
-		<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title"/>
+		<ScrollViewer IsVisible="{Binding !IsLoading}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 			<ItemsControl ItemsSource="{Binding Flags}" Margin="4,2,4,4">
 				<ItemsControl.ItemTemplate>
 					<DataTemplate DataType="vm:FlagViewModel">

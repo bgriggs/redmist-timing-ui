@@ -34,6 +34,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private readonly HubClient hubClient;
     private readonly EventClient serverClient;
     private readonly ViewSizeService viewSizeService;
+    private readonly EventContext eventContext;
 
     private ILogger Logger { get; }
 
@@ -136,11 +137,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
     private bool allowEventList = true;
 
 
-    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService)
+    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext)
     {
         this.hubClient = hubClient;
         this.serverClient = serverClient;
         this.viewSizeService = viewSizeService;
+        this.eventContext = eventContext;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -276,7 +278,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
             {
                 EventName = status.EventName;
             }
-
+            
             if (status.EventStatus != null)
             {
                 Flag = status.EventStatus.Flag.ToString();
@@ -330,6 +332,15 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<StatusNo
                 IsLoading = false;
             }
 
+            var carWithSession = carPositions.FirstOrDefault(c => !string.IsNullOrEmpty(c.SessionId));
+            if (carWithSession != null && int.TryParse(carWithSession.SessionId, out int sessionId))
+            {
+                eventContext.SetContext(status.EventId, sessionId);
+            }
+            else
+            {
+                eventContext.SetContext(status.EventId, 0);
+            }
             //Receive(new InCarVideoMetadataNotification([new VideoMetadata { TransponderId = 11650187, IsLive = true, SystemType = VideoSystemType.Sentinel, DriverName = "Michael Schumacher", Destinations = [new() { Type = VideoDestinationType.Youtube, Url = "https://www.youtube.com/@bigmissionmotorsport" }] }]));
         }
         catch (Exception ex)

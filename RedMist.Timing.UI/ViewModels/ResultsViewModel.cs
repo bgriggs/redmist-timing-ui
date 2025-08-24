@@ -108,7 +108,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 //logger.LogError(ex, "Error loading session results");
             }
 
-            LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService) 
+            LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext) 
             { 
                 BackRouterPath = "SessionResultsList",
                 EventModel = EventModel,
