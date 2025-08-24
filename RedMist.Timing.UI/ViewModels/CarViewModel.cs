@@ -570,7 +570,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         {
             IsCarStreaming = true;
             CarStreamImage = GetCarSourceImage(videoMetadata.SystemType);
-            CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type == VideoDestinationType.Youtube)?.Url;
+            CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type == VideoDestinationType.DirectSrt)?.Url;
             CarStreamDestinationUrl ??= videoMetadata.Destinations.FirstOrDefault()?.Url;
             var driver = videoMetadata.DriverName?.Trim() ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(driver))
