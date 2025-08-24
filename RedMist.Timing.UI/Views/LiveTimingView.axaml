@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="750"
+             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="450"
              x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -64,7 +64,8 @@
 				<Grid RowDefinitions="Auto,Auto,Auto" Margin="1,0,0,4" Grid.Column="1">
 					<StackPanel Orientation="Horizontal">
 						<TextBlock Text="{Binding Number, StringFormat='#{0}'}}" Classes="smb" VerticalAlignment="Center"/>
-						<TextBlock Text="{Binding Name}" Margin="2,0,0,0" Classes="lg"/>
+						<TextBlock Text="{Binding Name}" Margin="2,0,3,0" Classes="lg"/>
+						<TextBlock Text="{Binding Class}" Classes="smb" VerticalAlignment="Bottom"/>
 						<PathIcon Height="10" Width="10" Foreground="Orange" Data="{StaticResource lightning}"
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
 						<PathIcon Height="12" Width="12" Foreground="Orange" Data="{StaticResource doubleLightning}"
@@ -103,17 +104,19 @@
 						</ContentControl>
 					</StackPanel>
 					
-					<!--Drier Name-->
+					<!--Driver Name-->
 					<TextBlock Text="{Binding DriverName, StringFormat='Driver: {0}'}" Grid.Row="1" IsVisible="{Binding HasDriverName}" Classes="sm" Margin="0"/>
 					
-					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto" Grid.Row="2">
+					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" Grid.Row="2">
 						<StackPanel Orientation="Horizontal" Width="107">
 							<TextBlock Text="{Binding LastLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 							<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 							<TextBlock Text="{Binding LastTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 						</StackPanel>
+						
 						<TextBlock Text="{Binding Gap}" Grid.Column="1" Classes="sm" Width="70"/>
 						<TextBlock Text="{Binding Difference}" Grid.Column="2" Classes="sm" Width="70"/>
+						
 						<StackPanel Orientation="Horizontal" Grid.Column="3" IsVisible="{Binding ShowPenaltyColumn}">
 							<PathIcon Height="10" IsVisible="{Binding HasPenaltyWarnings}" Margin="0,0,0,1" Foreground="Orange" Data="{StaticResource warningopengeom}" VerticalAlignment="Center" ToolTip.Tip="Car was issued a warning"/>
 							<StackPanel Orientation="Horizontal" IsVisible="{Binding HasPenaltyLaps}">
@@ -121,15 +124,13 @@
 								<TextBlock Text="{Binding PenaltyLapTerm}" Classes="sm" Margin="2,0,0,0"/>
 							</StackPanel>
 						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="5" >
+							<TextBlock Text="{Binding BestLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+							<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+							<TextBlock Text="{Binding BestTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+						</StackPanel>
 					</Grid>
-				</Grid>
-				<Grid RowDefinitions="Auto,*,Auto" Margin="0,0,5,3" Grid.Column="2">
-					<TextBlock Text="{Binding Class}" HorizontalAlignment="Right" Classes="lg"/>
-					<StackPanel Orientation="Horizontal" Grid.Row="2">
-						<TextBlock Text="{Binding BestLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
-						<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
-						<TextBlock Text="{Binding BestTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
-					</StackPanel>
 				</Grid>
 			</Grid>
 		</DataTemplate>
