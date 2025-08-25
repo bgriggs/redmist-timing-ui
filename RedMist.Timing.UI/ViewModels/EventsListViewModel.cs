@@ -117,7 +117,17 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
 
     public void RefreshEvents()
     {
-        _ = Task.Run(Initialize);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Initialize();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error refreshing events: {ex}");
+            }
+        });
     }
 
     /// <summary>
@@ -125,7 +135,14 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     /// </summary>
     public async void Receive(AppResumeNotification message)
     {
-        await Initialize();
+        try
+        {
+            await Initialize();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in AppResumeNotification handler for EventsListViewModel: {ex}");
+        }
     }
 
     public void SetDriverMode()

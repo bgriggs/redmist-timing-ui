@@ -481,6 +481,14 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
         // Force update of the position as these are getting dropped at times such as 
         // changing from overall to class mode. Simply firing a property changed does not work.
+        ForcePropertyChange();
+        Observable.Timer(TimeSpan.FromMilliseconds(500)).Subscribe(_ => Dispatcher.UIThread.Post(() => ForcePropertyChange()));
+        CarDetailsViewModel?.UpdateLaps([carPosition]);
+        LastCarPosition = carPosition;
+    }
+
+    private void ForcePropertyChange()
+    {
         uiResetPosition = 0;
         OnPropertyChanged(nameof(Position));
         uiResetPosition = null;
@@ -489,9 +497,6 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         OnPropertyChanged(nameof(PositionsGainedLost));
         uiResetPositionsGainedLost = null;
         OnPropertyChanged(nameof(PositionsGainedLost));
-
-        CarDetailsViewModel?.UpdateLaps([carPosition]);
-        LastCarPosition = carPosition;
     }
 
     public void ApplyEntry(EventEntry entry)

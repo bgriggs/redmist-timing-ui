@@ -75,11 +75,31 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             {
                 if (value)
                 {
-                    _ = ControlLogViewModel?.Initialize();
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await (ControlLogViewModel?.Initialize() ?? Task.CompletedTask);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Error initializing control log: {ex}");
+                        }
+                    });
                 }
                 else
                 {
-                    _ = ControlLogViewModel?.UnsubscribeFromControlLogs();
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await (ControlLogViewModel?.UnsubscribeFromControlLogs() ?? Task.CompletedTask);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Error unsubscribing from control logs: {ex}");
+                        }
+                    });
                 }
             }
         }
@@ -174,69 +194,131 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     public async void Receive(ValueChangedMessage<RouterEvent> message)
     {
-        var router = message.Value;
-        if (router.Path == "EventStatus")
+        try
         {
-            IsEventsListVisible = false;
+            var router = message.Value;
+            if (router.Path == "EventStatus")
+            {
+                IsEventsListVisible = false;
 
-            int eventId = 0;
-            if (router.Data is EventListSummary @event)
-            {
-                eventId = @event.Id;
-            }
-            else if (router.Data is int id)
-            {
-                eventId = id;
-            }
-
-            Event? eventModel = null;
-            if (eventId > 0)
-            {
-                eventModel = await eventClient.LoadEventAsync(eventId);
-            }
-
-            if (eventModel != null)
-            {
-                //var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
-                if (eventModel.IsLive)
+                int eventId = 0;
+                if (router.Data is EventListSummary @event)
                 {
-                    _ = Task.Run(() => LiveTimingViewModel.InitializeLiveAsync(eventModel));
+                    eventId = @event.Id;
+                }
+                else if (router.Data is int id)
+                {
+                    eventId = id;
                 }
 
-                ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext);
-                EventInformationViewModel = new EventInformationViewModel(eventModel);
-                ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient);
-                FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext);
-                IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
+                Event? eventModel = null;
+                if (eventId > 0)
+                {
+                    eventModel = await eventClient.LoadEventAsync(eventId);
+                }
 
-                IsTimingTabStripVisible = true;
-                IsResultsTabSelected = !eventModel.IsLive;
-                IsLiveTimingTabVisible = eventModel.IsLive;
+                if (eventModel != null)
+                {
+                    //var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
+                    if (eventModel.IsLive)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await LiveTimingViewModel.InitializeLiveAsync(eventModel);
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Error initializing live timing: {ex}");
+                                // If you have access to a logger, use it instead:
+                                // Logger?.LogError(ex, "Error initializing live timing");
+                            }
+                        });
+                    }
+
+                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext);
+                    EventInformationViewModel = new EventInformationViewModel(eventModel);
+                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient);
+                    FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext);
+                    IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
+
+                    IsTimingTabStripVisible = true;
+                    IsResultsTabSelected = !eventModel.IsLive;
+                    IsLiveTimingTabVisible = eventModel.IsLive;
+                }
+            }
+            else if (router.Path == "EventsList")
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await EventsListViewModel.Initialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error initializing events list: {ex}");
+                    }
+                });
+                
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await LiveTimingViewModel.UnsubscribeLiveAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error unsubscribing from live timing: {ex}");
+                    }
+                });
+                
+                try
+                {
+                    _ = ControlLogViewModel?.UnsubscribeFromControlLogs();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error unsubscribing from control logs: {ex}");
+                }
+
+                IsEventsListVisible = true;
+
+                IsTimingTabStripVisible = false;
+                IsDriverModeVisible = false;
+            }
+            else if (router.Path == "InCarDriverSettings")
+            {
+                InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient);
+                
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await InCarSettingsViewModel.Initialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error initializing in-car settings: {ex}");
+                    }
+                });
+                
+                IsDriverModeVisible = true;
+
+                IsEventsListVisible = false;
+                IsTimingTabStripVisible = false;
+            }
+            else if (router.Path == "InCarDriverActiveSettings")
+            {
+                InCarSettingsViewModel?.BackToSettings();
             }
         }
-        else if (router.Path == "EventsList")
+        catch (Exception ex)
         {
-            _ = Task.Run(EventsListViewModel.Initialize);
-            _ = Task.Run(LiveTimingViewModel.UnsubscribeLiveAsync);
-            _ = ControlLogViewModel?.UnsubscribeFromControlLogs();
-
-            IsEventsListVisible = true;
-
-            IsTimingTabStripVisible = false;
-            IsDriverModeVisible = false;
-        }
-        else if (router.Path == "InCarDriverSettings")
-        {
-            InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient);
-            _ = InCarSettingsViewModel.Initialize();
-            IsDriverModeVisible = true;
-
-            IsEventsListVisible = false;
-            IsTimingTabStripVisible = false;
-        }
-        else if (router.Path == "InCarDriverActiveSettings")
-        {
-            InCarSettingsViewModel?.BackToSettings();
+            System.Diagnostics.Debug.WriteLine($"Error in router message handler: {ex}");
+            // If you have access to a logger, use it instead:
+            // Logger?.LogError(ex, "Error handling router message");
         }
     }
 

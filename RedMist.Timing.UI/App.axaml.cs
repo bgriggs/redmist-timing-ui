@@ -21,6 +21,7 @@ using System.IO;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI;
 
@@ -28,10 +29,14 @@ public partial class App : Application
 {
     private IHost? _host;
     private CancellationTokenSource? _cancellationTokenSource;
+    private ILogger? _logger;
 
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        
+        // Set up global exception handlers as early as possible
+        SetupGlobalExceptionHandlers();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -79,6 +84,9 @@ public partial class App : Application
         _host = builder.Build();
         _cancellationTokenSource = new();
 
+        // Initialize logger after host is built
+        _logger = _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<App>();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = _host.Services.GetRequiredService<MainWindow>();
@@ -100,6 +108,124 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void SetupGlobalExceptionHandlers()
+    {
+        // Handle unhandled exceptions on the UI thread (Avalonia-specific)
+        Dispatcher.UIThread.UnhandledException += OnUIThreadUnhandledException;
+
+        // Handle unhandled exceptions from the AppDomain (general .NET)
+        AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
+
+        // Handle unobserved task exceptions (async operations)
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
+        // Handle first chance exceptions (optional - for debugging)
+        // AppDomain.CurrentDomain.FirstChanceException += OnFirstChanceException;
+    }
+
+    private void OnUIThreadUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        try
+        {
+            LogException("UI Thread Unhandled Exception", e.Exception);
+            
+            // Mark as handled to prevent crash
+            e.Handled = true;
+            
+            // Optionally show user-friendly error message
+            ShowErrorToUser("An unexpected error occurred. The application will continue running.", e.Exception);
+        }
+        catch (Exception ex)
+        {
+            // Fallback logging if logger fails
+            System.Diagnostics.Debug.WriteLine($"Critical error in exception handler: {ex}");
+            Console.WriteLine($"Critical error in exception handler: {ex}");
+        }
+    }
+
+    private void OnAppDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        try
+        {
+            if (e.ExceptionObject is Exception exception)
+            {
+                LogException("AppDomain Unhandled Exception", exception);
+                
+                // If the process is terminating, we can't prevent it, but we can log it
+                if (e.IsTerminating)
+                {
+                    LogException("Application is terminating due to unhandled exception", exception);
+                }
+            }
+            else
+            {
+                LogException("AppDomain Unhandled Exception (Non-Exception object)", new Exception($"Unknown exception object: {e.ExceptionObject}"));
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fallback logging if logger fails
+            System.Diagnostics.Debug.WriteLine($"Critical error in AppDomain exception handler: {ex}");
+            Console.WriteLine($"Critical error in AppDomain exception handler: {ex}");
+        }
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        try
+        {
+            LogException("Unobserved Task Exception", e.Exception);
+            
+            // Mark as observed to prevent crash
+            e.SetObserved();
+        }
+        catch (Exception ex)
+        {
+            // Fallback logging if logger fails
+            System.Diagnostics.Debug.WriteLine($"Critical error in Task exception handler: {ex}");
+            Console.WriteLine($"Critical error in Task exception handler: {ex}");
+        }
+    }
+
+    private void LogException(string context, Exception exception)
+    {
+        try
+        {
+            if (_logger != null)
+            {
+                _logger.LogError(exception, "Global Exception Handler: {Context}", context);
+            }
+            else
+            {
+                // Fallback to debug output if logger not available
+                System.Diagnostics.Debug.WriteLine($"Global Exception Handler - {context}: {exception}");
+                Console.WriteLine($"Global Exception Handler - {context}: {exception}");
+            }
+        }
+        catch
+        {
+            // Last resort fallback
+            System.Diagnostics.Debug.WriteLine($"Failed to log exception: {exception}");
+            Console.WriteLine($"Failed to log exception: {exception}");
+        }
+    }
+
+    private void ShowErrorToUser(string message, Exception exception)
+    {
+        try
+        {
+#if DEBUG
+            message += $"\n\nDebug Info: {exception.Message}";
+#endif
+
+            System.Diagnostics.Debug.WriteLine($"Error shown to user: {message}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to show error to user: {ex}");
+        }
     }
 
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)

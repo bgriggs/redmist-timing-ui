@@ -38,8 +38,11 @@ public class DebugLogger : ILogger
 
     public void Debug(Func<string> messageFactory)
     {
-        LogMessages.Add(messageFactory.Invoke());
-        System.Diagnostics.Debug.WriteLine(messageFactory.Invoke());
+        if (messageFactory == null) return;
+        
+        var message = messageFactory.Invoke();
+        LogMessages.Add(message);
+        System.Diagnostics.Debug.WriteLine(message);
     }
 
     public void Debug(string message, Exception exception)
@@ -74,6 +77,7 @@ public class DebugLogger : ILogger
 
     public void Error(Func<string> messageFactory)
     {
+        if (messageFactory == null) return;
         Debug(messageFactory.Invoke());
     }
 
@@ -146,6 +150,7 @@ public class DebugLogger : ILogger
 
     public void Info(Func<string> messageFactory)
     {
+        if (messageFactory == null) return;
         Debug(messageFactory);
     }
 
@@ -181,8 +186,11 @@ public class DebugLogger : ILogger
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        LogMessages.Add(formatter(state, exception));
-        System.Diagnostics.Debug.WriteLine(formatter(state, exception));
+        if (formatter == null) return;
+        
+        var message = formatter(state, exception);
+        LogMessages.Add(message);
+        System.Diagnostics.Debug.WriteLine(message);
     }
 
     public void Trace(string message)
@@ -192,6 +200,7 @@ public class DebugLogger : ILogger
 
     public void Trace(Func<string> messageFactory)
     {
+        if (messageFactory == null) return;
         Debug(messageFactory);
     }
 
@@ -227,6 +236,7 @@ public class DebugLogger : ILogger
 
     public void Warn(Func<string> messageFactory)
     {
+        if (messageFactory == null) return;
         Debug(messageFactory);
     }
 

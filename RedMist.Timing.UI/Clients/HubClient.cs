@@ -84,14 +84,22 @@ public class HubClient : HubClientBase
                 Logger.LogError(ex, "Failed to dispose hub connection");
             }
         }
-        subscribedEventId = eventId;
-        hub = StartConnection();
+        
+        try
+        {
+            subscribedEventId = eventId;
+            hub = StartConnection();
 
-        hub.Remove("ReceiveMessage");
-        hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
+            hub.Remove("ReceiveMessage");
+            hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
 
-        hub.Remove("ReceiveInCarVideoMetadata");
-        hub.On("ReceiveInCarVideoMetadata", (List<VideoMetadata> vm) => ProcessInCarVideoMetadata(vm));
+            hub.Remove("ReceiveInCarVideoMetadata");
+            hub.On("ReceiveInCarVideoMetadata", (List<VideoMetadata> vm) => ProcessInCarVideoMetadata(vm));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to subscribe to event");
+        }
     }
 
     public async Task UnsubscribeFromEventAsync(int eventId)
@@ -154,34 +162,66 @@ public class HubClient : HubClientBase
     {
         if (hub == null)
             return;
-        await hub.InvokeAsync("SubscribeToControlLogs", eventId);
 
-        hub.Remove("ReceiveControlLog");
-        hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
+        try
+        {
+            await hub.InvokeAsync("SubscribeToControlLogs", eventId);
+
+            hub.Remove("ReceiveControlLog");
+            hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to subscribe to control logs");
+        }
     }
 
     public async Task UnsubscribeFromControlLogsAsync(int eventId)
     {
         if (hub == null)
             return;
-        await hub.InvokeAsync("UnsubscribeFromControlLogs", eventId);
+            
+        try
+        {
+            await hub.InvokeAsync("UnsubscribeFromControlLogs", eventId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to unsubscribe from control logs");
+        }
     }
 
     public async Task SubscribeToCarControlLogsAsync(int eventId, string carNum)
     {
         if (hub == null)
             return;
-        await hub.InvokeAsync("SubscribeToCarControlLogs", eventId, carNum);
+            
+        try
+        {
+            await hub.InvokeAsync("SubscribeToCarControlLogs", eventId, carNum);
 
-        hub.Remove("ReceiveControlLog");
-        hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
+            hub.Remove("ReceiveControlLog");
+            hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to subscribe to car control logs");
+        }
     }
 
     public async Task UnsubscribeFromCarControlLogsAsync(int eventId, string carNum)
     {
         if (hub == null)
             return;
-        await hub.InvokeAsync("UnsubscribeFromCarControlLogs", eventId, carNum);
+            
+        try
+        {
+            await hub.InvokeAsync("UnsubscribeFromCarControlLogs", eventId, carNum);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to unsubscribe from car control logs");
+        }
     }
 
     private void ProcessControlLogs(CarControlLogs ccl)
@@ -232,11 +272,19 @@ public class HubClient : HubClientBase
                 Logger.LogError(ex, "Failed to dispose hub connection");
             }
         }
-        subscribedInCarDriverEventIdAndCar = (eventId, car);
-        hub = StartConnection();
+        
+        try
+        {
+            subscribedInCarDriverEventIdAndCar = (eventId, car);
+            hub = StartConnection();
 
-        hub.Remove("ReceiveInCarUpdate");
-        hub.On("ReceiveInCarUpdate", (string s) => ProcessInCarPayloadAsync(s));
+            hub.Remove("ReceiveInCarUpdate");
+            hub.On("ReceiveInCarUpdate", (string s) => ProcessInCarPayloadAsync(s));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to subscribe to in-car driver event");
+        }
     }
 
     public async Task UnsubscribeFromInCarDriverEventAsync(int eventId, string car)

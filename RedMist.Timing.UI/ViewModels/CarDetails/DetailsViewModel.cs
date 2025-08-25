@@ -77,11 +77,19 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             _ = hubClient.SubscribeToCarControlLogsAsync(eventId, carNumber);
 
             // Load Competitor Metadata
-            _ = serverClient.LoadCompetitorMetadataAsync(eventId, carNumber).ContinueWith(t =>
+            _ = Task.Run(async () =>
             {
-                if (t.Result != null)
+                try
                 {
-                    UpdateCompetitorMetadata(t.Result);
+                    var competitorMetadata = await serverClient.LoadCompetitorMetadataAsync(eventId, carNumber);
+                    if (competitorMetadata != null)
+                    {
+                        UpdateCompetitorMetadata(competitorMetadata);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading competitor metadata: {ex}");
                 }
             });
 
@@ -147,7 +155,14 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     /// </summary>
     public async void Receive(AppResumeNotification message)
     {
-        await Initialize();
+        try
+        {
+            await Initialize();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in AppResumeNotification handler for DetailsViewModel: {ex}");
+        }
     }
 
     private void UpdateCompetitorMetadata(CompetitorMetadata cm)

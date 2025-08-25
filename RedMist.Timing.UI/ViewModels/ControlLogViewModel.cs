@@ -74,7 +74,14 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     /// </summary>
     public async void Receive(AppResumeNotification message)
     {
-        await Initialize();
+        try
+        {
+            await Initialize();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in AppResumeNotification handler: {ex}");
+        }
     }
 
     private Task ProcessControlLogs(ControlLogNotification message)
@@ -150,11 +157,11 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 
     private static string ToKey(ControlLogEntryViewModel entry)
     {
-        return entry.LogEntry.Timestamp.ToString() + entry.Note;
+        return (entry?.LogEntry?.Timestamp.ToString() ?? string.Empty) + (entry?.Note ?? string.Empty);
     }
 
     private static string ToKey(ControlLogEntry entry)
     {
-        return entry.Timestamp.ToString() + entry.Note;
+        return (entry?.Timestamp.ToString() ?? string.Empty) + (entry?.Note ?? string.Empty);
     }
 }

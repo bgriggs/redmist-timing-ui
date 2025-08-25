@@ -94,45 +94,52 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
 
     public async void Receive(ValueChangedMessage<RouterEvent> message)
     {
-        // Show live timing when session results are selected
-        if (message.Value.Path == "SessionResults" && message.Value.Data is Session session)
+        try
         {
-            Payload? results = null;
-            try
+            // Show live timing when session results are selected
+            if (message.Value.Path == "SessionResults" && message.Value.Data is Session session)
             {
-                eventContext.SetContext(EventModel.EventId, session.Id);
-                results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
-            }
-            catch //(Exception ex)
-            {
-                //logger.LogError(ex, "Error loading session results");
-            }
+                Payload? results = null;
+                try
+                {
+                    eventContext.SetContext(EventModel.EventId, session.Id);
+                    results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
+                }
+                catch //(Exception ex)
+                {
+                    //logger.LogError(ex, "Error loading session results");
+                }
 
-            LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext) 
-            { 
-                BackRouterPath = "SessionResultsList",
-                EventModel = EventModel,
-            };
+                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext) 
+                { 
+                    BackRouterPath = "SessionResultsList",
+                    EventModel = EventModel,
+                };
 
-            if (results != null)
-            {
-                LiveTimingViewModel.ProcessUpdate(results);
+                if (results != null)
+                {
+                    LiveTimingViewModel.ProcessUpdate(results);
+                }
+                IsLiveTimingVisible = true;
             }
-            IsLiveTimingVisible = true;
+            else if (message.Value.Path == "SessionResultsList")
+            {
+                RefreshSessions();
+                IsLiveTimingVisible = false;
+                LiveTimingViewModel = null;
+                eventContext.ClearContext();
+            }
+            else if (message.Value.Path == "ResultsTab" && message.Value.Data is bool isResultsTabVisible && isResultsTabVisible)
+            {
+                RefreshSessions();
+                IsLiveTimingVisible = false;
+                LiveTimingViewModel = null;
+                eventContext.ClearContext();
+            }
         }
-        else if (message.Value.Path == "SessionResultsList")
+        catch (Exception ex)
         {
-            RefreshSessions();
-            IsLiveTimingVisible = false;
-            LiveTimingViewModel = null;
-            eventContext.ClearContext();
-        }
-        else if (message.Value.Path == "ResultsTab" && message.Value.Data is bool isResultsTabVisible && isResultsTabVisible)
-        {
-            RefreshSessions();
-            IsLiveTimingVisible = false;
-            LiveTimingViewModel = null;
-            eventContext.ClearContext();
+            System.Diagnostics.Debug.WriteLine($"Error in router message handler for ResultsViewModel: {ex}");
         }
     }
 
