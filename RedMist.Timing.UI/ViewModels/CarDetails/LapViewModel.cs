@@ -15,7 +15,7 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
     private static readonly FlagToBrushConverter flagToBrushConverter = new();
     public CarPosition CarPosition => carPosition;
 
-    public int LapNumber => carPosition.LastLap;
+    public int LapNumber => carPosition.LastLapCompleted;
     public int OverallPosition => carPosition.OverallPosition;
     public int ClassPosition => carPosition.ClassPosition;
     public string LapTime
@@ -43,8 +43,8 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
     [NotifyPropertyChangedFor(nameof(TimeColor))]
     [NotifyPropertyChangedFor(nameof(TimeFontWeight))]
     private bool isBestLap;
-    public string FlagStr => carPosition.Flag != Flags.Unknown ? carPosition.Flag.ToString() : string.Empty;
-    public Flags Flag => carPosition.Flag;
+    public string FlagStr => carPosition.TrackFlag != Flags.Unknown ? carPosition.TrackFlag.ToString() : string.Empty;
+    public Flags Flag => carPosition.TrackFlag;
     public string InPit => carPosition.LapIncludedPit ? "YES" : string.Empty;
 
     public string MinutesSinceLastPit { get; set; } = string.Empty;
@@ -57,7 +57,7 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
         {
             if (lapTimeDt == null)
             {
-                DateTime.TryParseExact(carPosition.LastTime, "hh:mm:ss.fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt);
+                DateTime.TryParseExact(carPosition.LastLapTime, "hh:mm:ss.fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt);
                 lapTimeDt = dt;
             }
             return lapTimeDt ?? default;
@@ -100,9 +100,9 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
     {
         get
         {
-            if (carPosition.Flag != Flags.Unknown)
+            if (carPosition.TrackFlag != Flags.Unknown)
             {
-                return flagToBrushConverter.Convert(carPosition.Flag, typeof(IBrush), null, CultureInfo.InvariantCulture) as IBrush ?? Brushes.Gray;
+                return flagToBrushConverter.Convert(carPosition.TrackFlag, typeof(IBrush), null, CultureInfo.InvariantCulture) as IBrush ?? Brushes.Gray;
             }
             return Brushes.Gray;
         }

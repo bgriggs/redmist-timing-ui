@@ -409,8 +409,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         InClassGap = carPosition.InClassGap ?? string.Empty;
         InClassDifference = carPosition.InClassDifference ?? string.Empty;
         TotalTime = carPosition.TotalTime ?? string.Empty;
-        LastTime = carPosition.LastTime ?? string.Empty;
-        LastLap = carPosition.LastLap;
+        LastTime = carPosition.LastLapTime ?? string.Empty;
+        LastLap = carPosition.LastLapCompleted;
         OverallPosition = carPosition.OverallPosition;
         ClassPosition = carPosition.ClassPosition;
         OverallPositionsGained = carPosition.OverallPositionsGained;
@@ -435,7 +435,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
         // Record the pit stop
         if (carPosition.IsInPit && !string.IsNullOrEmpty(carPosition.Number))
-            pitTracking.AddPitStop(carPosition.Number, carPosition.LastLap);
+            pitTracking.AddPitStop(carPosition.Number, carPosition.LastLapCompleted);
 
         // Change to stale color to show car has not updated in a while
         if (IsStale)

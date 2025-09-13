@@ -86,8 +86,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         {
             Number = "1x",
             OverallPosition = 26,
-            LastLap = 1,
-            LastTime = "00:02:46.872",
+            LastLapCompleted = 1,
+            LastLapTime = "00:02:46.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
             OverallGap = "00:02.872",
@@ -116,8 +116,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         {
             Number = "111",
             OverallPosition = 25,
-            LastLap = 2,
-            LastTime = "00:02:17.872",
+            LastLapCompleted = 2,
+            LastLapTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:02:17.872",
             OverallGap = "00:02.872",
@@ -144,8 +144,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         {
             Number = "222",
             OverallPosition = 24,
-            LastLap = 3,
-            LastTime = "00:02:17.872",
+            LastLapCompleted = 3,
+            LastLapTime = "00:02:17.872",
             BestLap = 2,
             BestTime = "00:01:17.872",
             OverallGap = "00:02.872",
@@ -155,7 +155,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsBestTime = true,
             IsInPit = true,
             TotalTime = "12:17:12.872",
-            Flag = Flags.Green,
+            TrackFlag = Flags.Green,
             //IsStale = true,
         });
         //carCache.Lookup("222").Value.HasDriverName = true;

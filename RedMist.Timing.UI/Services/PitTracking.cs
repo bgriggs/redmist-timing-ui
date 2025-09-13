@@ -24,7 +24,7 @@ public class PitTracking
         {
             if (!string.IsNullOrEmpty(carPosition.Number) && pitStops.TryGetValue(carPosition.Number, out HashSet<int>? ps))
             {
-                if (ps.Contains(carPosition.LastLap))
+                if (ps.Contains(carPosition.LastLapCompleted))
                 {
                     carPosition.LapIncludedPit = true;
                 }

@@ -153,9 +153,9 @@ public partial class ChartViewModel : ObservableObject
     {
         foreach (var carUpdate in carPositions)
         {
-            if (carUpdate.Number == null || carUpdate.LastLap <= 0)
+            if (carUpdate.Number == null || carUpdate.LastLapCompleted <= 0)
                 continue;
-            laps[carUpdate.LastLap] = new LapViewModel(carUpdate);
+            laps[carUpdate.LastLapCompleted] = new LapViewModel(carUpdate);
         }
 
         // Fill in missing laps
@@ -166,7 +166,7 @@ public partial class ChartViewModel : ObservableObject
             {
                 if (!laps.ContainsKey(i))
                 {
-                    laps[i] = new LapViewModel(new CarPosition { LastLap = i });
+                    laps[i] = new LapViewModel(new CarPosition { LastLapCompleted = i });
                 }
             }
         }

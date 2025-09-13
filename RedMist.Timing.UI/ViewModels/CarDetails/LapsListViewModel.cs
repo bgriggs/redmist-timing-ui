@@ -28,7 +28,7 @@ public class LapsListViewModel
     {
         foreach (var carUpdate in carPositions)
         {
-            if (carUpdate.Number == null || carUpdate.LastLap <= 0)
+            if (carUpdate.Number == null || carUpdate.LastLapCompleted <= 0)
                 continue;
             lapCache.AddOrUpdate(new LapViewModel(carUpdate));
         }
