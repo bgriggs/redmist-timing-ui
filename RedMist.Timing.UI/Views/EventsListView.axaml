@@ -26,53 +26,55 @@
 
 		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="2" TextWrapping="Wrap" FontSize="9"/>
-		<ItemsControl ItemsSource="{Binding Events}" Grid.Row="3" >
-			<ItemsControl.ItemTemplate>
-				<DataTemplate>
-					<Button Background="{DynamicResource EventRowBackgroundBrush}" Height="63" CornerRadius="0" BorderThickness="0,0,0,2"
-							BorderBrush="{DynamicResource boldItemBorder}" HorizontalAlignment="Stretch" Padding="4,1,3,4"
-							Command="{Binding SelectEvent}" CommandParameter="{Binding .}">
-						<Grid ColumnDefinitions="Auto,*,Auto">
-							<Image Source="{Binding OrganizationLogo}" Height="55" Width="55" VerticalAlignment="Center"/>
+		<ScrollViewer IsVisible="{Binding !IsLoading}" Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+			<ItemsControl ItemsSource="{Binding Events}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Button Background="{DynamicResource EventRowBackgroundBrush}" Height="63" CornerRadius="0" BorderThickness="0,0,0,2"
+								BorderBrush="{DynamicResource boldItemBorder}" HorizontalAlignment="Stretch" Padding="4,1,3,4"
+								Command="{Binding SelectEvent}" CommandParameter="{Binding .}">
+							<Grid ColumnDefinitions="Auto,*,Auto">
+								<Image Source="{Binding OrganizationLogo}" Height="55" Width="55" VerticalAlignment="Center"/>
 
-							<!--Event Information-->
-							<StackPanel Grid.Column="1" VerticalAlignment="Center">
-								<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top"/>
-								
-								<!--Schedule-->
-								<ItemsControl ItemsSource="{Binding ScheduleDays}" Margin="13,0,0,0">
-									<ItemsControl.ItemTemplate>
-										<DataTemplate DataType="vm:ScheduleDayViewModel">
-											<StackPanel>
-												<!--<TextBlock Text="{Binding DayString}" Classes="theme-text-body size-sm"/>-->
-												<ItemsControl ItemsSource="{Binding EntryViewModels}">
-													<ItemsControl.ItemTemplate>
-														<DataTemplate DataType="vm:ScheduleEntryViewModel">
-															<StackPanel Orientation="Horizontal" Margin="11,0,0,0">
-																<TextBlock Text="{Binding StartTime}" Classes="sch"/>
-																<TextBlock Text="-" Classes="sch"/>
-																<TextBlock Text="{Binding EndTime}" Classes="sch"/>
-																<TextBlock Text="{Binding Name}" Classes="sch" Margin="6,0,0,0"/>
-															</StackPanel>
-														</DataTemplate>
-													</ItemsControl.ItemTemplate>
-												</ItemsControl>
-											</StackPanel>
-										</DataTemplate>
-									</ItemsControl.ItemTemplate>
-								</ItemsControl>
-							</StackPanel>
-							
-							<!--Live-->
-							<Border Grid.Column="2" Width="40" Height="35" Background="{DynamicResource eventLiveBackground}" HorizontalAlignment="Right" CornerRadius="3" IsVisible="{Binding IsLive}">
-								<TextBlock Text="Live" Foreground="{DynamicResource eventLiveForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-							</Border>
-						</Grid>
-					</Button>
-				</DataTemplate>
-			</ItemsControl.ItemTemplate>
-		</ItemsControl>
+								<!--Event Information-->
+								<StackPanel Grid.Column="1" VerticalAlignment="Center">
+									<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top"/>
 
+									<!--Schedule-->
+									<ItemsControl ItemsSource="{Binding ScheduleDays}" Margin="13,0,0,0">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate DataType="vm:ScheduleDayViewModel">
+												<StackPanel>
+													<!--<TextBlock Text="{Binding DayString}" Classes="theme-text-body size-sm"/>-->
+													<ItemsControl ItemsSource="{Binding EntryViewModels}">
+														<ItemsControl.ItemTemplate>
+															<DataTemplate DataType="vm:ScheduleEntryViewModel">
+																<StackPanel Orientation="Horizontal" Margin="11,0,0,0">
+																	<TextBlock Text="{Binding StartTime}" Classes="sch"/>
+																	<TextBlock Text="-" Classes="sch"/>
+																	<TextBlock Text="{Binding EndTime}" Classes="sch"/>
+																	<TextBlock Text="{Binding Name}" Classes="sch" Margin="6,0,0,0"/>
+																</StackPanel>
+															</DataTemplate>
+														</ItemsControl.ItemTemplate>
+													</ItemsControl>
+												</StackPanel>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</StackPanel>
+
+								<!--Live-->
+								<Border Grid.Column="2" Width="40" Height="35" Background="{DynamicResource eventLiveBackground}" HorizontalAlignment="Right" CornerRadius="3" IsVisible="{Binding IsLive}">
+									<TextBlock Text="Live" Foreground="{DynamicResource eventLiveForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+								</Border>
+							</Grid>
+						</Button>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+		
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}" Grid.Row="4">
 			<Grid ColumnDefinitions="Auto,*,Auto">
 				<TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="10" Margin="4" VerticalAlignment="Center"/>
