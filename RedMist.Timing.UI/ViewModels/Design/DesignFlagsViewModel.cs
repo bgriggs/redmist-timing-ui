@@ -41,8 +41,8 @@ public class DesignFlagsViewModel : FlagsViewModel
             //EndTime = new DateTime(2025, 3, 30, 11, 30, 33)
         };
 
-        var p = new Payload { FlagDurations = [fg1, fg2, fg3, fg4, fg5] };
-        var sn = new StatusNotification(p);
+        var p = new SessionStatePatch { FlagDurations = [fg1, fg2, fg3, fg4, fg5] };
+        var sn = new SessionStatusNotification(p);
         Receive(sn);
     }
 }

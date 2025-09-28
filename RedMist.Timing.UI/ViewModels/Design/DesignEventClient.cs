@@ -8,7 +8,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignEventClient : EventClient
 {
-    public DesignEventClient(IConfiguration configuration) : base(configuration)
+    public DesignEventClient(IConfiguration configuration) : base(configuration, new DebugLoggerFactory())
     {
     }
 

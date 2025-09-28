@@ -5,9 +5,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.Mappers;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -99,11 +101,11 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
             // Show live timing when session results are selected
             if (message.Value.Path == "SessionResults" && message.Value.Data is Session session)
             {
-                Payload? results = null;
+                SessionState? results = null;
                 try
                 {
                     eventContext.SetContext(EventModel.EventId, session.Id);
-                    results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
+                    results = await eventClient.LoadSessionResultsV2Async(session.EventId, session.Id);
                 }
                 catch //(Exception ex)
                 {
@@ -114,11 +116,14 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 { 
                     BackRouterPath = "SessionResultsList",
                     EventModel = EventModel,
+                    IsRealTime = false,
                 };
 
                 if (results != null)
                 {
-                    LiveTimingViewModel.ProcessUpdate(results);
+                    var p = SessionStateMapper.ToPatch(results);
+                    var statusNotification = new SessionStatusNotification(p);
+                    Dispatcher.UIThread.InvokeOnUIThread(() => LiveTimingViewModel.ApplySessionUpdate(statusNotification));
                 }
                 IsLiveTimingVisible = true;
             }
@@ -150,7 +155,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
             try
             {
                 var sessions = await eventClient.LoadSessionsAsync(EventModel.EventId);
-                Dispatcher.UIThread.Post(() => InitializeSessions([.. sessions]), DispatcherPriority.Background);
+                Dispatcher.UIThread.InvokeOnUIThread(() => InitializeSessions([.. sessions]), DispatcherPriority.Background);
             }
             catch //(Exception ex)
             {

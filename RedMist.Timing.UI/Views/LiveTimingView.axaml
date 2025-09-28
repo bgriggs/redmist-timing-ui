@@ -305,7 +305,7 @@
 			<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 
 			<StackPanel Grid.Column="1">
-				<TextBlock Text="{Binding EventName}" Classes="h1" FontWeight="Bold"/>
+				<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold"/>
 				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
 				<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
 				<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}}" Classes="h1"/>

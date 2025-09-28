@@ -1,5 +1,6 @@
 ﻿using BigMission.Shared.Auth;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarDriverMode;
 using RestSharp;
@@ -11,10 +12,13 @@ namespace RedMist.Timing.UI.Clients;
 
 public class EventClient
 {
+    private ILogger Logger { get; }
     private readonly RestClient restClient;
 
-    public EventClient(IConfiguration configuration)
+
+    public EventClient(IConfiguration configuration, ILoggerFactory loggerFactory)
     {
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         var url = configuration["Server:EventUrl"] ?? throw new InvalidOperationException("Server EventUrl is not configured.");
         var authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
         var realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
@@ -25,7 +29,38 @@ public class EventClient
         {
             Authenticator = new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret)
         };
-        restClient = new RestClient(options);
+        restClient = new RestClient(options, 
+            configureSerialization: s => s.UseSerializer(() => new MessagePackRestSerializer()));
+    }
+
+
+    public async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, int maxRetries = 3)
+    {
+        var retryDelay = TimeSpan.FromMilliseconds(500);
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                return await operation();
+            }
+            catch (Exception ex)
+            {
+                if (attempt == maxRetries)
+                {
+                    Logger.LogError(ex, "Failed to execute {OperationName} after {MaxRetries} attempts", operationName, maxRetries);
+                    return default!;
+                }
+
+                Logger.LogWarning(ex, "Attempt {Attempt}/{MaxRetries} failed for {OperationName}. Retrying in {DelayMs}ms",
+                    attempt, maxRetries, operationName, retryDelay.TotalMilliseconds);
+
+                await Task.Delay(retryDelay);
+                retryDelay = TimeSpan.FromMilliseconds(retryDelay.TotalMilliseconds * 2);
+            }
+        }
+
+        throw new InvalidOperationException("This should never be reached");
     }
 
     public virtual async Task<List<EventListSummary>> LoadRecentEventsAsync() 
@@ -39,6 +74,14 @@ public class EventClient
         var request = new RestRequest("LoadEvent", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         return await restClient.GetAsync<Event?>(request);
+    }
+
+    public virtual async Task<SessionState?> LoadEventStatusAsync(int eventId)
+    {
+        var request = new RestRequest("GetCurrentSessionState", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddHeader("Accept", "application/msgpack");
+        return await restClient.GetAsync<SessionState?>(request);
     }
 
     public virtual async Task<List<CarPosition>> LoadCarLapsAsync(int eventId, int sessionId, string carNumber)
@@ -63,6 +106,14 @@ public class EventClient
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
         return await restClient.GetAsync<Payload?>(request);
+    }
+
+    public virtual async Task<SessionState?> LoadSessionResultsV2Async(int eventId, int sessionId)
+    {
+        var request = new RestRequest("LoadSessionResultsV2", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("sessionId", sessionId);
+        return await restClient.GetAsync<SessionState?>(request);
     }
 
     public virtual async Task<CompetitorMetadata?> LoadCompetitorMetadataAsync(int eventId, string car)

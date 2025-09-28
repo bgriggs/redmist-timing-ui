@@ -12,6 +12,7 @@ using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarVideo;
+using RedMist.TimingCommon.Models.Mappers;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -394,48 +395,163 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     }
 
 
-    public void ApplyStatus(CarPosition carPosition)
+    //public void ApplyStatus(CarPosition carPosition)
+    //{
+    //    var prevLap = LastLap;
+    //    var prevPos = OverallPosition;
+
+    //    Number = carPosition.Number ?? string.Empty;
+    //    BestTime = carPosition.BestTime ?? string.Empty;
+    //    BestLap = carPosition.BestLap;
+    //    IsBestTimeOverall = carPosition.IsBestTime;
+    //    IsBestTimeClass = carPosition.IsBestTimeClass;
+    //    OverallGap = carPosition.OverallGap ?? string.Empty;
+    //    OverallDifference = carPosition.OverallDifference ?? string.Empty;
+    //    InClassGap = carPosition.InClassGap ?? string.Empty;
+    //    InClassDifference = carPosition.InClassDifference ?? string.Empty;
+    //    TotalTime = carPosition.TotalTime ?? string.Empty;
+    //    LastTime = carPosition.LastLapTime ?? string.Empty;
+    //    LastLap = carPosition.LastLapCompleted;
+    //    OverallPosition = carPosition.OverallPosition;
+    //    ClassPosition = carPosition.ClassPosition;
+    //    OverallPositionsGained = carPosition.OverallPositionsGained;
+    //    InClassPositionsGained = carPosition.InClassPositionsGained;
+    //    IsOverallMostPositionsGained = carPosition.IsOverallMostPositionsGained;
+    //    IsClassMostPositionsGained = carPosition.IsClassMostPositionsGained;
+    //    PenaltyLaps = carPosition.PenalityLaps;
+    //    PenaltyWarnings = carPosition.PenalityWarnings;
+    //    IsStale = carPosition.IsStale;
+
+    //    // Pit state
+    //    if (carPosition.IsEnteredPit)
+    //        PitState = PitStates.EnteredPit;
+    //    else if (carPosition.IsPitStartFinish)
+    //        PitState = PitStates.PitSF;
+    //    else if (carPosition.IsExitedPit)
+    //        PitState = PitStates.ExitedPit;
+    //    else if (carPosition.IsInPit)
+    //        PitState = PitStates.InPit;
+    //    else
+    //        PitState = PitStates.None;
+
+    //    // Record the pit stop
+    //    if (carPosition.IsInPit && !string.IsNullOrEmpty(carPosition.Number))
+    //        pitTracking.AddPitStop(carPosition.Number, carPosition.LastLapCompleted);
+
+    //    // Change to stale color to show car has not updated in a while
+    //    if (IsStale)
+    //    {
+    //        RowBackgroundKey = CARROW_STALE_BACKGROUNDBRUSH;
+    //    }
+    //    else if (RowBackgroundKey == CARROW_STALE_BACKGROUNDBRUSH)
+    //    {
+    //        RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH;
+    //    }
+
+    //    // Flash the row background if the lap has changed
+    //    if (prevLap != LastLap && RowBackgroundKey != CARROW_UPDATED_BACKGROUNDBRUSH)
+    //    {
+    //        Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_UPDATED_BACKGROUNDBRUSH));
+    //        Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH));
+    //    }
+
+    //    if (LastLap > 0)
+    //    {
+    //        // Check for best lap overall/in-class and car's fastest lap
+    //        if (IsBestTime)
+    //        {
+    //            LapDataBrushKey = CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH;
+    //            LapDataFontWeight = FontWeight.Bold;
+    //        }
+    //        else if (BestLap == LastLap)
+    //        {
+    //            LapDataBrushKey = CARROWLAPTEXTFOREGROUND_BEST_BRUSH;
+    //            LapDataFontWeight = FontWeight.Bold;
+    //        }
+    //        else // Reset to normal
+    //        {
+    //            LapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
+    //            LapDataFontWeight = FontWeight.Normal;
+    //        }
+    //    }
+    //    else // Reset to normal
+    //    {
+    //        LapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
+    //        LapDataFontWeight = FontWeight.Normal;
+    //    }
+
+    //    // Force update of the position as these are getting dropped at times such as 
+    //    // changing from overall to class mode. Simply firing a property changed does not work.
+    //    ForcePropertyChange();
+    //    Observable.Timer(TimeSpan.FromMilliseconds(500)).Subscribe(_ => Dispatcher.UIThread.Post(() => ForcePropertyChange()));
+    //    CarDetailsViewModel?.UpdateLaps([carPosition]);
+    //    LastCarPosition = carPosition;
+    //}
+
+    public void ApplyPatch(CarPositionPatch p)
     {
         var prevLap = LastLap;
         var prevPos = OverallPosition;
 
-        Number = carPosition.Number ?? string.Empty;
-        BestTime = carPosition.BestTime ?? string.Empty;
-        BestLap = carPosition.BestLap;
-        IsBestTimeOverall = carPosition.IsBestTime;
-        IsBestTimeClass = carPosition.IsBestTimeClass;
-        OverallGap = carPosition.OverallGap ?? string.Empty;
-        OverallDifference = carPosition.OverallDifference ?? string.Empty;
-        InClassGap = carPosition.InClassGap ?? string.Empty;
-        InClassDifference = carPosition.InClassDifference ?? string.Empty;
-        TotalTime = carPosition.TotalTime ?? string.Empty;
-        LastTime = carPosition.LastLapTime ?? string.Empty;
-        LastLap = carPosition.LastLapCompleted;
-        OverallPosition = carPosition.OverallPosition;
-        ClassPosition = carPosition.ClassPosition;
-        OverallPositionsGained = carPosition.OverallPositionsGained;
-        InClassPositionsGained = carPosition.InClassPositionsGained;
-        IsOverallMostPositionsGained = carPosition.IsOverallMostPositionsGained;
-        IsClassMostPositionsGained = carPosition.IsClassMostPositionsGained;
-        PenaltyLaps = carPosition.PenalityLaps;
-        PenaltyWarnings = carPosition.PenalityWarnings;
-        IsStale = carPosition.IsStale;
+        if (p.BestTime != null)
+            BestTime = p.BestTime;
+        if (p.BestLap != null)
+            BestLap = p.BestLap.Value;
+        if (p.IsBestTime != null)
+            IsBestTimeOverall = p.IsBestTime.Value;
+        if (p.IsBestTimeClass != null)
+            IsBestTimeClass = p.IsBestTimeClass.Value;
+        if (p.OverallGap != null)
+            OverallGap = p.OverallGap;
+        if (p.OverallDifference != null)
+            OverallDifference = p.OverallDifference;
+        if (p.InClassGap != null)
+            InClassGap = p.InClassGap;
+        if (p.InClassDifference != null)
+            InClassDifference = p.InClassDifference;
+        if (p.TotalTime != null)
+            TotalTime = p.TotalTime;
+        if (p.LastLapTime != null)
+            LastTime = p.LastLapTime;
+        if (p.LastLapCompleted != null)
+            LastLap = p.LastLapCompleted.Value;
+        if (p.OverallPosition != null)
+            OverallPosition = p.OverallPosition.Value;
+        if (p.ClassPosition != null)
+            ClassPosition = p.ClassPosition.Value;
+        if (p.OverallPositionsGained != null)
+            OverallPositionsGained = p.OverallPositionsGained.Value;
+        if (p.InClassPositionsGained != null)
+            InClassPositionsGained = p.InClassPositionsGained.Value;
+        if (p.IsOverallMostPositionsGained != null)
+            IsOverallMostPositionsGained = p.IsOverallMostPositionsGained.Value;
+        if (p.IsClassMostPositionsGained != null)
+            IsClassMostPositionsGained = p.IsClassMostPositionsGained.Value;
+        if (p.PenalityLaps != null)
+            PenaltyLaps = p.PenalityLaps.Value;
+        if (p.PenalityWarnings != null)
+            PenaltyWarnings = p.PenalityWarnings.Value;
+        if (p.IsStale != null)
+            IsStale = p.IsStale.Value;
 
         // Pit state
-        if (carPosition.IsEnteredPit)
+        if (p.IsEnteredPit ?? false)
             PitState = PitStates.EnteredPit;
-        else if (carPosition.IsPitStartFinish)
+        else if (p.IsPitStartFinish ?? false)
             PitState = PitStates.PitSF;
-        else if (carPosition.IsExitedPit)
+        else if (p.IsExitedPit ?? false)
             PitState = PitStates.ExitedPit;
-        else if (carPosition.IsInPit)
-            PitState = PitStates.InPit;
-        else
-            PitState = PitStates.None;
+        else if (p.IsInPit != null)
+        {
+            if (p.IsInPit.Value)
+                PitState = PitStates.InPit;
+            else
+                PitState = PitStates.None;
+        }
 
         // Record the pit stop
-        if (carPosition.IsInPit && !string.IsNullOrEmpty(carPosition.Number))
-            pitTracking.AddPitStop(carPosition.Number, carPosition.LastLapCompleted);
+        if (p.IsInPit ?? false && !string.IsNullOrEmpty(p.Number))
+            pitTracking.AddPitStop(Number, LastLap);
 
         // Change to stale color to show car has not updated in a while
         if (IsStale)
@@ -483,8 +599,21 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         // changing from overall to class mode. Simply firing a property changed does not work.
         ForcePropertyChange();
         Observable.Timer(TimeSpan.FromMilliseconds(500)).Subscribe(_ => Dispatcher.UIThread.Post(() => ForcePropertyChange()));
-        CarDetailsViewModel?.UpdateLaps([carPosition]);
-        LastCarPosition = carPosition;
+
+        if (LastCarPosition != null)
+        {
+            CarPositionMapper.ApplyPatch(p, LastCarPosition);
+
+            // Make deep copy to pass along
+            var dc = new CarPosition();
+            var fp = CarPositionMapper.CreatePatch(dc, LastCarPosition);
+            CarPositionMapper.ApplyPatch(fp, dc);
+            CarDetailsViewModel?.UpdateLaps([dc]);
+        }
+        else
+        {
+            LastCarPosition = CarPositionMapper.PatchToEntity(p);
+        }
     }
 
     private void ForcePropertyChange()
@@ -607,7 +736,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             if (image != null)
             {
                 return new Bitmap(AssetLoader.Open(new Uri(image)));
-                
+
             }
         }
 

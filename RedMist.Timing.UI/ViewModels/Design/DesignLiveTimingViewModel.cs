@@ -3,6 +3,7 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarVideo;
+using RedMist.TimingCommon.Models.Mappers;
 using System;
 using System.Collections.Generic;
 
@@ -16,7 +17,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         var viewSizeService = new ViewSizeService();
         var ec = new DesignEventClient(new DesignConfiguration());
         var hc = new DesignHubClient();
-        EventName = "Design Event";
+        SessionName = "Design Event";
         Flag = "Green";
         TimeToGo = "03:45:00";
         RaceTime = "01:00:00";
@@ -82,7 +83,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsStale = false,
         });
 
-        carCache.Lookup("1x").Value.ApplyStatus(new CarPosition
+        carCache.Lookup("1x").Value.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), new CarPosition
         {
             Number = "1x",
             OverallPosition = 26,
@@ -95,7 +96,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallPositionsGained = -5,
             IsStale = true,
             IsPitStartFinish = true,
-        });
+        }));
 
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
@@ -112,7 +113,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             PenaltyLaps = 1,
         });
 
-        carCache.Lookup("111").Value.ApplyStatus(new CarPosition
+        carCache.Lookup("111").Value.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), new CarPosition
         {
             Number = "111",
             OverallPosition = 25,
@@ -123,7 +124,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallGap = "00:02.872",
             OverallDifference = "00:12.872",
             IsEnteredPit = true,
-        });
+        }));
 
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
         {
@@ -140,7 +141,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         });
 
         carCache.Lookup("222").Value.CarDetailsViewModel = new DetailsViewModel(1, 1, "222", new DesignEventClient(new DesignConfiguration()), hc, pitTracking);
-        carCache.Lookup("222").Value.ApplyStatus(new CarPosition
+        carCache.Lookup("222").Value.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), new CarPosition
         {
             Number = "222",
             OverallPosition = 24,
@@ -157,7 +158,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             TotalTime = "12:17:12.872",
             TrackFlag = Flags.Green,
             //IsStale = true,
-        });
+        }));
         //carCache.Lookup("222").Value.HasDriverName = true;
         //carCache.Lookup("222").Value.DriverName = "John Doe";
         carCache.Lookup("222").Value.UpdateCarStream(new VideoMetadata 

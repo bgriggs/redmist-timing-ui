@@ -16,13 +16,14 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class FlagsViewModel : ObservableObject, IRecipient<StatusNotification>
+public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatusNotification>
 {
     private Event eventModel;
     private EventContext eventContext;
     private readonly EventClient eventClient;
 
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
+    private List<FlagDuration> lastFlagDurations = [];
     public string Name => eventModel.EventName ?? string.Empty;
     public Bitmap? OrganizationLogo
     {
@@ -54,6 +55,14 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<StatusNotific
 
     public void Initialize()
     {
+        if (Dispatcher.UIThread.CheckAccess())
+            _ = Refresh();
+        else
+            Dispatcher.UIThread.Post(async () => await Refresh());
+    }
+
+    private async Task Refresh()
+    {
         int sessionId = eventContext.SessionId;
         if (sessionId == 0)
         {
@@ -61,51 +70,55 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<StatusNotific
             return;
         }
 
-        Dispatcher.UIThread.Post(async () =>
+        try
         {
-            try
-            {
-                IsLoading = true;
-                var flags = await eventClient.LoadFlagsAsync(eventModel.EventId, sessionId);
-                var p = new Payload { FlagDurations = flags };
-                var sn = new StatusNotification(p);
-                Receive(sn);
-            }
-            catch (Exception)
-            {
-                // Handle exceptions
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }, DispatcherPriority.Background);
+            IsLoading = true;
+            var flags = await eventClient.LoadFlagsAsync(eventModel.EventId, sessionId);
+            var sp = new SessionStatePatch { FlagDurations = flags };
+            Receive(new SessionStatusNotification(sp));
+        }
+        catch (Exception)
+        {
+            // Handle exceptions
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
-    public void Receive(StatusNotification message)
+    public void Receive(SessionStatusNotification message)
     {
-        if (message.Value.FlagDurations == null)
-            return;
-        Dispatcher.UIThread.Post(() =>
+        if (Dispatcher.UIThread.CheckAccess())
+            UpdateSession(message.Value);
+        else
+            Dispatcher.UIThread.Post(() => UpdateSession(message.Value));
+    }
+
+    private void UpdateSession(SessionStatePatch session)
+    {
+        try
         {
-            try
+            DateTime tod = default;
+            if (session.LocalTimeOfDay != null)
             {
-                var fds = ProcessFlags(message.Value.FlagDurations);
-
-                DateTime tod = default;
-                if (message.Value.EventStatus != null)
-                {
-                    DateTime.TryParseExact(message.Value.EventStatus.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out tod);
-                }
-
-                // Update the view models with the flag durations
-                for (int i = 0; i < Flags.Count; i++)
-                {
-                    Flags[i].Update(fds.ElementAt(i), tod, i == 0);
-                }
+                DateTime.TryParseExact(session.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out tod);
             }
-            catch { }
-        }, DispatcherPriority.Background);
+
+            var fds = lastFlagDurations;
+            if (session.FlagDurations != null)
+            {
+                fds = ProcessFlags(session.FlagDurations!);
+                lastFlagDurations = fds;
+            }
+
+            // Update the view models with the flag durations
+            for (int i = 0; i < Flags.Count; i++)
+            {
+                Flags[i].Update(fds.ElementAt(i), tod, i == 0);
+            }
+        }
+        catch { }
     }
 
     private List<FlagDuration> ProcessFlags(List<FlagDuration> data)

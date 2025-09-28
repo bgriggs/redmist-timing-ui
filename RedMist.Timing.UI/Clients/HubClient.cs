@@ -1,8 +1,11 @@
-﻿using BigMission.Shared.SignalR;
+﻿using BigMission.Shared.Auth;
+using BigMission.Shared.SignalR;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
@@ -29,14 +32,48 @@ public class HubClient : HubClientBase
     private int? subscribedEventId;
     private (int eventId, string car)? subscribedInCarDriverEventIdAndCar;
     private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(5));
+    private readonly IConfiguration configuration;
+    private long sessionUpdateCount;
 
 
     public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration) : base(loggerFactory, configuration)
     {
         Logger = loggerFactory.CreateLogger(GetType().Name);
         ConnectionStatusChanged += HubClient_ConnectionStatusChanged;
+        this.configuration = configuration;
     }
 
+
+    protected override HubConnection GetConnection()
+    {
+        string hubUrl = configuration["Hub:Url"] ?? throw new InvalidOperationException("Hub URL is not configured.");
+        string authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
+        string realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
+    
+        var hubConnection = new HubConnectionBuilder().WithUrl(hubUrl, delegate (HttpConnectionOptions options)
+        {
+            options.AccessTokenProvider = async delegate
+            {
+                try
+                {
+                    var clientId = GetClientId();
+                    var clientSecret = GetClientSecret();
+                    return await KeycloakServiceToken.RequestClientToken(authUrl, realm, clientId, clientSecret);
+                }
+                catch (Exception exception)
+                {
+                    Logger.LogError(exception, "Failed to get server hub access token");
+                    return null;
+                }
+            };
+        })
+        .WithAutomaticReconnect(new InfiniteRetryPolicy())
+        .AddMessagePackProtocol()
+        .Build();
+
+        InitializeStateLogging(hubConnection);
+        return hubConnection;
+    }
 
     private void HubClient_ConnectionStatusChanged(HubConnectionState obj)
     {
@@ -48,7 +85,7 @@ public class HubClient : HubClientBase
             {
                 if (subscribedEventId != null)
                 {
-                    _ = debouncer.ExecuteAsync(async () => await hub.InvokeAsync("SubscribeToEvent", subscribedEventId));
+                    _ = debouncer.ExecuteAsync(async () => await hub.InvokeAsync("SubscribeToEventV2", subscribedEventId));
                 }
                 else if (subscribedInCarDriverEventIdAndCar != null)
                 {
@@ -90,8 +127,17 @@ public class HubClient : HubClientBase
             subscribedEventId = eventId;
             hub = StartConnection();
 
-            hub.Remove("ReceiveMessage");
-            hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
+            //hub.Remove("ReceiveMessage");
+            //hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
+
+            hub.Remove("ReceiveSessionPatch");
+            hub.On("ReceiveSessionPatch", (SessionStatePatch ssp) => ProcessSessionMessage(ssp));
+
+            hub.Remove("ReceiveCarPatches");
+            hub.On("ReceiveCarPatches", (CarPositionPatch[] cpps) => ProcessCarPatches(cpps));
+
+            hub.Remove("ReceiveReset");
+            hub.On("ReceiveReset", ProcessReset);
 
             hub.Remove("ReceiveInCarVideoMetadata");
             hub.On("ReceiveInCarVideoMetadata", (List<VideoMetadata> vm) => ProcessInCarVideoMetadata(vm));
@@ -111,7 +157,7 @@ public class HubClient : HubClientBase
 
         try
         {
-            await hub.InvokeAsync("UnsubscribeFromEvent", eventId);
+            await hub.InvokeAsync("UnsubscribeFromEventV2", eventId);
             await hub.DisposeAsync();
             hub = null;
         }
@@ -151,6 +197,46 @@ public class HubClient : HubClientBase
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to process message.");
+        }
+    }
+
+    private void ProcessSessionMessage(SessionStatePatch sessionStatePatch)
+    {
+        try
+        {
+            sessionUpdateCount++;
+            Logger.LogInformation("RX Session Patch {c}", sessionUpdateCount);
+            WeakReferenceMessenger.Default.Send(new SessionStatusNotification(sessionStatePatch));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to process session message.");
+        }
+    }
+
+    private void ProcessCarPatches(CarPositionPatch[] carPatches)
+    {
+        try
+        {
+            Logger.LogInformation("RX Car Patches: {c}", carPatches.Length);
+            WeakReferenceMessenger.Default.Send(new CarStatusNotification(carPatches));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to process car patches.");
+        }
+    }
+
+    private void ProcessReset()
+    {
+        try
+        {
+            Logger.LogInformation("RX Reset");
+            WeakReferenceMessenger.Default.Send(new ResetNotification());
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to process reset message.");
         }
     }
 

@@ -54,12 +54,13 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         IsLoading = true;
         try
         {
-            var events = await eventClient.LoadRecentEventsAsync();
+            var events = await eventClient.ExecuteWithRetryAsync(eventClient.LoadRecentEventsAsync, 
+                nameof(eventClient.LoadRecentEventsAsync), maxRetries: 5);
             if (events != null)
             {
                 if (events.Count == 0)
                 {
-                    Message = "No events found";
+                    Message = "No events found. Try to refresh in a moment.";
                     Logger.LogInformation(Message);
                 }
                 else
@@ -100,7 +101,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
             }
             else
             {
-                Message = "No events found - null";
+                Message = "No events found - try to refresh in a moment.";
                 Logger.LogInformation(Message);
             }
         }

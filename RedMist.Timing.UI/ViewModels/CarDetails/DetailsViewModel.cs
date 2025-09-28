@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels.CarDetails;
@@ -72,7 +73,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     {
         try
         {
-            Dispatcher.UIThread.Post(() => IsLoading = true);
+            Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = true);
             // Subscribe to get control logs
             _ = hubClient.SubscribeToCarControlLogsAsync(eventId, carNumber);
 
@@ -98,8 +99,12 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
 
             // Load laps
             var carPositions = await serverClient.LoadCarLapsAsync(eventId, sessionId, carNumber);
-            Chart.UpdateLaps(carPositions);
-            LapList.UpdateLaps(carPositions);
+            
+            Dispatcher.UIThread.InvokeOnUIThread(() =>
+            {
+                Chart.UpdateLaps(carPositions);
+                LapList.UpdateLaps(carPositions);
+            });
 
             // Apply control logs
             var carControlLogs = await carControlLogsTask;
@@ -116,15 +121,18 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         }
         finally
         {
-            Dispatcher.UIThread.Post(() => IsLoading = false);
+            Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = false);
         }
     }
 
     public void UpdateLaps(List<CarPosition> carPositions)
     {
         pitTracking.ApplyPitStop(carPositions);
-        Chart.UpdateLaps(carPositions);
-        LapList.UpdateLaps(carPositions);
+        Dispatcher.UIThread.InvokeOnUIThread(() =>
+        {
+            Chart.UpdateLaps(carPositions);
+            LapList.UpdateLaps(carPositions);
+        });
     }
 
     /// <summary>
@@ -135,7 +143,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         if (message.Value.CarNumber == carNumber)
         {
             var controlLog = message.Value.ControlLogEntries.OrderByDescending(l => l.OrderId);
-            Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.InvokeOnUIThread(() =>
             {
                 try
                 {
@@ -167,7 +175,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
 
     private void UpdateCompetitorMetadata(CompetitorMetadata cm)
     {
-        Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
             Name = cm.FirstName + " " + cm.LastName;
             NationState = cm.NationState;

@@ -59,6 +59,8 @@
 		<PackageReference Include="CommunityToolkit.Labs.Extensions.DependencyInjection" />
 		<PackageReference Include="DynamicData" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" />
+		<PackageReference Include="MessagePack" />
 		<PackageReference Include="BigMission.Avalonia.Utilities" />
 		<PackageReference Include="BigMission.Shared" />
 		<PackageReference Include="RedMist.TimingCommon" />
