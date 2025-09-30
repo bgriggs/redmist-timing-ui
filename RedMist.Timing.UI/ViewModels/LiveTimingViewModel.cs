@@ -394,7 +394,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         Logger.LogInformation("*** RESET EVENT RECEIVED ***");
         Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
-            ResetEvent(); 
+            ResetEvent();
             _ = RefreshStatus();
         });
     }
@@ -519,6 +519,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
+    #region Consistency Check
+
     private void RunConsistencyCheck()
     {
         if (sessionStatus == null)
@@ -603,6 +605,42 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         return true;
     }
 
+    public void InsertDuplicateCar()
+    {
+        var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService)
+        {
+            Number = "DuplicateCar",
+            Class = "Test Class",
+            OverallPosition = 1,
+        };
+        if (Cars.Count > 0 && CurrentGrouping == GroupMode.Overall)
+        {
+            var c = Cars.First();
+            if (c.LastCarPosition != null)
+            {
+                vm.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), c.LastCarPosition));
+                Cars.Insert(0, vm);
+            }
+        }
+        else if (CurrentGrouping == GroupMode.Class && GroupedCars.Count > 0)
+        {
+            var c = GroupedCars[0].First();
+            if (c.LastCarPosition != null)
+            {
+                vm.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), c.LastCarPosition));
+                GroupedCars[0].Insert(0, vm);
+            }
+        }
+    }
+
+    public void InsertDuplicateView()
+    {
+        var v = Cars.First();
+        Cars.Insert(0, v);
+    }
+
+    #endregion
+
     private void ProcessInCarVideoUpdate(List<VideoMetadata> videoMetadata)
     {
         try
@@ -642,6 +680,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public void Back()
     {
+        try
+        {
+            fullUpdateInterval?.Dispose();
+        }
+        catch { }
+
         var routerEvent = new RouterEvent { Path = BackRouterPath };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
     }
@@ -691,40 +735,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         {
             WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.Broadcast.Url));
         }
-    }
-
-    public void InsertDuplicateCar()
-    {
-        var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService)
-        {
-            Number = "DuplicateCar",
-            Class = "Test Class",
-            OverallPosition = 1,
-        };
-        if (Cars.Count > 0 && CurrentGrouping == GroupMode.Overall)
-        {
-            var c = Cars.First();
-            if (c.LastCarPosition != null)
-            {
-                vm.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), c.LastCarPosition));
-                Cars.Insert(0, vm);
-            }
-        }
-        else if (CurrentGrouping == GroupMode.Class && GroupedCars.Count > 0)
-        {
-            var c = GroupedCars[0].First();
-            if (c.LastCarPosition != null)
-            {
-                vm.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), c.LastCarPosition));
-                GroupedCars[0].Insert(0, vm);
-            }
-        }
-    }
-
-    public void InsertDuplicateView()
-    {
-        var v = Cars.First();
-        Cars.Insert(0, v);
     }
 
     #endregion

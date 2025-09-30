@@ -90,7 +90,7 @@ public class HubClient : HubClientBase
                 else if (subscribedInCarDriverEventIdAndCar != null)
                 {
                     _ = debouncer.ExecuteAsync(async () =>
-                        await hub.InvokeAsync("SubscribeToInCarDriverEvent", subscribedInCarDriverEventIdAndCar.Value.eventId, subscribedInCarDriverEventIdAndCar.Value.car));
+                        await hub.InvokeAsync("SubscribeToInCarDriverEventV2", subscribedInCarDriverEventIdAndCar.Value.eventId, subscribedInCarDriverEventIdAndCar.Value.car));
                 }
             }
         }
@@ -364,8 +364,8 @@ public class HubClient : HubClientBase
             subscribedInCarDriverEventIdAndCar = (eventId, car);
             hub = StartConnection();
 
-            hub.Remove("ReceiveInCarUpdate");
-            hub.On("ReceiveInCarUpdate", (string s) => ProcessInCarPayloadAsync(s));
+            hub.Remove("ReceiveInCarUpdateV2");
+            hub.On("ReceiveInCarUpdateV2", (InCarPayload s) => ProcessInCarPayload(s));
         }
         catch (Exception ex)
         {
@@ -382,7 +382,7 @@ public class HubClient : HubClientBase
 
         try
         {
-            await hub.InvokeAsync("UnsubscribeFromInCarDriverEvent", eventId, car);
+            await hub.InvokeAsync("UnsubscribeFromInCarDriverEventV2", eventId, car);
             await hub.DisposeAsync();
             hub = null;
         }
@@ -392,24 +392,13 @@ public class HubClient : HubClientBase
         }
     }
 
-    private async Task ProcessInCarPayloadAsync(string compressedMessage)
+    private void ProcessInCarPayload(InCarPayload payload)
     {
         try
         {
-            var compressedBytes = Convert.FromBase64String(compressedMessage);
-            using var input = new MemoryStream(compressedBytes);
-            using var gzip = new GZipStream(input, CompressionMode.Decompress);
-            using var output = new MemoryStream();
-
-            await gzip.CopyToAsync(output);
-            var decompressedBytes = output.ToArray();
-
-            var json = Encoding.UTF8.GetString(decompressedBytes);
-            var payload = JsonSerializer.Deserialize<InCarPayload>(json);
             if (payload == null)
                 return;
-
-            Logger.LogInformation("RX-in-Car: {len} bytes", compressedMessage.Length * 8);
+            Logger.LogInformation("RX InCarPayload: {c}", payload.Cars.Count);
             WeakReferenceMessenger.Default.Send(new InCarPositionUpdate(payload));
         }
         catch (Exception ex)
