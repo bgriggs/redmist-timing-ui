@@ -100,17 +100,9 @@ public class EventClient
         return await restClient.GetAsync<List<Session>>(request) ?? [];
     }
 
-    public virtual async Task<Payload?> LoadSessionResultsAsync(int eventId, int sessionId)
+    public virtual async Task<SessionState?> LoadSessionResultsAsync(int eventId, int sessionId)
     {
         var request = new RestRequest("LoadSessionResults", Method.Get);
-        request.AddQueryParameter("eventId", eventId);
-        request.AddQueryParameter("sessionId", sessionId);
-        return await restClient.GetAsync<Payload?>(request);
-    }
-
-    public virtual async Task<SessionState?> LoadSessionResultsV2Async(int eventId, int sessionId)
-    {
-        var request = new RestRequest("LoadSessionResultsV2", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
         return await restClient.GetAsync<SessionState?>(request);

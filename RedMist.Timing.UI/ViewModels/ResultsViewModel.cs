@@ -105,7 +105,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 try
                 {
                     eventContext.SetContext(EventModel.EventId, session.Id);
-                    results = await eventClient.LoadSessionResultsV2Async(session.EventId, session.Id);
+                    results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
                 }
                 catch //(Exception ex)
                 {
