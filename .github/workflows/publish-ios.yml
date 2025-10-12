@@ -62,6 +62,12 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $BundleVersion" "$plistPath"
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BundleVersion" "$plistPath"
 
+      - name: Unlock Keychain
+        shell: bash
+        run: |
+          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
+          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
+
       - name: Clean
         run: dotnet clean RedMist.Timing.UI.iOS/RedMist.Timing.UI.iOS.csproj -c Release
 
