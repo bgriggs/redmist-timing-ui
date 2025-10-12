@@ -37,8 +37,8 @@ jobs:
           $json = Get-Content $appsettingsPath | ConvertFrom-Json
           
           # Update Server URLs
-          $json.Server.EventUrl = "${{ vars.SERVER_EVENT_URL || 'https://api-dev.redmist.racing/status/Events' }}"
-          $json.Server.OrganizationUrl = "${{ vars.SERVER_ORGANIZATION_URL || 'https://api-dev.redmist.racing/status/Organization' }}"
+          $json.Server.EventUrl = "${{ vars.SERVER_EVENT_URL || 'https://api-dev.redmist.racing/status/v2/Events' }}"
+          $json.Server.OrganizationUrl = "${{ vars.SERVER_ORGANIZATION_URL || 'https://api-dev.redmist.racing/status/v1/Organization' }}"
           
           # Update Hub URL
           $json.Hub.Url = "${{ vars.HUB_URL || 'https://api-dev.redmist.racing/status/event-status' }}"
