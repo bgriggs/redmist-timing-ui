@@ -18,6 +18,10 @@
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Android" />
 		<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+		
+		<!-- Add explicit SkiaSharp references for Android 16KB page size requirement -->
+		<PackageReference Include="SkiaSharp" />
+		<PackageReference Include="SkiaSharp.HarfBuzz" />
 	</ItemGroup>
 
 	<ItemGroup>
