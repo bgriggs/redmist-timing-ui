@@ -1,13 +1,15 @@
 ﻿using RestSharp;
 using RestSharp.Serializers;
 using MessagePack;
+using MessagePack.Resolvers;
 using System;
 
 namespace RedMist.Timing.UI.Clients;
 
 public class MessagePackRestSerializer : IRestSerializer, ISerializer, IDeserializer
 {
-    private static readonly MessagePackSerializerOptions Options = MessagePackSerializer.DefaultOptions;
+    private static readonly MessagePackSerializerOptions Options = MessagePackSerializerOptions.Standard
+        .WithResolver(StandardResolver.Instance);
 
     public string? Serialize(Parameter bodyParameter) => Serialize(bodyParameter.Value);
 
