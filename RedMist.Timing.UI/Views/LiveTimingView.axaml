@@ -299,7 +299,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
 		<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="4,5,4,0">
 			<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
@@ -385,5 +385,17 @@
 			</ScrollViewer>
 		</Border>
 
+		<!--Log Display-->
+		<Border Grid.Row="5" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
+			<Grid RowDefinitions="Auto,*">
+				<TextBlock Text="Application Logs" Classes="tableheader" Margin="5,3"/>
+				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="150">
+					<TextBox Text="{Binding LogMessages}" IsReadOnly="True"
+							 TextWrapping="Wrap" BorderThickness="0"
+							 Background="Transparent" FontFamily="Consolas" FontSize="10"
+							 AcceptsReturn="True" Padding="5"/>
+				</ScrollViewer>
+			</Grid>
+		</Border>
 	</Grid>
 </UserControl>

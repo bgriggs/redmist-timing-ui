@@ -127,9 +127,6 @@ public class HubClient : HubClientBase
             subscribedEventId = eventId;
             hub = StartConnection();
 
-            //hub.Remove("ReceiveMessage");
-            //hub.On("ReceiveMessage", (string s) => ProcessMessage(s));
-
             hub.Remove("ReceiveSessionPatch");
             hub.On("ReceiveSessionPatch", (SessionStatePatch ssp) => ProcessSessionMessage(ssp));
 

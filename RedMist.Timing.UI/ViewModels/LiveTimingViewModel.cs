@@ -47,6 +47,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private readonly ViewSizeService viewSizeService;
     private readonly EventContext eventContext;
     private readonly SessionState lastSessionState = new();
+    private readonly InMemoryLogProvider? logProvider;
 
     private ILogger Logger { get; }
 
@@ -148,16 +149,26 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     [ObservableProperty]
     private bool allowEventList = true;
 
+    [ObservableProperty]
+    private string logMessages = string.Empty;
 
-    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext)
+
+    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, InMemoryLogProvider? logProvider = null)
     {
         this.hubClient = hubClient;
         this.serverClient = serverClient;
         this.viewSizeService = viewSizeService;
         this.eventContext = eventContext;
+        this.logProvider = logProvider;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
+        // Subscribe to log events
+        if (logProvider != null)
+        {
+            logProvider.LogAdded += OnLogAdded;
+            RefreshLogMessages();
+        }
         // Flat
         var f = carCache.Connect()
             .AutoRefresh(t => t.OverallPosition)
@@ -187,15 +198,20 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             EventModel = eventModel;
             Flag = string.Empty;
             pitTracking.Clear();
+            Logger.LogInformation("ResetEvent...");
             ResetEvent();
             try
             {
+                Logger.LogInformation("ResetState...");
                 await RefreshStatus();
+                Logger.LogInformation("Subscribe...");
                 await hubClient.SubscribeToEventAsync(EventModel.EventId);
+                Logger.LogInformation("Completed subscribe...");
                 IsLive = true;
             }
             catch (Exception ex)
             {
+                Logger.LogInformation("Subscribe Error." + ex.ToString());
                 Logger.LogError(ex, $"Error subscribing to event: {ex.Message}");
             }
             finally
@@ -738,4 +754,18 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     }
 
     #endregion
+
+    private void OnLogAdded(object? sender, LogEntry logEntry)
+    {
+        Dispatcher.UIThread.InvokeOnUIThread(() => RefreshLogMessages(), DispatcherPriority.Background);
+    }
+
+    private void RefreshLogMessages()
+    {
+        if (logProvider == null)
+            return;
+
+        var logs = logProvider.GetLogEntries().Take(100);
+        LogMessages = string.Join(Environment.NewLine, logs.Select(l => l.FormattedMessage));
+    }
 }

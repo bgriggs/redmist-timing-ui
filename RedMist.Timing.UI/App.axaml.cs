@@ -71,6 +71,11 @@ public partial class App : Application
             builder.AddDebug();
         });
         services.AddSingleton(loggerFactory);
+        
+        // Add in-memory log provider for UI display
+        var inMemoryLogProvider = new InMemoryLogProvider();
+        services.AddSingleton(inMemoryLogProvider);
+        loggerFactory.AddProvider(inMemoryLogProvider);
 
         ConfigureServices(services);
         ConfigureViewModels(services);
