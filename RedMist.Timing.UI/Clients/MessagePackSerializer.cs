@@ -7,6 +7,8 @@ namespace RedMist.Timing.UI.Clients;
 
 public class MessagePackRestSerializer : IRestSerializer, ISerializer, IDeserializer
 {
+    private static readonly MessagePackSerializerOptions Options = MessagePackSerializer.DefaultOptions;
+
     public string? Serialize(Parameter bodyParameter) => Serialize(bodyParameter.Value);
 
     public ContentType ContentType { get; set; } = ContentType.Json;
@@ -20,7 +22,7 @@ public class MessagePackRestSerializer : IRestSerializer, ISerializer, IDeserial
 
     public string Serialize(object? obj)
     {
-        var bytes = MessagePackSerializer.Serialize(obj);
+        var bytes = MessagePackSerializer.Serialize(obj, Options);
         return Convert.ToBase64String(bytes);
     }
 
@@ -28,6 +30,6 @@ public class MessagePackRestSerializer : IRestSerializer, ISerializer, IDeserial
     {
         if (response.RawBytes == null || response.RawBytes.Length == 0)
             return default;
-        return MessagePackSerializer.Deserialize<T>(response.RawBytes);
+        return MessagePackSerializer.Deserialize<T>(response.RawBytes, Options);
     }
 }

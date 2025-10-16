@@ -19,6 +19,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using MessagePack;
+using MessagePack.Resolvers;
 
 namespace RedMist.Timing.UI.Clients;
 
@@ -35,6 +37,20 @@ public class HubClient : HubClientBase
     private readonly IConfiguration configuration;
     private long sessionUpdateCount;
 
+    static HubClient()
+    {
+        // Configure MessagePack for AOT compatibility (iOS)
+        // Use StaticCompositeResolver to combine multiple resolvers
+        var resolver = CompositeResolver.Create(
+            // Enable native resolvers first
+            NativeDateTimeResolver.Instance,
+            // Then use the generated resolver (if you have one) or StandardResolver
+            StandardResolver.Instance
+        );
+        
+        var options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
+        MessagePackSerializer.DefaultOptions = options;
+    }
 
     public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration) : base(loggerFactory, configuration)
     {
@@ -68,7 +84,11 @@ public class HubClient : HubClientBase
             };
         })
         .WithAutomaticReconnect(new InfiniteRetryPolicy())
-        .AddMessagePackProtocol()
+        .AddMessagePackProtocol(options =>
+        {
+            // Configure MessagePack options for the SignalR protocol
+            options.SerializerOptions = MessagePackSerializer.DefaultOptions;
+        })
         .Build();
 
         InitializeStateLogging(hubConnection);

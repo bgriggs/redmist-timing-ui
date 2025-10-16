@@ -10,11 +10,23 @@
 		<ApplicationId>com.bigmission.redmist</ApplicationId>
 		<ApplicationVersion>$(SharedVersion)</ApplicationVersion>
 		<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
+		
+		<!-- Preserve MessagePack types for AOT compilation -->
+		<TrimMode>partial</TrimMode>
+		<MtouchExtraArgs>$(MtouchExtraArgs) --optimize=-remove-dynamic-registrar</MtouchExtraArgs>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net9.0-ios'">
 		<EnableAssemblyILStripping>False</EnableAssemblyILStripping>
+		<!-- Ensure MessagePack types are preserved -->
+		<TrimMode>partial</TrimMode>
 	</PropertyGroup>
+	
+	<ItemGroup>
+		<!-- Preserve MessagePack assemblies from trimming -->
+		<TrimmerRootAssembly Include="MessagePack" />
+		<TrimmerRootAssembly Include="MessagePack.Annotations" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia.iOS" />
