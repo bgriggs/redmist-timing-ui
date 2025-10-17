@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -75,7 +76,7 @@ public class HubClient : HubClientBase
         string authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
         string realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
     
-        var hubConnection = new HubConnectionBuilder().WithUrl(hubUrl, delegate (HttpConnectionOptions options)
+        var builder = new HubConnectionBuilder().WithUrl(hubUrl, delegate (HttpConnectionOptions options)
         {
             options.AccessTokenProvider = async delegate
             {
@@ -92,13 +93,34 @@ public class HubClient : HubClientBase
                 }
             };
         })
-        .WithAutomaticReconnect(new InfiniteRetryPolicy())
-        .AddMessagePackProtocol(options =>
+        .WithAutomaticReconnect(new InfiniteRetryPolicy());
+
+        // Use JSON protocol on iOS due to MessagePack AOT limitations with SignalR parameter serialization
+        // MessagePack works fine for REST API responses but SignalR's InvokeAsync uses reflection-based
+        // serialization for parameters which fails on iOS
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Create("IOS")))
         {
-            // Configure MessagePack options for the SignalR protocol with AOT-compatible resolver
-            options.SerializerOptions = MessagePackOptions;
-        })
-        .Build();
+            Logger.LogInformation("Using JSON protocol for SignalR on iOS");
+            builder.AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = false
+                };
+            });
+        }
+        else
+        {
+            Logger.LogInformation("Using MessagePack protocol for SignalR");
+            builder.AddMessagePackProtocol(options =>
+            {
+                // Configure MessagePack options for the SignalR protocol with AOT-compatible resolver
+                options.SerializerOptions = MessagePackOptions;
+            });
+        }
+
+        var hubConnection = builder.Build();
 
         InitializeStateLogging(hubConnection);
         return hubConnection;
