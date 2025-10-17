@@ -5,7 +5,6 @@ using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
-using System.Collections.Generic;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
