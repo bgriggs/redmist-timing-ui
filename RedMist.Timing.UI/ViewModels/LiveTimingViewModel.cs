@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -750,6 +751,21 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url))
         {
             WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.Broadcast.Url));
+        }
+    }
+
+    public async Task CopyLogsToClipboard()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(LogMessages))
+                return;
+
+            WeakReferenceMessenger.Default.Send(new CopyToClipboardRequest { Text = LogMessages });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error copying logs to clipboard");
         }
     }
 

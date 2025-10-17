@@ -40,15 +40,19 @@ public class HubClient : HubClientBase
     static HubClient()
     {
         // Configure MessagePack for AOT compatibility (iOS)
-        // Use StaticCompositeResolver to combine multiple resolvers
+        // Use ContractlessStandardResolver for iOS compatibility
         var resolver = CompositeResolver.Create(
-            // Enable native resolvers first
-            NativeDateTimeResolver.Instance,
-            // Then use the generated resolver (if you have one) or StandardResolver
-            StandardResolver.Instance
+            // Use built-in primitive resolvers
+            BuiltinResolver.Instance,
+            AttributeFormatterResolver.Instance,
+            // Then contractless standard resolver for types without attributes
+            ContractlessStandardResolver.Instance
         );
         
-        var options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
+        var options = MessagePackSerializerOptions.Standard
+            .WithResolver(resolver)
+            .WithSecurity(MessagePackSecurity.UntrustedData);
+            
         MessagePackSerializer.DefaultOptions = options;
     }
 

@@ -388,7 +388,13 @@
 		<!--Log Display-->
 		<Border Grid.Row="5" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
 			<Grid RowDefinitions="Auto,*">
-				<TextBlock Text="Application Logs" Classes="tableheader" Margin="5,3"/>
+				<Grid ColumnDefinitions="*,Auto" Margin="5,3">
+					<TextBlock Text="Application Logs" Classes="tableheader"/>
+					<Button Grid.Column="1" Command="{Binding CopyLogsToClipboard}"
+							Padding="5,2" FontSize="10" ToolTip.Tip="Copy logs to clipboard">
+						<TextBlock Text="Copy" FontSize="10"/>
+					</Button>
+				</Grid>
 				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="150">
 					<TextBox Text="{Binding LogMessages}" IsReadOnly="True"
 							 TextWrapping="Wrap" BorderThickness="0"
