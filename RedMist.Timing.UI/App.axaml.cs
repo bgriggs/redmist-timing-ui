@@ -37,12 +37,16 @@ public partial class App : Application
     static App()
     {
         // Configure MessagePack for AOT compatibility (iOS)
+        // Use TypelessContractlessStandardResolver which supports dynamic type resolution
+        // This is critical for SignalR's InvokeAsync which uses non-generic serialization
         var resolver = CompositeResolver.Create(
             // Use built-in primitive resolvers
             BuiltinResolver.Instance,
             AttributeFormatterResolver.Instance,
-            // Then contractless standard resolver for types without attributes
-            ContractlessStandardResolver.Instance
+            // Use DynamicEnumAsStringResolver for enum support
+            DynamicEnumAsStringResolver.Instance,
+            // TypelessContractlessStandardResolver for dynamic type resolution (required for SignalR)
+            TypelessContractlessStandardResolver.Instance
         );
         
         var options = MessagePackSerializerOptions.Standard
@@ -50,6 +54,9 @@ public partial class App : Application
             .WithSecurity(MessagePackSecurity.UntrustedData);
             
         MessagePackSerializer.DefaultOptions = options;
+        
+        // Force static constructor to run early
+        System.Diagnostics.Debug.WriteLine("MessagePack DefaultOptions initialized for AOT compatibility");
     }
 
     public override void Initialize()

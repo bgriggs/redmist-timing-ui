@@ -43,13 +43,15 @@ public class HubClient : HubClientBase
     static HubClient()
     {
         // Configure MessagePack for AOT compatibility (iOS)
-        // Use ContractlessStandardResolver for iOS compatibility
+        // Use TypelessContractlessStandardResolver which supports dynamic type resolution
         var resolver = CompositeResolver.Create(
             // Use built-in primitive resolvers
             BuiltinResolver.Instance,
             AttributeFormatterResolver.Instance,
-            // Then contractless standard resolver for types without attributes
-            ContractlessStandardResolver.Instance
+            // Use DynamicEnumAsStringResolver for enum support
+            DynamicEnumAsStringResolver.Instance,
+            // TypelessContractlessStandardResolver for dynamic type resolution (required for SignalR)
+            TypelessContractlessStandardResolver.Instance
         );
         
         MessagePackOptions = MessagePackSerializerOptions.Standard
