@@ -22,6 +22,8 @@ using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using MessagePack;
+using MessagePack.Resolvers;
 
 namespace RedMist.Timing.UI;
 
@@ -30,6 +32,25 @@ public partial class App : Application
     private IHost? _host;
     private CancellationTokenSource? _cancellationTokenSource;
     private ILogger? _logger;
+
+    // Initialize MessagePack for AOT compatibility as early as possible
+    static App()
+    {
+        // Configure MessagePack for AOT compatibility (iOS)
+        var resolver = CompositeResolver.Create(
+            // Use built-in primitive resolvers
+            BuiltinResolver.Instance,
+            AttributeFormatterResolver.Instance,
+            // Then contractless standard resolver for types without attributes
+            ContractlessStandardResolver.Instance
+        );
+        
+        var options = MessagePackSerializerOptions.Standard
+            .WithResolver(resolver)
+            .WithSecurity(MessagePackSecurity.UntrustedData);
+            
+        MessagePackSerializer.DefaultOptions = options;
+    }
 
     public override void Initialize()
     {

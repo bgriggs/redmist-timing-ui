@@ -37,6 +37,9 @@ public class HubClient : HubClientBase
     private readonly IConfiguration configuration;
     private long sessionUpdateCount;
 
+    // Cached MessagePack options for AOT compatibility
+    private static readonly MessagePackSerializerOptions MessagePackOptions;
+
     static HubClient()
     {
         // Configure MessagePack for AOT compatibility (iOS)
@@ -49,11 +52,11 @@ public class HubClient : HubClientBase
             ContractlessStandardResolver.Instance
         );
         
-        var options = MessagePackSerializerOptions.Standard
+        MessagePackOptions = MessagePackSerializerOptions.Standard
             .WithResolver(resolver)
             .WithSecurity(MessagePackSecurity.UntrustedData);
             
-        MessagePackSerializer.DefaultOptions = options;
+        MessagePackSerializer.DefaultOptions = MessagePackOptions;
     }
 
     public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration) : base(loggerFactory, configuration)
@@ -90,8 +93,8 @@ public class HubClient : HubClientBase
         .WithAutomaticReconnect(new InfiniteRetryPolicy())
         .AddMessagePackProtocol(options =>
         {
-            // Configure MessagePack options for the SignalR protocol
-            options.SerializerOptions = MessagePackSerializer.DefaultOptions;
+            // Configure MessagePack options for the SignalR protocol with AOT-compatible resolver
+            options.SerializerOptions = MessagePackOptions;
         })
         .Build();
 
@@ -109,12 +112,40 @@ public class HubClient : HubClientBase
             {
                 if (subscribedEventId != null)
                 {
-                    _ = debouncer.ExecuteAsync(async () => await hub.InvokeAsync("SubscribeToEventV2", subscribedEventId));
+                    _ = debouncer.ExecuteAsync(async () => 
+                    {
+                        try
+                        {
+                            Logger.LogInformation("Invoking SubscribeToEventV2 for event {EventId}", subscribedEventId);
+                            await hub.InvokeAsync("SubscribeToEventV2", subscribedEventId.Value);
+                            Logger.LogInformation("Successfully invoked SubscribeToEventV2 for event {EventId}", subscribedEventId);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "Failed to invoke SubscribeToEventV2 for event {EventId}", subscribedEventId);
+                            throw;
+                        }
+                    });
                 }
                 else if (subscribedInCarDriverEventIdAndCar != null)
                 {
                     _ = debouncer.ExecuteAsync(async () =>
-                        await hub.InvokeAsync("SubscribeToInCarDriverEventV2", subscribedInCarDriverEventIdAndCar.Value.eventId, subscribedInCarDriverEventIdAndCar.Value.car));
+                    {
+                        try
+                        {
+                            Logger.LogInformation("Invoking SubscribeToInCarDriverEventV2 for event {EventId}, car {Car}", 
+                                subscribedInCarDriverEventIdAndCar.Value.eventId, subscribedInCarDriverEventIdAndCar.Value.car);
+                            await hub.InvokeAsync("SubscribeToInCarDriverEventV2", 
+                                subscribedInCarDriverEventIdAndCar.Value.eventId, 
+                                subscribedInCarDriverEventIdAndCar.Value.car);
+                            Logger.LogInformation("Successfully invoked SubscribeToInCarDriverEventV2");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "Failed to invoke SubscribeToInCarDriverEventV2");
+                            throw;
+                        }
+                    });
                 }
             }
         }
