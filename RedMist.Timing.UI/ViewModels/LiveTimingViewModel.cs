@@ -153,6 +153,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     [ObservableProperty]
     private string logMessages = string.Empty;
 
+    [ObservableProperty]
+    private bool showLogDisplay = false;
+
+    private int logoClickCount = 0;
+    private DateTime lastLogoClickTime = DateTime.MinValue;
+
 
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, InMemoryLogProvider? logProvider = null)
     {
@@ -414,6 +420,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             ResetEvent();
             _ = RefreshStatus();
         });
+
+        return;
     }
 
     private void ApplyEntries(List<EventEntry> entries, bool isDeltaUpdate = false)
@@ -751,6 +759,26 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url))
         {
             WeakReferenceMessenger.Default.Send(new LauncherEvent(EventModel.Broadcast.Url));
+        }
+    }
+
+    public void OnOrganizationLogoClicked()
+    {
+        var now = DateTime.Now;
+        // Reset counter if more than 2 seconds have passed since last click
+        if ((now - lastLogoClickTime).TotalSeconds > 2)
+        {
+            logoClickCount = 0;
+        }
+
+        logoClickCount++;
+        lastLogoClickTime = now;
+
+        if (logoClickCount >= 5)
+        {
+            ShowLogDisplay = !ShowLogDisplay;
+            logoClickCount = 0;
+            Logger.LogInformation("Log display toggled: {ShowLogDisplay}", ShowLogDisplay);
         }
     }
 

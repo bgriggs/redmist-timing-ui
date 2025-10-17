@@ -15,15 +15,11 @@ using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
-using RedMist.TimingCommon.Models;
 using System;
 using System.IO;
-using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using MessagePack;
-using MessagePack.Resolvers;
 
 namespace RedMist.Timing.UI;
 
@@ -33,32 +29,7 @@ public partial class App : Application
     private CancellationTokenSource? _cancellationTokenSource;
     private ILogger? _logger;
 
-    // Initialize MessagePack for AOT compatibility as early as possible
-    static App()
-    {
-        // Configure MessagePack for AOT compatibility (iOS)
-        // Use TypelessContractlessStandardResolver which supports dynamic type resolution
-        // This is critical for SignalR's InvokeAsync which uses non-generic serialization
-        var resolver = CompositeResolver.Create(
-            // Use built-in primitive resolvers
-            BuiltinResolver.Instance,
-            AttributeFormatterResolver.Instance,
-            // Use DynamicEnumAsStringResolver for enum support
-            DynamicEnumAsStringResolver.Instance,
-            // TypelessContractlessStandardResolver for dynamic type resolution (required for SignalR)
-            TypelessContractlessStandardResolver.Instance
-        );
-        
-        var options = MessagePackSerializerOptions.Standard
-            .WithResolver(resolver)
-            .WithSecurity(MessagePackSecurity.UntrustedData);
-            
-        MessagePackSerializer.DefaultOptions = options;
-        
-        // Force static constructor to run early
-        System.Diagnostics.Debug.WriteLine("MessagePack DefaultOptions initialized for AOT compatibility");
-    }
-
+    
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

@@ -324,7 +324,7 @@
 				<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
 			</StackPanel>-->
 
-			<Image Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
+			<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
 
 			<StackPanel Grid.Column="4" Orientation="Vertical">
 				<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
@@ -386,7 +386,9 @@
 		</Border>
 
 		<!--Log Display-->
-		<Border Grid.Row="5" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
+		<Border Grid.Row="5" BorderThickness="1" BorderBrush="Gray" Margin="3,0,3,3"
+		        Background="{DynamicResource TimingTableBackgroundBrush}"
+		        IsVisible="{Binding ShowLogDisplay}">
 			<Grid RowDefinitions="Auto,*">
 				<Grid ColumnDefinitions="*,Auto" Margin="5,3">
 					<TextBlock Text="Application Logs" Classes="tableheader"/>

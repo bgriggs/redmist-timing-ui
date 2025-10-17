@@ -1,6 +1,8 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.ViewModels;
 using System;
 
 namespace RedMist.Timing.UI.Views;
@@ -11,6 +13,24 @@ public partial class LiveTimingView : UserControl, IRecipient<CopyToClipboardReq
     {
         InitializeComponent();
         WeakReferenceMessenger.Default.Register(this);
+        Loaded += LiveTimingView_Loaded;
+    }
+
+    private void LiveTimingView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        // Find the organization logo image and add click handler
+        if (this.FindControl<Image>("OrganizationLogoImage") is Image logoImage)
+        {
+            logoImage.PointerPressed += LogoImage_PointerPressed;
+        }
+    }
+
+    private void LogoImage_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is LiveTimingViewModel viewModel)
+        {
+            viewModel.OnOrganizationLogoClicked();
+        }
     }
 
     public async void Receive(CopyToClipboardRequest message)
