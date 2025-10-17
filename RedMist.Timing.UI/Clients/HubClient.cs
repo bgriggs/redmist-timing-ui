@@ -15,12 +15,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using MessagePack;
-using MessagePack.Resolvers;
 
 namespace RedMist.Timing.UI.Clients;
 
@@ -37,29 +36,6 @@ public class HubClient : HubClientBase
     private readonly IConfiguration configuration;
     private long sessionUpdateCount;
 
-    // Cached MessagePack options for AOT compatibility
-    private static readonly MessagePackSerializerOptions MessagePackOptions;
-
-    static HubClient()
-    {
-        // Configure MessagePack for AOT compatibility
-        // Use TypelessContractlessStandardResolver which supports dynamic type resolution
-        var resolver = CompositeResolver.Create(
-            // Use built-in primitive resolvers
-            BuiltinResolver.Instance,
-            AttributeFormatterResolver.Instance,
-            // Use DynamicEnumAsStringResolver for enum support
-            DynamicEnumAsStringResolver.Instance,
-            // TypelessContractlessStandardResolver for dynamic type resolution (required for SignalR)
-            TypelessContractlessStandardResolver.Instance
-        );
-        
-        MessagePackOptions = MessagePackSerializerOptions.Standard
-            .WithResolver(resolver)
-            .WithSecurity(MessagePackSecurity.UntrustedData);
-            
-        MessagePackSerializer.DefaultOptions = MessagePackOptions;
-    }
 
     public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration) : base(loggerFactory, configuration)
     {
@@ -74,8 +50,8 @@ public class HubClient : HubClientBase
         string hubUrl = configuration["Hub:Url"] ?? throw new InvalidOperationException("Hub URL is not configured.");
         string authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
         string realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
-    
-        var hubConnection = new HubConnectionBuilder().WithUrl(hubUrl, delegate (HttpConnectionOptions options)
+
+        var builder = new HubConnectionBuilder().WithUrl(hubUrl, delegate (HttpConnectionOptions options)
         {
             options.AccessTokenProvider = async delegate
             {
@@ -92,13 +68,30 @@ public class HubClient : HubClientBase
                 }
             };
         })
-        .WithAutomaticReconnect(new InfiniteRetryPolicy())
-        .AddMessagePackProtocol(options =>
+        .WithAutomaticReconnect(new InfiniteRetryPolicy());
+
+        // Use JSON protocol on iOS due to MessagePack AOT limitations with SignalR parameter serialization
+        // MessagePack works fine for REST API responses but SignalR's InvokeAsync uses reflection-based
+        // serialization for parameters which fails on iOS
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Create("IOS")))
         {
-            // Configure MessagePack options for the SignalR protocol with AOT-compatible resolver
-            options.SerializerOptions = MessagePackOptions;
-        })
-        .Build();
+            Logger.LogInformation("Using JSON protocol for SignalR on iOS");
+            builder.AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = false
+                };
+            });
+        }
+        else
+        {
+            Logger.LogInformation("Using MessagePack protocol for SignalR");
+            builder.AddMessagePackProtocol();
+        }
+
+        var hubConnection = builder.Build();
 
         InitializeStateLogging(hubConnection);
         return hubConnection;
