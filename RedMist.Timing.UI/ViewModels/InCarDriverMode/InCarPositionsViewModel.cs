@@ -106,7 +106,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
     {
         try
         {
-            var payload = await eventClient.LoadInCarDriverModePayload(eventId, carNumber);
+            var payload = await eventClient.LoadInCarDriverModePayloadAsync(eventId, carNumber);
             if (payload == null)
             {
                 Message = "Empty payload.";

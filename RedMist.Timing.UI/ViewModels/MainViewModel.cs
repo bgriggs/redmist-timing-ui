@@ -17,7 +17,8 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public enum TabTypes { LiveTiming, Results, ControlLog, EventInformation }
 
-public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<SizeChangedNotification>
+public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, 
+    IRecipient<SizeChangedNotification>
 {
     public EventsListViewModel EventsListViewModel { get; }
     public LiveTimingViewModel LiveTimingViewModel { get; }

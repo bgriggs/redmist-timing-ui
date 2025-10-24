@@ -22,7 +22,6 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -801,7 +800,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     private void OnLogAdded(object? sender, LogEntry logEntry)
     {
-        Dispatcher.UIThread.InvokeOnUIThread(() => RefreshLogMessages(), DispatcherPriority.Background);
+        Dispatcher.UIThread.InvokeOnUIThread(RefreshLogMessages, DispatcherPriority.Background);
     }
 
     private void RefreshLogMessages()

@@ -21,7 +21,6 @@ public class ViewLocator : IDataTemplate
     public ViewLocator()
     {
         RegisterViewFactory<MainViewModel, MainView>();
-        //RegisterViewFactory<EventsListViewModel, EventsListView>();
     }
 
     public Control Build(object? data)

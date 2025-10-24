@@ -1,6 +1,7 @@
 ﻿using BigMission.Shared.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using RedMist.TimingCommon;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarDriverMode;
 using RestSharp;
@@ -131,7 +132,7 @@ public class EventClient
         return await restClient.GetAsync<CarControlLogs?>(request);
     }
 
-    public virtual async Task<InCarPayload?> LoadInCarDriverModePayload(int eventId, string car)
+    public virtual async Task<InCarPayload?> LoadInCarDriverModePayloadAsync(int eventId, string car)
     {
         var request = new RestRequest("LoadInCarPayload", Method.Get);
         request.AddQueryParameter("eventId", eventId);
@@ -145,5 +146,11 @@ public class EventClient
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
         return await restClient.GetAsync<List<FlagDuration>>(request) ?? [];
+    }
+
+    public virtual async Task<UIVersionInfo?> LoadUIVersionInfoAsync()
+    {
+        var request = new RestRequest("GetUIVersionInfo", Method.Get);
+        return await restClient.GetAsync<UIVersionInfo>(request);
     }
 }
