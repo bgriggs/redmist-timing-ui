@@ -75,6 +75,17 @@
 					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
 
+					<!--Update Notifications-->
+					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#FFF4CE</SolidColorBrush>
+					<SolidColorBrush x:Key="OptionalUpdateBorderBrush">#F0AD4E</SolidColorBrush>
+					<SolidColorBrush x:Key="OptionalUpdateButtonBackgroundBrush">#F0AD4E</SolidColorBrush>
+					<SolidColorBrush x:Key="OptionalUpdateButtonForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateOverlayBackgroundBrush">#CC000000</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateDialogBackgroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateDialogBorderBrush">#DC3545</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateButtonBackgroundBrush">#0078D4</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateButtonForegroundBrush">White</SolidColorBrush>
+
 					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-light.png</x:String>
 				</ResourceDictionary>
 				<ResourceDictionary x:Key="Dark">
@@ -127,6 +138,17 @@
 					<SolidColorBrush x:Key="carRowLossBackgroundBrush">Red</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
+
+					<!--Update Notifications-->
+					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#3d3418</SolidColorBrush>
+					<SolidColorBrush x:Key="OptionalUpdateBorderBrush">#F0AD4E</SolidColorBrush>
+					<SolidColorBrush x:Key="OptionalUpdateButtonBackgroundBrush">#F0AD4E</SolidColorBrush>
+					<SolidColorBrush x:Key="OptionalUpdateButtonForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateOverlayBackgroundBrush">#CC000000</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateDialogBackgroundBrush">#2b2b2b</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateDialogBorderBrush">#DC3545</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateButtonBackgroundBrush">#0078D4</SolidColorBrush>
+					<SolidColorBrush x:Key="MandatoryUpdateButtonForegroundBrush">White</SolidColorBrush>
 
 					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-dark.png</x:String>
 				</ResourceDictionary>

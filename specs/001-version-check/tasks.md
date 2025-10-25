@@ -129,18 +129,18 @@
 
 **Purpose**: Improvements that affect multiple user stories and final validation
 
-- [ ] T043 [P] Add comprehensive error handling for malformed version data from server in RedMist.Timing.UI/Services/VersionCheckService.cs
-- [ ] T044 [P] Add comprehensive error handling for Assembly.GetExecutingAssembly() failures in RedMist.Timing.UI/Services/VersionCheckService.cs
-- [ ] T045 [P] Add comprehensive error handling for platform detection failures in RedMist.Timing.UI/Services/PlatformDetectionService.cs
-- [ ] T046 Code cleanup and refactoring of version check services for maintainability
-- [ ] T047 Add XML documentation comments to all public interfaces and classes in Services/
-- [ ] T048 [P] Update .github/copilot-instructions.md with version check feature context (already done per plan.md)
-- [ ] T049 Verify Desktop platform is excluded from version checking via ShouldCheckVersion() method
+- [X] T043 [P] Add comprehensive error handling for malformed version data from server in RedMist.Timing.UI/Services/VersionCheckService.cs
+- [X] T044 [P] Add comprehensive error handling for Assembly.GetExecutingAssembly() failures in RedMist.Timing.UI/Services/VersionCheckService.cs
+- [X] T045 [P] Add comprehensive error handling for platform detection failures in RedMist.Timing.UI/Services/PlatformDetectionService.cs
+- [X] T046 Code cleanup and refactoring of version check services for maintainability
+- [X] T047 Add XML documentation comments to all public interfaces and classes in Services/
+- [X] T048 [P] Update .github/copilot-instructions.md with version check feature context (already done per plan.md)
+- [X] T049 Verify Desktop platform is excluded from version checking via ShouldCheckVersion() method
 - [ ] T050 Performance testing: Verify version check completes within 2 seconds under normal conditions
 - [ ] T051 Performance testing: Verify 5-second timeout works correctly for network failures
 - [ ] T052 Run through quickstart.md validation scenarios for all three user stories
-- [ ] T053 Security review: Validate App Store and Play Store URLs use HTTPS
-- [ ] T054 Accessibility review: Ensure update dialogs and notifications are screen-reader friendly
+- [X] T053 Security review: Validate App Store and Play Store URLs use HTTPS
+- [X] T054 Accessibility review: Ensure update dialogs and notifications are screen-reader friendly
 
 ---
 

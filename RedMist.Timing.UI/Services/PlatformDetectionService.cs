@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 
 namespace RedMist.Timing.UI.Services;
@@ -26,32 +27,71 @@ public interface IPlatformDetectionService
 /// </summary>
 public class PlatformDetectionService : IPlatformDetectionService
 {
+    private readonly ILogger<PlatformDetectionService> _logger;
+    
+    public PlatformDetectionService(ILogger<PlatformDetectionService> logger)
+    {
+        _logger = logger;
+    }
+    
     public AppPlatform GetCurrentPlatform()
     {
-        // Use conditional compilation symbols provided by .NET SDK based on target framework
-        #if ANDROID
-            return AppPlatform.Android;
-        #elif IOS
-            return AppPlatform.iOS;
-        #elif BROWSER
-            return AppPlatform.Browser;
-        #else
-            // Fallback: Use System.OperatingSystem for runtime detection
-            if (OperatingSystem.IsAndroid())
+        try
+        {
+            // T045: Use conditional compilation symbols provided by .NET SDK based on target framework
+            #if ANDROID
                 return AppPlatform.Android;
-            if (OperatingSystem.IsIOS())
+            #elif IOS
                 return AppPlatform.iOS;
-            if (OperatingSystem.IsBrowser())
+            #elif BROWSER
                 return AppPlatform.Browser;
-            
+            #else
+                // Fallback: Use System.OperatingSystem for runtime detection
+                try
+                {
+                    if (OperatingSystem.IsAndroid())
+                        return AppPlatform.Android;
+                    if (OperatingSystem.IsIOS())
+                        return AppPlatform.iOS;
+                    if (OperatingSystem.IsBrowser())
+                        return AppPlatform.Browser;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error detecting platform using System.OperatingSystem, defaulting to Desktop");
+                }
+                
+                return AppPlatform.Desktop;
+            #endif
+        }
+        catch (Exception ex)
+        {
+            // T045: Comprehensive error handling for platform detection failures
+            _logger.LogError(ex, "Unexpected error during platform detection, defaulting to Desktop");
             return AppPlatform.Desktop;
-        #endif
+        }
     }
     
     public bool ShouldCheckVersion()
     {
-        // Desktop is development-only, exclude from version checking
-        var platform = GetCurrentPlatform();
-        return platform != AppPlatform.Desktop;
+        try
+        {
+            // Desktop is development-only, exclude from version checking
+            var platform = GetCurrentPlatform();
+            var shouldCheck = platform != AppPlatform.Desktop;
+            
+            if (!shouldCheck)
+            {
+                _logger.LogInformation("Platform detection: {Platform} - version checking disabled", platform);
+            }
+            
+            return shouldCheck;
+        }
+        catch (Exception ex)
+        {
+            // T045: Error handling - if platform detection fails, don't check version (safe default)
+            _logger.LogError(ex, "Error determining if version check should run, defaulting to false (skip version check)");
+            return false;
+        }
     }
 }

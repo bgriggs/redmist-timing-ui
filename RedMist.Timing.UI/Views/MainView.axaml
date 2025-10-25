@@ -25,7 +25,7 @@
 		<ContentControl IsVisible="{Binding IsEventsListVisible}">
 			<v:EventsListView Name="eventsPage" DataContext="{Binding EventsListViewModel}"/>
 		</ContentControl>
-		
+
 		<!--Timing tabs-->
 		<TabControl Padding="0" TabStripPlacement="Bottom" IsVisible="{Binding IsTimingTabStripVisible}">
 			<TabItem IsVisible="{Binding IsLiveTimingTabVisible}" IsSelected="{Binding IsLiveTimingTabSelected}">
@@ -78,16 +78,16 @@
 				<v:FlagsView DataContext="{Binding FlagsViewModel}"/>
 			</TabItem>
 		</TabControl>
-		
+
 		<!--Driver Mode-->
 		<ContentControl IsVisible="{Binding IsDriverModeVisible}">
 			<vd:InCarSettings DataContext="{Binding InCarSettingsViewModel}" />
 		</ContentControl>
 
-		<!-- Optional Update Notification (User Story 2) - Dismissible banner at top -->
+		<!-- Optional Update Notification - Dismissible banner at top -->
 		<Border IsVisible="{Binding IsUpdateNotificationVisible}"
-		        Background="#FFF4CE"
-		        BorderBrush="#F0AD4E"
+		        Background="{DynamicResource OptionalUpdateBackgroundBrush}"
+		        BorderBrush="{DynamicResource OptionalUpdateBorderBrush}"
 		        BorderThickness="1"
 		        CornerRadius="4"
 		        Padding="15"
@@ -103,14 +103,14 @@
 				</Grid.ColumnDefinitions>
 
 				<!-- Icon -->
-				<TextBlock Grid.Column="0" 
-				           Text="ℹ️" 
+				<TextBlock Grid.Column="0"
+				           Text="ℹ️"
 				           FontSize="20"
 				           VerticalAlignment="Center"
 				           Margin="0,0,10,0" />
 
 				<!-- Message -->
-				<TextBlock Grid.Column="1" 
+				<TextBlock Grid.Column="1"
 				           Text="{Binding OptionalUpdateNotification.Message}"
 				           TextWrapping="Wrap"
 				           VerticalAlignment="Center" />
@@ -118,14 +118,14 @@
 				<!-- Update Button -->
 				<Button Grid.Column="2"
 				        Content="Update"
-				        Background="#F0AD4E"
-				        Foreground="White"
+				        Background="{DynamicResource OptionalUpdateButtonBackgroundBrush}"
+				        Foreground="{DynamicResource OptionalUpdateButtonForegroundBrush}"
 				        BorderThickness="0"
 				        Padding="12,6"
 				        Margin="0,0,10,0"
 				        VerticalAlignment="Center"
 				        Command="{Binding LaunchOptionalUpdateCommand}"
-				        IsVisible="{Binding OptionalUpdateNotification.ActionUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+				        IsVisible="{Binding OptionalUpdateNotification.ActionUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
 				<!-- Close Button -->
 				<Button Grid.Column="3"
@@ -140,13 +140,13 @@
 			</Grid>
 		</Border>
 
-		<!-- Mandatory Update Overlay (User Story 1) - Full screen blocking overlay -->
+		<!-- Mandatory Update Overlay - Full screen blocking overlay -->
 		<Border IsVisible="{Binding IsMandatoryUpdateVisible}"
-		        Background="#CC000000"
+		        Background="{DynamicResource MandatoryUpdateOverlayBackgroundBrush}"
 		        HorizontalAlignment="Stretch"
 		        VerticalAlignment="Stretch">
-			<Border Background="White"
-			        BorderBrush="#DC3545"
+			<Border Background="{DynamicResource MandatoryUpdateDialogBackgroundBrush}"
+			        BorderBrush="{DynamicResource MandatoryUpdateDialogBorderBrush}"
 			        BorderThickness="2"
 			        CornerRadius="8"
 			        Padding="30"
@@ -167,7 +167,7 @@
 						           FontSize="18"
 						           FontWeight="Bold"
 						           HorizontalAlignment="Center"
-						           TextWrapping="Wrap" />
+						           TextWrapping="Wrap"/>
 					</StackPanel>
 
 					<!-- Message Content -->
@@ -175,18 +175,18 @@
 						<TextBlock Text="{Binding MandatoryUpdateResult.Message}"
 						           TextWrapping="Wrap"
 						           TextAlignment="Left"
-						           VerticalAlignment="Top" />
+						           VerticalAlignment="Top"/>
 					</ScrollViewer>
 
 					<!-- Action Button -->
-					<StackPanel Grid.Row="2" 
-					            Orientation="Horizontal" 
+					<StackPanel Grid.Row="2"
+					            Orientation="Horizontal"
 					            HorizontalAlignment="Center">
 						<Button Content="Update Now"
-						        Background="#0078D4"
-						        Foreground="White"
+						        Background="{DynamicResource MandatoryUpdateButtonBackgroundBrush}"
+						        Foreground="{DynamicResource MandatoryUpdateButtonForegroundBrush}"
 						        Padding="16,8"
-						        Command="{Binding LaunchMandatoryUpdateCommand}" />
+						        Command="{Binding LaunchMandatoryUpdateCommand}"/>
 					</StackPanel>
 				</Grid>
 			</Border>

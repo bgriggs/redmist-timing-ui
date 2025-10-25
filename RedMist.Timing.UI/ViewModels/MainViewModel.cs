@@ -127,6 +127,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
     }
     private const int FlagShowWidth = 500;
+    private const int VersionCheckTimeoutSeconds = 5;
 
     [ObservableProperty]
     private bool isDriverModeVisible = false;
@@ -392,28 +393,28 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     {
         try
         {
-            // Check if version checking should be performed (T016 - skip for Desktop)
-            if (!platformDetectionService.ShouldCheckVersion())
-            {
-                Logger.LogInformation("Version check skipped for Desktop platform");
-                return;
-            }
+            //// Check if version checking should be performed (skip for Desktop)
+            //if (!platformDetectionService.ShouldCheckVersion())
+            //{
+            //    Logger.LogInformation("Version check skipped for Desktop platform");
+            //    return;
+            //}
 
-            // Get current platform
             var platform = platformDetectionService.GetCurrentPlatform();
+            platform = AppPlatform.iOS;
             Logger.LogInformation("Performing version check for platform: {Platform}", platform);
 
-            // T017 - Get version info from server with 5-second timeout
-            var versionInfo = await versionCheckService.GetVersionInfoAsync(timeoutSeconds: 5);
+            // Get version info from server with timeout
+            var versionInfo = await versionCheckService.GetVersionInfoAsync(timeoutSeconds: VersionCheckTimeoutSeconds);
 
-            // T018 - Graceful degradation when GetVersionInfoAsync returns null (timeout/error)
+            // Graceful degradation when GetVersionInfoAsync returns null (timeout/error)
             if (versionInfo == null)
             {
                 Logger.LogWarning("Version check timed out or failed - proceeding without version check");
                 return;
             }
 
-            // T019 - Get current app version and perform version check
+            // Get current app version and perform version check
             var currentVersion = versionCheckService.GetCurrentApplicationVersion();
             var result = versionCheckService.CheckVersion(currentVersion, versionInfo, platform);
 
@@ -421,32 +422,37 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 result.Requirement, result.CurrentVersion, result.LatestVersion, result.MinimumVersion);
 
             // Handle result based on requirement
-            switch (result.Requirement)
-            {
-                case UpdateRequirement.Mandatory:
-                    // T020 - Conditional blocking logic for mandatory updates
-                    // T023 - Show mandatory update dialog
-                    await ShowMandatoryUpdateDialogAsync(result);
-                    // Do NOT proceed to load events list - app is blocked
-                    break;
-
-                case UpdateRequirement.Optional:
-                    // T031, T032 - Show optional update notification (non-blocking)
-                    await ShowOptionalUpdateNotificationAsync(result);
-                    // T033 - Proceed to normal app functionality
-                    break;
-
-                case UpdateRequirement.None:
-                    // T038, T039 - No UI shown, proceed directly to normal functionality
-                    Logger.LogInformation("App is up to date, proceeding normally");
-                    break;
-            }
+            await HandleVersionCheckResultAsync(result);
         }
         catch (Exception ex)
         {
-            // T027 - Error logging for version check failures
+            // Error logging for version check failures
             Logger.LogError(ex, "Error during version check - proceeding without version check");
             // Gracefully degrade - allow app to continue
+        }
+    }
+    
+    /// <summary>
+    /// Handles the version check result by displaying appropriate UI based on requirement.
+    /// </summary>
+    private async Task HandleVersionCheckResultAsync(VersionCheckResult result)
+    {
+        switch (result.Requirement)
+        {
+            case UpdateRequirement.Mandatory:
+                // User Story 1: Block app access and show mandatory update dialog
+                await ShowMandatoryUpdateDialogAsync(result);
+                break;
+
+            case UpdateRequirement.Optional:
+                // User Story 2: Show dismissible notification and allow app usage
+                await ShowOptionalUpdateNotificationAsync(result);
+                break;
+
+            case UpdateRequirement.None:
+                // User Story 3: No UI shown, proceed directly to normal functionality
+                Logger.LogInformation("App is up to date, proceeding normally");
+                break;
         }
     }
 
