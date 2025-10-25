@@ -2,6 +2,7 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly ILoggerFactory loggerFactory;
     private readonly ViewSizeService viewSizeService;
     private readonly EventContext eventContext;
+    private readonly IPlatformDetectionService platformDetectionService;
+    private readonly IVersionCheckService versionCheckService;
+    private readonly ILogger Logger;
     [ObservableProperty]
     private bool isContentVisible = false;
     [ObservableProperty]
@@ -127,9 +131,22 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private bool isDriverModeVisible = false;
 
+    [ObservableProperty]
+    private VersionCheckResult? optionalUpdateNotification;
+
+    [ObservableProperty]
+    private bool isUpdateNotificationVisible = false;
+
+    [ObservableProperty]
+    private VersionCheckResult? mandatoryUpdateResult;
+
+    [ObservableProperty]
+    private bool isMandatoryUpdateVisible = false;
+
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
-        EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext)
+        EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext,
+        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -138,6 +155,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.loggerFactory = loggerFactory;
         this.viewSizeService = viewSizeService;
         this.eventContext = eventContext;
+        this.platformDetectionService = platformDetectionService;
+        this.versionCheckService = versionCheckService;
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         if (Application.Current?.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
@@ -155,6 +175,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     public async Task Initialize()
     {
+        // Perform version check before loading events list (User Stories 1, 2, 3)
+        await PerformVersionCheckAsync();
+        
         if (OperatingSystem.IsBrowser())
         {
             await BrowserInterop.InitializeJsModuleAsync();
@@ -359,6 +382,153 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             return true;
         }
     }
+
+    #region Version Checking
+
+    /// <summary>
+    /// Performs version check before loading events list. Implements User Stories 1, 2, and 3.
+    /// </summary>
+    private async Task PerformVersionCheckAsync()
+    {
+        try
+        {
+            // Check if version checking should be performed (T016 - skip for Desktop)
+            if (!platformDetectionService.ShouldCheckVersion())
+            {
+                Logger.LogInformation("Version check skipped for Desktop platform");
+                return;
+            }
+
+            // Get current platform
+            var platform = platformDetectionService.GetCurrentPlatform();
+            Logger.LogInformation("Performing version check for platform: {Platform}", platform);
+
+            // T017 - Get version info from server with 5-second timeout
+            var versionInfo = await versionCheckService.GetVersionInfoAsync(timeoutSeconds: 5);
+
+            // T018 - Graceful degradation when GetVersionInfoAsync returns null (timeout/error)
+            if (versionInfo == null)
+            {
+                Logger.LogWarning("Version check timed out or failed - proceeding without version check");
+                return;
+            }
+
+            // T019 - Get current app version and perform version check
+            var currentVersion = versionCheckService.GetCurrentApplicationVersion();
+            var result = versionCheckService.CheckVersion(currentVersion, versionInfo, platform);
+
+            Logger.LogInformation("Version check result: {Requirement}, Current: {Current}, Latest: {Latest}, Minimum: {Minimum}",
+                result.Requirement, result.CurrentVersion, result.LatestVersion, result.MinimumVersion);
+
+            // Handle result based on requirement
+            switch (result.Requirement)
+            {
+                case UpdateRequirement.Mandatory:
+                    // T020 - Conditional blocking logic for mandatory updates
+                    // T023 - Show mandatory update dialog
+                    await ShowMandatoryUpdateDialogAsync(result);
+                    // Do NOT proceed to load events list - app is blocked
+                    break;
+
+                case UpdateRequirement.Optional:
+                    // T031, T032 - Show optional update notification (non-blocking)
+                    await ShowOptionalUpdateNotificationAsync(result);
+                    // T033 - Proceed to normal app functionality
+                    break;
+
+                case UpdateRequirement.None:
+                    // T038, T039 - No UI shown, proceed directly to normal functionality
+                    Logger.LogInformation("App is up to date, proceeding normally");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            // T027 - Error logging for version check failures
+            Logger.LogError(ex, "Error during version check - proceeding without version check");
+            // Gracefully degrade - allow app to continue
+        }
+    }
+
+    /// <summary>
+    /// Shows a mandatory update dialog that blocks the user from proceeding. (User Story 1)
+    /// </summary>
+    private async Task ShowMandatoryUpdateDialogAsync(VersionCheckResult result)
+    {
+        Logger.LogWarning("Mandatory update required - blocking app access");
+        
+        // T021, T022, T023 - Set properties that MainView will bind to for overlay display
+        MandatoryUpdateResult = result;
+        IsMandatoryUpdateVisible = true;
+        
+        // T028 - Dialog cannot be dismissed until user takes action
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Shows an optional update notification that can be dismissed. (User Story 2)
+    /// </summary>
+    private async Task ShowOptionalUpdateNotificationAsync(VersionCheckResult result)
+    {
+        Logger.LogInformation("Optional update available - showing dismissible notification");
+        
+        // T029, T030, T031 - Show non-modal notification for optional updates
+        OptionalUpdateNotification = result;
+        IsUpdateNotificationVisible = true;
+        
+        // T034, T035 - Notification is dismissible and styled differently
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Dismisses the optional update notification
+    /// </summary>
+    [RelayCommand]
+    public void DismissUpdateNotification()
+    {
+        IsUpdateNotificationVisible = false;
+        OptionalUpdateNotification = null;
+    }
+
+    /// <summary>
+    /// Launches the update URL for optional updates
+    /// </summary>
+    [RelayCommand]
+    public void LaunchOptionalUpdate()
+    {
+        if (OptionalUpdateNotification?.ActionUrl != null)
+        {
+            try
+            {
+                WeakReferenceMessenger.Default.Send(new LauncherEvent(OptionalUpdateNotification.ActionUrl));
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error launching update URL");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Launches the update URL for mandatory updates
+    /// </summary>
+    [RelayCommand]
+    public void LaunchMandatoryUpdate()
+    {
+        if (MandatoryUpdateResult?.ActionUrl != null)
+        {
+            try
+            {
+                WeakReferenceMessenger.Default.Send(new LauncherEvent(MandatoryUpdateResult.ActionUrl));
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error launching mandatory update URL");
+            }
+        }
+    }
+
+    #endregion
 
     /// <summary>
     /// Handles notifications related to size changes.

@@ -77,6 +77,12 @@ public partial class App : Application
         loggerFactory.AddProvider(inMemoryLogProvider);
 
         ConfigureServices(services);
+        
+        // Register version check services
+        services.AddSingleton<IPlatformDetectionService, PlatformDetectionService>();
+        services.AddSingleton<IUpdateMessageService, UpdateMessageService>();
+        services.AddSingleton<IVersionCheckService, VersionCheckService>();
+        
         ConfigureViewModels(services);
         //ConfigureViews(services);
 

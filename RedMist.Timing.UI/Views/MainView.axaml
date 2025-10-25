@@ -83,5 +83,113 @@
 		<ContentControl IsVisible="{Binding IsDriverModeVisible}">
 			<vd:InCarSettings DataContext="{Binding InCarSettingsViewModel}" />
 		</ContentControl>
+
+		<!-- Optional Update Notification (User Story 2) - Dismissible banner at top -->
+		<Border IsVisible="{Binding IsUpdateNotificationVisible}"
+		        Background="#FFF4CE"
+		        BorderBrush="#F0AD4E"
+		        BorderThickness="1"
+		        CornerRadius="4"
+		        Padding="15"
+		        Margin="10,10,10,0"
+		        VerticalAlignment="Top"
+		        HorizontalAlignment="Stretch">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+
+				<!-- Icon -->
+				<TextBlock Grid.Column="0" 
+				           Text="ℹ️" 
+				           FontSize="20"
+				           VerticalAlignment="Center"
+				           Margin="0,0,10,0" />
+
+				<!-- Message -->
+				<TextBlock Grid.Column="1" 
+				           Text="{Binding OptionalUpdateNotification.Message}"
+				           TextWrapping="Wrap"
+				           VerticalAlignment="Center" />
+
+				<!-- Update Button -->
+				<Button Grid.Column="2"
+				        Content="Update"
+				        Background="#F0AD4E"
+				        Foreground="White"
+				        BorderThickness="0"
+				        Padding="12,6"
+				        Margin="0,0,10,0"
+				        VerticalAlignment="Center"
+				        Command="{Binding LaunchOptionalUpdateCommand}"
+				        IsVisible="{Binding OptionalUpdateNotification.ActionUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+				<!-- Close Button -->
+				<Button Grid.Column="3"
+				        Content="✕"
+				        FontSize="16"
+				        FontWeight="Bold"
+				        Background="Transparent"
+				        BorderThickness="0"
+				        Padding="8,4"
+				        VerticalAlignment="Center"
+				        Command="{Binding DismissUpdateNotificationCommand}" />
+			</Grid>
+		</Border>
+
+		<!-- Mandatory Update Overlay (User Story 1) - Full screen blocking overlay -->
+		<Border IsVisible="{Binding IsMandatoryUpdateVisible}"
+		        Background="#CC000000"
+		        HorizontalAlignment="Stretch"
+		        VerticalAlignment="Stretch">
+			<Border Background="White"
+			        BorderBrush="#DC3545"
+			        BorderThickness="2"
+			        CornerRadius="8"
+			        Padding="30"
+			        MaxWidth="400"
+			        MaxHeight="300"
+			        HorizontalAlignment="Center"
+			        VerticalAlignment="Center">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="*" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+
+					<!-- Header -->
+					<StackPanel Grid.Row="0" Margin="0,0,0,20">
+						<TextBlock Text="⚠️ Update Required"
+						           FontSize="18"
+						           FontWeight="Bold"
+						           HorizontalAlignment="Center"
+						           TextWrapping="Wrap" />
+					</StackPanel>
+
+					<!-- Message Content -->
+					<ScrollViewer Grid.Row="1" Margin="0,0,0,20">
+						<TextBlock Text="{Binding MandatoryUpdateResult.Message}"
+						           TextWrapping="Wrap"
+						           TextAlignment="Left"
+						           VerticalAlignment="Top" />
+					</ScrollViewer>
+
+					<!-- Action Button -->
+					<StackPanel Grid.Row="2" 
+					            Orientation="Horizontal" 
+					            HorizontalAlignment="Center">
+						<Button Content="Update Now"
+						        Background="#0078D4"
+						        Foreground="White"
+						        Padding="16,8"
+						        Command="{Binding LaunchMandatoryUpdateCommand}" />
+					</StackPanel>
+				</Grid>
+			</Border>
+		</Border>
 	</Grid>
 </UserControl>
