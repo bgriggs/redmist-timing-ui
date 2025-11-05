@@ -301,7 +301,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// <param name="message"></param>
     public void Receive(InCarVideoMetadataNotification message)
     {
-        Dispatcher.UIThread.InvokeOnUIThread(() => ProcessInCarVideoUpdate(message.Value), DispatcherPriority.Background);
+        Dispatcher.UIThread.InvokeOnUIThread(async () => await ProcessInCarVideoUpdateAsync(message.Value), DispatcherPriority.Background);
     }
 
     /// <summary>
@@ -665,7 +665,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     #endregion
 
-    private void ProcessInCarVideoUpdate(List<VideoMetadata> videoMetadata)
+    private async Task ProcessInCarVideoUpdateAsync(List<VideoMetadata> videoMetadata)
     {
         try
         {
@@ -674,7 +674,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             {
                 if (car.LastCarPosition == null)
                 {
-                    car.UpdateCarStream(null);
+                    await car.UpdateCarStreamAsync(null);
                     continue;
                 }
 
@@ -691,7 +691,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                     vm = videoMetadata.FirstOrDefault(vm => string.Compare(vm.CarNumber, car.Number, true, CultureInfo.InvariantCulture) == 0);
                 }
 
-                car.UpdateCarStream(vm);
+                await car.UpdateCarStreamAsync(vm);
             }
         }
         catch (Exception ex)

@@ -160,7 +160,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         }));
         //carCache.Lookup("222").Value.HasDriverName = true;
         //carCache.Lookup("222").Value.DriverName = "John Doe";
-        carCache.Lookup("222").Value.UpdateCarStream(new VideoMetadata 
+        carCache.Lookup("222").Value.UpdateCarStreamAsync(new VideoMetadata 
         { 
             CarNumber = "222",
             DriverName = "John Doe",

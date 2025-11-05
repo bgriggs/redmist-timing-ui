@@ -16,6 +16,7 @@ using RedMist.TimingCommon.Models.Mappers;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -595,7 +596,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         });
     }
 
-    public void UpdateCarStream(VideoMetadata? videoMetadata)
+    public async Task UpdateCarStreamAsync(VideoMetadata? videoMetadata)
     {
         if (videoMetadata == null || !videoMetadata.IsLive || videoMetadata.Destinations.Count == 0)
         {
@@ -612,6 +613,10 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             IsCarStreaming = true;
             CarStreamImage = GetCarSourceImage(videoMetadata.SystemType);
             CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type == VideoDestinationType.DirectSrt)?.Url;
+            var isValid = await CheckUrlSuccessAsync(CarStreamDestinationUrl);
+            if (!isValid)
+                CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type != VideoDestinationType.DirectSrt)?.Url;
+
             CarStreamDestinationUrl ??= videoMetadata.Destinations.FirstOrDefault()?.Url;
             var driver = videoMetadata.DriverName?.Trim() ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(driver))
@@ -648,6 +653,23 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
 
         return new Bitmap(AssetLoader.Open(new Uri("avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png")));
+    }
+
+    private static async Task<bool> CheckUrlSuccessAsync(string? url)
+    {
+        if (string.IsNullOrEmpty(url))
+            return false;
+
+        using HttpClient client = new();
+        try
+        {
+            var response = await client.GetAsync(url);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public void LaunchInCarVideo()
