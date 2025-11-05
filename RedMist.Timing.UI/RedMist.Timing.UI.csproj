@@ -54,8 +54,6 @@
 			<IncludeAssets>none</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="CommunityToolkit.Mvvm" />
-		<PackageReference Include="ActiproSoftware.Controls.Avalonia" />
-		<PackageReference Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" />
 		<PackageReference Include="CommunityToolkit.Labs.Extensions.DependencyInjection" />
 		<PackageReference Include="DynamicData" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
