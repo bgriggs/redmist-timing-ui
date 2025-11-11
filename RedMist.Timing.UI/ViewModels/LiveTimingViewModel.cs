@@ -478,7 +478,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 // Update the car data
                 carVm.Value.ApplyPatch(carUpdate);
 
-                if (!bestLapTimeChanged && CurrentSortMode == SortMode.Fastest && lastBestLapTime != carVm.Value.BestTimeMs)
+                if (!bestLapTimeChanged && CurrentSortMode == SortMode.Fastest && lastBestLapTime != carVm.Value?.BestTimeMs)
                 {
                     bestLapTimeChanged = true;
                 }

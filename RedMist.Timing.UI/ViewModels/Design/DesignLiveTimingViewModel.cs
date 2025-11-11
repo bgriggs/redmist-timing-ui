@@ -167,7 +167,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsLive = true,
             SystemType = VideoSystemType.Sentinel,
             Destinations = [new() { Url = "https://example.com" }]
-        });
+        }).Wait();
         carCache.Lookup("222").Value?.CarDetailsViewModel?.ControlLog.Add(new ControlLogEntryViewModel(
             new ControlLogEntry
             {

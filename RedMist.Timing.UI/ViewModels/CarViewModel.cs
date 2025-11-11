@@ -4,12 +4,14 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using BigMission.Avalonia.Utilities.Extensions;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
+using RedMist.TimingCommon.Extensions;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
@@ -512,11 +514,13 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         {
             CarPositionMapper.ApplyPatch(p, LastCarPosition);
 
-            // Make deep copy to pass along
-            var dc = new CarPosition();
-            var fp = CarPositionMapper.CreatePatch(dc, LastCarPosition);
-            CarPositionMapper.ApplyPatch(fp, dc);
-            CarDetailsViewModel?.UpdateLaps([dc]);
+            // Check that the lap has changed to avoid updating the previous lap data since lap number change
+            // and times are not guaranteed to be in the same patch
+            if (prevLap != LastCarPosition.LastLapCompleted)
+            {
+                var dc = LastCarPosition.DeepCopy();
+                CarDetailsViewModel?.UpdateLaps([dc]);
+            }
         }
         else
         {
@@ -591,7 +595,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         _ = viewSizeDebouncer.ExecuteAsync(() =>
         {
-            Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(Name)), DispatcherPriority.Normal);
+            Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(Name)), DispatcherPriority.Background);
             return Task.CompletedTask;
         });
     }
@@ -640,7 +644,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
-    private static IImage GetCarSourceImage(VideoSystemType type)
+    private static Bitmap GetCarSourceImage(VideoSystemType type)
     {
         if (type == VideoSystemType.Sentinel)
         {
