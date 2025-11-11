@@ -14,8 +14,8 @@ public class DesignEventClient : EventClient
 
     public override Task<List<EventListSummary>> LoadRecentEventsAsync()
     {
-        var e1 = new EventListSummary { Id = 1, EventName = "World Racing League - Eagles Canyon", EventDate = "2/2/2025" };
-        var e2 = new EventListSummary { Id = 2, EventName = "World Racing League - Barber", EventDate = "2/2/2025" };
+        var e1 = new EventListSummary { Id = 1, EventName = "World Racing League - Eagles Canyon", EventDate = "2025-02-02" };
+        var e2 = new EventListSummary { Id = 2, EventName = "World Racing League - Barber", EventDate = "2025-02-02" };
         return Task.FromResult<List<EventListSummary>>([e1, e2]);
     }
 }

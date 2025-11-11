@@ -26,11 +26,11 @@
 
 		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="2" TextWrapping="Wrap" FontSize="9"/>
-		<ScrollViewer IsVisible="{Binding !IsLoading}" Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+		<ScrollViewer IsVisible="{Binding !IsLoading}" Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
 			<ItemsControl ItemsSource="{Binding Events}">
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<Button Background="{DynamicResource EventRowBackgroundBrush}" Height="63" CornerRadius="0" BorderThickness="0,0,0,2"
+						<Button Background="{DynamicResource EventRowBackgroundBrush}" MinHeight="63" CornerRadius="0" BorderThickness="0,0,0,2"
 								BorderBrush="{DynamicResource boldItemBorder}" HorizontalAlignment="Stretch" Padding="4,1,3,4"
 								Command="{Binding SelectEvent}" CommandParameter="{Binding .}">
 							<Grid ColumnDefinitions="Auto,*,Auto">
@@ -38,7 +38,7 @@
 
 								<!--Event Information-->
 								<StackPanel Grid.Column="1" VerticalAlignment="Center">
-									<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top"/>
+									<TextBlock Text="sklajs aklsdjf klajsd lkajsfd aklsdjf klajsdf asdf asdfasdfasdf" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap"/>
 
 									<!--Schedule-->
 									<ItemsControl ItemsSource="{Binding ScheduleDays}" Margin="13,0,0,0">
