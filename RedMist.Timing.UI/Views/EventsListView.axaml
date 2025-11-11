@@ -38,7 +38,7 @@
 
 								<!--Event Information-->
 								<StackPanel Grid.Column="1" VerticalAlignment="Center">
-									<TextBlock Text="sklajs aklsdjf klajsd lkajsfd aklsdjf klajsdf asdf asdfasdfasdf" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap"/>
+									<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap"/>
 
 									<!--Schedule-->
 									<ItemsControl ItemsSource="{Binding ScheduleDays}" Margin="13,0,0,0">

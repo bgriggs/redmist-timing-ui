@@ -32,6 +32,9 @@ public class EventClient
         };
         restClient = new RestClient(options, 
             configureSerialization: s => s.UseSerializer(() => new MessagePackRestSerializer()));
+        
+        // Add default Accept header for all requests (MessagePack preferred, JSON fallback)
+        restClient.AddDefaultHeader("Accept", "application/msgpack, application/json");
     }
 
 
@@ -81,7 +84,6 @@ public class EventClient
     {
         var request = new RestRequest("GetCurrentSessionState", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        request.AddHeader("Accept", "application/msgpack");
         return await restClient.GetAsync<SessionState?>(request);
     }
 

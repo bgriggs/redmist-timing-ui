@@ -23,6 +23,9 @@ public class OrganizationClient
             Authenticator = new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret)
         };
         restClient = new RestClient(options);
+
+        // Add default Accept header for all requests (MessagePack preferred, JSON fallback)
+        restClient.AddDefaultHeader("Accept", "application/msgpack, application/json");
     }
 
     public virtual async Task<byte[]> GetOrganizationIconAsync(int organizationId)
