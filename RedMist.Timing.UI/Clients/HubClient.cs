@@ -10,9 +10,7 @@ using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarDriverMode;
-using RedMist.TimingCommon.Models.InCarVideo;
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
@@ -65,28 +63,8 @@ public class HubClient : HubClientBase
                 }
             };
         })
-        .WithAutomaticReconnect(new InfiniteRetryPolicy());
-
-        // Use JSON protocol on iOS due to MessagePack AOT limitations with SignalR parameter serialization
-        // MessagePack works fine for REST API responses but SignalR's InvokeAsync uses reflection-based
-        // serialization for parameters which fails on iOS
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Create("IOS")))
-        {
-            Logger.LogInformation("Using JSON protocol for SignalR on iOS");
-            builder.AddJsonProtocol(options =>
-            {
-                options.PayloadSerializerOptions = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = false
-                };
-            });
-        }
-        else
-        {
-            Logger.LogInformation("Using MessagePack protocol for SignalR");
-            builder.AddMessagePackProtocol();
-        }
+        .WithAutomaticReconnect(new InfiniteRetryPolicy())
+        .TryAddMessagePack();
 
         var hubConnection = builder.Build();
 
@@ -183,8 +161,8 @@ public class HubClient : HubClientBase
             hub.Remove("ReceiveReset");
             hub.On("ReceiveReset", ProcessReset);
 
-            hub.Remove("ReceiveInCarVideoMetadata");
-            hub.On("ReceiveInCarVideoMetadata", (List<VideoMetadata> vm) => ProcessInCarVideoMetadata(vm));
+            //hub.Remove("ReceiveInCarVideoMetadata");
+            //hub.On("ReceiveInCarVideoMetadata", (List<VideoMetadata> vm) => ProcessInCarVideoMetadata(vm));
         }
         catch (Exception ex)
         {
@@ -338,18 +316,18 @@ public class HubClient : HubClientBase
 
     #region In-Car Video Metadata
 
-    private void ProcessInCarVideoMetadata(List<VideoMetadata> metadata)
-    {
-        try
-        {
-            Logger.LogInformation("RX In-Car Video Metadata: {c}", metadata.Count);
-            WeakReferenceMessenger.Default.Send(new InCarVideoMetadataNotification(metadata));
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to process in-car video metadata message");
-        }
-    }
+    //private void ProcessInCarVideoMetadata(List<VideoMetadata> metadata)
+    //{
+    //    try
+    //    {
+    //        Logger.LogInformation("RX In-Car Video Metadata: {c}", metadata.Count);
+    //        WeakReferenceMessenger.Default.Send(new InCarVideoMetadataNotification(metadata));
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Logger.LogError(ex, "Failed to process in-car video metadata message");
+    //    }
+    //}
 
     #endregion
 

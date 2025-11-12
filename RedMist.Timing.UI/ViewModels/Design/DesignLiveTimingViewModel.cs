@@ -160,14 +160,14 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         }));
         //carCache.Lookup("222").Value.HasDriverName = true;
         //carCache.Lookup("222").Value.DriverName = "John Doe";
-        carCache.Lookup("222").Value.UpdateCarStreamAsync(new VideoMetadata 
-        { 
-            CarNumber = "222",
-            DriverName = "John Doe",
-            IsLive = true,
-            SystemType = VideoSystemType.Sentinel,
-            Destinations = [new() { Url = "https://example.com" }]
-        }).Wait();
+        //carCache.Lookup("222").Value.UpdateCarStreamAsync(new VideoMetadata 
+        //{ 
+        //    CarNumber = "222",
+        //    DriverName = "John Doe",
+        //    IsLive = true,
+        //    SystemType = VideoSystemType.Sentinel,
+        //    Destinations = [new() { Url = "https://example.com" }]
+        //}).Wait();
         carCache.Lookup("222").Value?.CarDetailsViewModel?.ControlLog.Add(new ControlLogEntryViewModel(
             new ControlLogEntry
             {

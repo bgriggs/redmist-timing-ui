@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 namespace RedMist.Timing.UI.ViewModels;
 
 public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChangedNotification>,
-    IRecipient<InCarVideoMetadataNotification>, IRecipient<AppResumeNotification>, IRecipient<SessionStatusNotification>,
+    IRecipient<AppResumeNotification>, IRecipient<SessionStatusNotification>,
     IRecipient<CarStatusNotification>, IRecipient<ResetNotification>
 {
     private SessionState? sessionStatus;
@@ -137,8 +137,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     public bool IsBroadcastVisible => IsLive && EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url);
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
 
-    private int consistencyCheckFailures;
-    private DateTime? lastConsistencyCheckReset;
+    //private int consistencyCheckFailures;
+    //private DateTime? lastConsistencyCheckReset;
 
     private readonly PitTracking pitTracking = new();
 
@@ -293,15 +293,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         ShowPenaltyColumn = viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
         Logger.LogInformation("Size changed: {Width}x{Height}", message.Size.Width, message.Size.Height);
-    }
-
-    /// <summary>
-    /// Handles in-car video metadata notifications and processes updates for in-car video metadata.
-    /// </summary>
-    /// <param name="message"></param>
-    public void Receive(InCarVideoMetadataNotification message)
-    {
-        Dispatcher.UIThread.InvokeOnUIThread(async () => await ProcessInCarVideoUpdateAsync(message.Value), DispatcherPriority.Background);
     }
 
     /// <summary>
@@ -545,89 +536,89 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     #region Consistency Check
 
-    private void RunConsistencyCheck()
-    {
-        if (sessionStatus == null)
-            return;
+    //private void RunConsistencyCheck()
+    //{
+    //    if (sessionStatus == null)
+    //        return;
 
-        if (lastConsistencyCheckReset != null && (DateTime.Now - lastConsistencyCheckReset) < TimeSpan.FromSeconds(60))
-            return;
+    //    if (lastConsistencyCheckReset != null && (DateTime.Now - lastConsistencyCheckReset) < TimeSpan.FromSeconds(60))
+    //        return;
 
-        if (CurrentSortMode != SortMode.Position)
-            return;
+    //    if (CurrentSortMode != SortMode.Position)
+    //        return;
 
-        bool isValid = true;
-        if (CurrentGrouping == GroupMode.Overall)
-        {
-            var cars = Cars.ToList();
-            isValid = ValidateSequential(cars, car => car.OverallPosition);
-            if (!isValid)
-            {
-                Logger.LogWarning("Consistency check failed for overall positions");
-            }
-        }
-        else
-        {
-            var groupedCars = GroupedCars.ToList();
-            foreach (var group in groupedCars)
-            {
-                var cars = group.ToList();
-                isValid = ValidateSequential(cars, car => car.ClassPosition);
-                if (!isValid)
-                {
-                    Logger.LogWarning("Consistency check failed for group {GroupName}", group.Name);
-                    break;
-                }
-            }
-        }
+    //    bool isValid = true;
+    //    if (CurrentGrouping == GroupMode.Overall)
+    //    {
+    //        var cars = Cars.ToList();
+    //        isValid = ValidateSequential(cars, car => car.OverallPosition);
+    //        if (!isValid)
+    //        {
+    //            Logger.LogWarning("Consistency check failed for overall positions");
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var groupedCars = GroupedCars.ToList();
+    //        foreach (var group in groupedCars)
+    //        {
+    //            var cars = group.ToList();
+    //            isValid = ValidateSequential(cars, car => car.ClassPosition);
+    //            if (!isValid)
+    //            {
+    //                Logger.LogWarning("Consistency check failed for group {GroupName}", group.Name);
+    //                break;
+    //            }
+    //        }
+    //    }
 
-        if (!isValid)
-        {
-            Logger.LogWarning("Consistency check failed for event {EventId}", EventModel.EventId);
-            consistencyCheckFailures++;
+    //    if (!isValid)
+    //    {
+    //        Logger.LogWarning("Consistency check failed for event {EventId}", EventModel.EventId);
+    //        consistencyCheckFailures++;
 
-            if (consistencyCheckFailures > 3)
-            {
-                Logger.LogWarning("Consistency check failures exceeded, resetting event");
-                consistencyCheckFailures = 0;
+    //        if (consistencyCheckFailures > 3)
+    //        {
+    //            Logger.LogWarning("Consistency check failures exceeded, resetting event");
+    //            consistencyCheckFailures = 0;
 
-                Dispatcher.UIThread.InvokeOnUIThread(() =>
-                {
-                    // Reset the event
-                    carCache.Clear();
-                    Cars.Clear();
-                    GroupedCars.Clear();
-                });
-                lastConsistencyCheckReset = DateTime.Now;
-            }
-        }
-        else if (consistencyCheckFailures > 0)
-        {
-            Logger.LogInformation("Consistency check passed, resetting counter");
-            consistencyCheckFailures = 0;
-        }
-    }
+    //            Dispatcher.UIThread.InvokeOnUIThread(() =>
+    //            {
+    //                // Reset the event
+    //                carCache.Clear();
+    //                Cars.Clear();
+    //                GroupedCars.Clear();
+    //            });
+    //            lastConsistencyCheckReset = DateTime.Now;
+    //        }
+    //    }
+    //    else if (consistencyCheckFailures > 0)
+    //    {
+    //        Logger.LogInformation("Consistency check passed, resetting counter");
+    //        consistencyCheckFailures = 0;
+    //    }
+    //}
 
-    private bool ValidateSequential(List<CarViewModel> cars, Func<CarViewModel, int> getPosition)
-    {
-        // Check positions are sequential and unique
-        int lastPos = 0;
-        foreach (var car in cars)
-        {
-            var pos = getPosition(car);
-            if (pos == 0)
-                continue; // Ignore cars with no position
+    //private bool ValidateSequential(List<CarViewModel> cars, Func<CarViewModel, int> getPosition)
+    //{
+    //    // Check positions are sequential and unique
+    //    int lastPos = 0;
+    //    foreach (var car in cars)
+    //    {
+    //        var pos = getPosition(car);
+    //        if (pos == 0)
+    //            continue; // Ignore cars with no position
 
-            if (pos != lastPos + 1)
-            {
-                Logger.LogWarning("Consistency check failed for {CarNumber}. Expected position {Expected}, got {Actual}", car.Number, lastPos + 1, pos);
-                return false;
-            }
-            lastPos = pos;
-        }
+    //        if (pos != lastPos + 1)
+    //        {
+    //            Logger.LogWarning("Consistency check failed for {CarNumber}. Expected position {Expected}, got {Actual}", car.Number, lastPos + 1, pos);
+    //            return false;
+    //        }
+    //        lastPos = pos;
+    //    }
 
-        return true;
-    }
+    //    return true;
+    //}
 
     public void InsertDuplicateCar()
     {
@@ -664,41 +655,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     }
 
     #endregion
-
-    private async Task ProcessInCarVideoUpdateAsync(List<VideoMetadata> videoMetadata)
-    {
-        try
-        {
-            var cars = carCache.Items.ToArray();
-            foreach (var car in cars)
-            {
-                if (car.LastCarPosition == null)
-                {
-                    await car.UpdateCarStreamAsync(null);
-                    continue;
-                }
-
-                VideoMetadata? vm = null;
-                var transponder = car.LastCarPosition.TransponderId;
-                if (transponder > 0)
-                {
-                    vm = videoMetadata.FirstOrDefault(vm => vm.TransponderId == transponder);
-                }
-
-                if (vm == null && !string.IsNullOrWhiteSpace(car.Number))
-                {
-                    // Try to match by car number if transponder not found
-                    vm = videoMetadata.FirstOrDefault(vm => string.Compare(vm.CarNumber, car.Number, true, CultureInfo.InvariantCulture) == 0);
-                }
-
-                await car.UpdateCarStreamAsync(vm);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error processing in-car video metadata");
-        }
-    }
 
     #region Commands
 

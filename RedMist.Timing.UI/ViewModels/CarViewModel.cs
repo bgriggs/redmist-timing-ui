@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using BigMission.Avalonia.Utilities.Extensions;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
@@ -459,6 +460,39 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
                 PitState = PitStates.None;
         }
 
+        // Driver Name
+        if (p.DriverName != null)
+        {
+            var driver = p.DriverName.Trim();
+            if (!string.IsNullOrWhiteSpace(driver))
+            {
+                HasDriverName = true;
+                DriverName = driver;
+            }
+            else
+            {
+                HasDriverName = false;
+                DriverName = string.Empty;
+            }
+        }
+
+        // Video Stream
+        if (p.InCarVideo != null)
+        {
+            if (p.InCarVideo.VideoDestination.Type != VideoDestinationType.None)
+            {
+                IsCarStreaming = true;
+                CarStreamImage = GetCarSourceImage(p.InCarVideo.VideoSystemType);
+                CarStreamDestinationUrl = p.InCarVideo.VideoDestination.Url;
+            }
+            else
+            {
+                IsCarStreaming = false;
+                CarStreamImage = null;
+                CarStreamDestinationUrl = null;
+            }
+        }
+
         // Record the pit stop
         if (p.IsInPit ?? false && !string.IsNullOrEmpty(p.Number))
             pitTracking.AddPitStop(Number, LastLap);
@@ -514,12 +548,12 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         {
             CarPositionMapper.ApplyPatch(p, LastCarPosition);
 
-            // Check that the lap has changed to avoid updating the previous lap data since lap number change
-            // and times are not guaranteed to be in the same patch
-            if (prevLap != LastCarPosition.LastLapCompleted)
+            // Check that the lap has changed to avoid updating the previous lap data since lap number 
+            // change and times are not guaranteed to be in the same patch
+            if (prevLap != LastCarPosition.LastLapCompleted && CarDetailsViewModel != null)
             {
                 var dc = LastCarPosition.DeepCopy();
-                CarDetailsViewModel?.UpdateLaps([dc]);
+                CarDetailsViewModel.UpdateLaps([dc]);
             }
         }
         else
@@ -600,82 +634,20 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         });
     }
 
-    public async Task UpdateCarStreamAsync(VideoMetadata? videoMetadata)
-    {
-        if (videoMetadata == null || !videoMetadata.IsLive || videoMetadata.Destinations.Count == 0)
-        {
-            IsCarStreaming = false;
-            CarStreamImage = null;
-            CarStreamDestinationUrl = null;
-            HasDriverName = false;
-            DriverName = string.Empty;
-            return;
-        }
-
-        if (videoMetadata.IsLive && videoMetadata.Destinations.Count > 0)
-        {
-            IsCarStreaming = true;
-            CarStreamImage = GetCarSourceImage(videoMetadata.SystemType);
-            CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type == VideoDestinationType.DirectSrt)?.Url;
-            var isValid = await CheckUrlSuccessAsync(CarStreamDestinationUrl);
-            if (!isValid)
-                CarStreamDestinationUrl = videoMetadata.Destinations.FirstOrDefault(d => d.Type != VideoDestinationType.DirectSrt)?.Url;
-
-            CarStreamDestinationUrl ??= videoMetadata.Destinations.FirstOrDefault()?.Url;
-            var driver = videoMetadata.DriverName?.Trim() ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(driver))
-            {
-                HasDriverName = true;
-                DriverName = driver;
-            }
-            else
-            {
-                HasDriverName = false;
-                DriverName = string.Empty;
-            }
-        }
-        else
-        {
-            IsCarStreaming = false;
-            CarStreamImage = null;
-            CarStreamDestinationUrl = null;
-            HasDriverName = false;
-            DriverName = string.Empty;
-        }
-    }
-
     private static Bitmap GetCarSourceImage(VideoSystemType type)
     {
         if (type == VideoSystemType.Sentinel)
         {
-            var image = Application.Current?.FindResource(Application.Current.ActualThemeVariant, SENTINEL_IMAGE) as string;
-            if (image != null)
+            if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, SENTINEL_IMAGE) is string image)
             {
                 return new Bitmap(AssetLoader.Open(new Uri(image)));
-
             }
         }
 
         return new Bitmap(AssetLoader.Open(new Uri("avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png")));
     }
 
-    private static async Task<bool> CheckUrlSuccessAsync(string? url)
-    {
-        if (string.IsNullOrEmpty(url))
-            return false;
-
-        using HttpClient client = new();
-        try
-        {
-            var response = await client.GetAsync(url);
-            return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
+    [RelayCommand]
     public void LaunchInCarVideo()
     {
         var url = CarStreamDestinationUrl;

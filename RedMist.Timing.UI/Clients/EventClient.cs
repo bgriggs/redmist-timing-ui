@@ -1,4 +1,5 @@
 ﻿using BigMission.Shared.Auth;
+using BigMission.Shared.RestSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.TimingCommon;
@@ -30,11 +31,7 @@ public class EventClient
         {
             Authenticator = new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret)
         };
-        restClient = new RestClient(options, 
-            configureSerialization: s => s.UseSerializer(() => new MessagePackRestSerializer()));
-        
-        // Add default Accept header for all requests (MessagePack preferred, JSON fallback)
-        restClient.AddDefaultHeader("Accept", "application/msgpack, application/json");
+        restClient = options.CreateWithMessagePack();
     }
 
 
