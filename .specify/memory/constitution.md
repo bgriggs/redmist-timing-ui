@@ -21,7 +21,9 @@ Sync Impact Report:
 ### I. MVVM Architecture (NON-NEGOTIABLE)
 All UI components MUST follow the Model-View-ViewModel pattern. ViewModels handle business logic and data binding, Views are purely declarative UI, Models represent data structures. No direct Model-View communication allowed. This ensures testability, separation of concerns, and consistent architecture across all platforms.
 
-**Rationale**: MVVM enables platform-agnostic business logic, facilitates unit testing of ViewModels without UI dependencies, and provides clear separation between UI and business logic essential for multi-platform development.
+**Naming Conventions**: All asynchronous methods MUST be suffixed with "Async" (e.g., `LoadDataAsync`, `SaveChangesAsync`). This applies to all layers: ViewModels, Services, Repositories, and API clients.
+
+**Rationale**: MVVM enables platform-agnostic business logic, facilitates unit testing of ViewModels without UI dependencies, and provides clear separation between UI and business logic essential for multi-platform development. Consistent async naming improves code readability and prevents confusion between synchronous and asynchronous operations.
 
 ### II. Cross-Platform Support (NON-NEGOTIABLE)
 Application MUST support iOS, Android, Web (WASM), and Windows Desktop as first-class citizens. Shared business logic through common libraries. Platform-specific UI implementations allowed only when platform conventions require it. Feature parity required across all platforms unless technical limitations prevent it.
@@ -52,7 +54,7 @@ All user interfaces MUST support both light mode and dark mode. Theme-specific c
 
 ### Technology Stack Constraints
 - **UI Framework**: Avalonia UI for cross-platform development
-- **Shared Logic**: .NET 8+ with C#
+- **Shared Logic**: .NET 9+ with C#
 - **Web**: WebAssembly (WASM) deployment required
 - **Desktop**: Native Windows, macOS, and Linux application support
 - **Mobile**: Native iOS and Android builds
@@ -84,4 +86,4 @@ Constitution supersedes all other development practices. All pull requests MUST 
 
 Amendments require documentation, cross-platform impact assessment, and approval from platform leads. Breaking changes require migration plan for all supported platforms.
 
-**Version**: 1.2.0 | **Ratified**: 2025-10-24: Set when constitution is formally adopted | **Last Amended**: 2025-10-24
+**Version**: 1.3.0 | **Ratified**: 2025-10-24 | **Last Amended**: 2025-11-16
