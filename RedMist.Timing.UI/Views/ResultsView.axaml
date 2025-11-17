@@ -37,13 +37,13 @@
 				<ItemsControl ItemsSource="{Binding Sessions}" Margin="4,2,4,4">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate DataType="model:SessionViewModel">
-							<Button Padding="0" HorizontalAlignment="Stretch" Command="{Binding SelectSession}" CommandParameter="{Binding .}">
-								<Border BorderThickness="1" BorderBrush="Black" Padding="5">
-									<StackPanel>
-										<TextBlock Text="{Binding Name}" Classes="theme-text-heading size-xs"/>
-										<TextBlock Text="{Binding StartTime}" FontSize="10"/>
-										<StackPanel Orientation="Horizontal">
-											<PathIcon Height="12" Foreground="Black" Data="{StaticResource flaggeom}"/>
+					<Button Padding="0" HorizontalAlignment="Stretch" Command="{Binding SelectSession}" CommandParameter="{Binding .}">
+						<Border BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Padding="5">
+							<StackPanel>
+								<TextBlock Text="{Binding Name}" Classes="theme-text-heading size-xs"/>
+								<TextBlock Text="{Binding StartTime}" FontSize="10"/>
+								<StackPanel Orientation="Horizontal">
+									<PathIcon Height="12" Foreground="{DynamicResource ContrastForegroundBrush}" Data="{StaticResource flaggeom}"/>
 											<TextBlock Text="Provisional Results" FontStyle="Italic" FontSize="10"/>
 										</StackPanel>
 									</StackPanel>

@@ -74,6 +74,19 @@
 					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
 
+					<!-- Pit State Colors -->
+					<SolidColorBrush x:Key="PitStateInPitBrush">#075aa1</SolidColorBrush>
+					<SolidColorBrush x:Key="PitStateEnteredBrush">#ff6743</SolidColorBrush>
+					<SolidColorBrush x:Key="PitStateExitedBrush">#9ad337</SolidColorBrush>
+					<SolidColorBrush x:Key="PitStateSfBrush">#475e1e</SolidColorBrush>
+
+					<!-- UI Chrome Colors -->
+					<SolidColorBrush x:Key="BorderPrimaryBrush">Gray</SolidColorBrush>
+					<SolidColorBrush x:Key="LightningIconBrush">Orange</SolidColorBrush>
+					<SolidColorBrush x:Key="ExpanderBackgroundBrush">LightGray</SolidColorBrush>
+					<SolidColorBrush x:Key="ContrastForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="ContrastForegroundInverseBrush">White</SolidColorBrush>
+
 					<!--Update Notifications-->
 					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#FFF4CE</SolidColorBrush>
 					<SolidColorBrush x:Key="OptionalUpdateBorderBrush">#F0AD4E</SolidColorBrush>
@@ -137,6 +150,19 @@
 					<SolidColorBrush x:Key="carRowLossBackgroundBrush">Red</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowOutOfClassBackgroundBrush">#b5b5b5</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowDriverBackgroundBrush">#7fccf7</SolidColorBrush>
+
+					<!-- Pit State Colors -->
+					<SolidColorBrush x:Key="PitStateInPitBrush">#0a7fd1</SolidColorBrush>
+					<SolidColorBrush x:Key="PitStateEnteredBrush">#ff8563</SolidColorBrush>
+					<SolidColorBrush x:Key="PitStateExitedBrush">#b5e357</SolidColorBrush>
+					<SolidColorBrush x:Key="PitStateSfBrush">#6a8832</SolidColorBrush>
+
+					<!-- UI Chrome Colors -->
+					<SolidColorBrush x:Key="BorderPrimaryBrush">#4a4a4a</SolidColorBrush>
+					<SolidColorBrush x:Key="LightningIconBrush">#ffa500</SolidColorBrush>
+					<SolidColorBrush x:Key="ExpanderBackgroundBrush">#3a3a3a</SolidColorBrush>
+					<SolidColorBrush x:Key="ContrastForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="ContrastForegroundInverseBrush">Black</SolidColorBrush>
 
 					<!--Update Notifications-->
 					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#3d3418</SolidColorBrush>

@@ -36,7 +36,7 @@
 			<ItemsControl ItemsSource="{Binding Flags}" Margin="4,2,4,4">
 				<ItemsControl.ItemTemplate>
 					<DataTemplate DataType="vm:FlagViewModel">
-						<Border BorderThickness="1" BorderBrush="Black" Padding="5" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" CornerRadius="3" Margin="0,0,0,1">
+						<Border BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Padding="5" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" CornerRadius="3" Margin="0,0,0,1">
 							<StackPanel Orientation="Horizontal">
 								<TextBlock Text="{Binding FlagStr}" Width="80" Classes="theme-text-heading size-xs"/>
 								<TextBlock Text="{Binding StartTime}" Width="52" Classes="flagduration"/>

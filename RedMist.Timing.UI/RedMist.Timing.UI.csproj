@@ -73,4 +73,7 @@
 		<PackageReference Include="RestSharp" />
 	</ItemGroup>
 	
+	<ItemGroup>
+		<ProjectReference Include="C:\Code\avalonia-mcp\src\Avalonia.Mcp.RuntimeInspector\Avalonia.Mcp.RuntimeInspector.csproj" />
+	</ItemGroup>
 </Project>

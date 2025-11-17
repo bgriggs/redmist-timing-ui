@@ -20,6 +20,9 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+#if DEBUG
+using Avalonia.Mcp.RuntimeInspector;
+#endif
 
 namespace RedMist.Timing.UI;
 
@@ -29,21 +32,25 @@ public partial class App : Application
     private CancellationTokenSource? _cancellationTokenSource;
     private ILogger? _logger;
 
-    
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        
+
         // Set up global exception handlers as early as possible
         SetupGlobalExceptionHandlers();
     }
 
     public override void OnFrameworkInitializationCompleted()
     {
+#if DEBUG
+        //McpRuntimeInspectorExtension.Initialize();
+#endif
+
         // Line below is needed to remove Avalonia data validation.
         // Without this line you will get duplicate validations from both Avalonia and CT
         BindingPlugins.DataValidators.RemoveAt(0);
-        
+
         // Dependency injection: https://github.com/stevemonaco/AvaloniaViewModelFirstDemos
         // NuGet source: https://pkgs.dev.azure.com/dotnet/CommunityToolkit/_packaging/CommunityToolkit-Labs/nuget/v3/index.json
         var locator = new ViewLocator();
@@ -70,19 +77,19 @@ public partial class App : Application
             builder.AddDebug();
         });
         services.AddSingleton(loggerFactory);
-        
+
         // Add in-memory log provider for UI display
         var inMemoryLogProvider = new InMemoryLogProvider();
         services.AddSingleton(inMemoryLogProvider);
         loggerFactory.AddProvider(inMemoryLogProvider);
 
         ConfigureServices(services);
-        
+
         // Register version check services
         services.AddSingleton<IPlatformDetectionService, PlatformDetectionService>();
         services.AddSingleton<IUpdateMessageService, UpdateMessageService>();
         services.AddSingleton<IVersionCheckService, VersionCheckService>();
-        
+
         ConfigureViewModels(services);
         //ConfigureViews(services);
 
@@ -140,10 +147,10 @@ public partial class App : Application
         try
         {
             LogException("UI Thread Unhandled Exception", e.Exception);
-            
+
             // Mark as handled to prevent crash
             e.Handled = true;
-            
+
             // Optionally show user-friendly error message
             ShowErrorToUser("An unexpected error occurred. The application will continue running.", e.Exception);
         }
@@ -162,7 +169,7 @@ public partial class App : Application
             if (e.ExceptionObject is Exception exception)
             {
                 LogException("AppDomain Unhandled Exception", exception);
-                
+
                 // If the process is terminating, we can't prevent it, but we can log it
                 if (e.IsTerminating)
                 {
@@ -187,7 +194,7 @@ public partial class App : Application
         try
         {
             LogException("Unobserved Task Exception", e.Exception);
-            
+
             // Mark as observed to prevent crash
             e.SetObserved();
         }

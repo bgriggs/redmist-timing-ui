@@ -17,7 +17,7 @@
 
 	<UserControl.Resources>
 		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
-			<Border BorderThickness="1" BorderBrush="Black" Background="{Binding RowBackground}" CornerRadius="3" Margin="5,1">
+			<Border BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Background="{Binding RowBackground}" CornerRadius="3" Margin="5,1">
 				<Viewbox>
 					<Grid RowDefinitions="Auto,Auto,Auto,Auto">
 						<Grid ColumnDefinitions="*,Auto">
@@ -48,10 +48,10 @@
 	</UserControl.Resources>
 	<UserControl.Styles>
 		<Style Selector="TextBlock">
-			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="Foreground" Value="{DynamicResource ContrastForegroundInverseBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.h1">
-			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="Foreground" Value="{DynamicResource ContrastForegroundBrush}"/>
 		</Style>
 	</UserControl.Styles>
 
