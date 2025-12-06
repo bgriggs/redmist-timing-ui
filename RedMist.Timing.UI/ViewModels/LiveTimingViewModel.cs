@@ -525,6 +525,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (string.IsNullOrWhiteSpace(Flag))
         {
             carCache.Clear();
+            pitTracking.Clear();
             SessionName = string.Empty;
             Flag = string.Empty;
             TimeToGo = string.Empty;
