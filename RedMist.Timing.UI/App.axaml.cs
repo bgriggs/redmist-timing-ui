@@ -20,9 +20,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-#if DEBUG
-using Avalonia.Mcp.RuntimeInspector;
-#endif
 
 namespace RedMist.Timing.UI;
 
