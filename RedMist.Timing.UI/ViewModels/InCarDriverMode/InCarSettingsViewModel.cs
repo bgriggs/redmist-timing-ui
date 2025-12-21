@@ -150,7 +150,7 @@ public partial class InCarSettingsViewModel : ObservableValidator
     {
         try
         {
-            CarNumber = Preferences.Get(CAR_NUM_KEY, string.Empty);
+            CarNumber = Preferences.Get(CAR_NUM_KEY, string.Empty) ?? string.Empty;
             IsInClassOnly = Preferences.Get(IN_CLASS_KEY, false);
         }
         catch

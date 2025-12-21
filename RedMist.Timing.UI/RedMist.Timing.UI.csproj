@@ -63,10 +63,6 @@
 		<PackageReference Include="BigMission.Shared" />
 		<PackageReference Include="RedMist.TimingCommon" />
 		<PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" />
-		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
 		<PackageReference Include="Microsoft.Maui.Essentials" />
