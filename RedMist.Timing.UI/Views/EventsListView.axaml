@@ -1,15 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
-             x:Class="RedMist.Timing.UI.Views.EventsListView"
+			 mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
+			 x:Class="RedMist.Timing.UI.Views.EventsListView"
 			 x:DataType="vm:EventsListViewModel">
 	<Design.DataContext>
 		<!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<design:DesignEventsListViewModel />
 	</Design.DataContext>
 
@@ -26,55 +26,56 @@
 
 		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="2" TextWrapping="Wrap" FontSize="9"/>
-		<ScrollViewer IsVisible="{Binding !IsLoading}" Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-			<ItemsControl ItemsSource="{Binding Events}">
-				<ItemsControl.ItemTemplate>
-					<DataTemplate>
-						<Button Background="{DynamicResource EventRowBackgroundBrush}" MinHeight="63" CornerRadius="0" BorderThickness="0,0,0,2"
-								BorderBrush="{DynamicResource boldItemBorder}" HorizontalAlignment="Stretch" Padding="4,1,3,4"
-								Command="{Binding SelectEvent}" CommandParameter="{Binding .}">
-							<Grid ColumnDefinitions="Auto,*,Auto">
-								<Image Source="{Binding OrganizationLogo}" Height="55" Width="55" VerticalAlignment="Center"/>
+		<RefreshContainer Grid.Row="3" PullDirection="TopToBottom" RefreshRequested="EventsRefreshContainer_RefreshRequested">
+			<ScrollViewer IsVisible="{Binding !IsLoading}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+				<ItemsControl ItemsSource="{Binding Events}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<Button Background="{DynamicResource EventRowBackgroundBrush}" MinHeight="63" CornerRadius="0" BorderThickness="0,0,0,2"
+									BorderBrush="{DynamicResource boldItemBorder}" HorizontalAlignment="Stretch" Padding="4,1,3,4"
+									Command="{Binding SelectEvent}" CommandParameter="{Binding .}">
+								<Grid ColumnDefinitions="Auto,*,Auto">
+									<Image Source="{Binding OrganizationLogo}" Height="55" Width="55" VerticalAlignment="Center"/>
 
-								<!--Event Information-->
-								<StackPanel Grid.Column="1" VerticalAlignment="Center">
-									<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap"/>
+									<!--Event Information-->
+									<StackPanel Grid.Column="1" VerticalAlignment="Center">
+										<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap"/>
 
-									<!--Schedule-->
-									<ItemsControl ItemsSource="{Binding ScheduleDays}" Margin="13,0,0,0">
-										<ItemsControl.ItemTemplate>
-											<DataTemplate DataType="vm:ScheduleDayViewModel">
-												<StackPanel>
-													<!--<TextBlock Text="{Binding DayString}" Classes="theme-text-body size-sm"/>-->
-													<ItemsControl ItemsSource="{Binding EntryViewModels}">
-														<ItemsControl.ItemTemplate>
-															<DataTemplate DataType="vm:ScheduleEntryViewModel">
-																<StackPanel Orientation="Horizontal" Margin="11,0,0,0">
-																	<TextBlock Text="{Binding StartTime}" Classes="sch"/>
-																	<TextBlock Text="-" Classes="sch"/>
-																	<TextBlock Text="{Binding EndTime}" Classes="sch"/>
-																	<TextBlock Text="{Binding Name}" Classes="sch" Margin="6,0,0,0"/>
-																</StackPanel>
-															</DataTemplate>
-														</ItemsControl.ItemTemplate>
-													</ItemsControl>
-												</StackPanel>
-											</DataTemplate>
-										</ItemsControl.ItemTemplate>
-									</ItemsControl>
-								</StackPanel>
+										<!--Schedule-->
+										<ItemsControl ItemsSource="{Binding ScheduleDays}" Margin="13,0,0,0">
+											<ItemsControl.ItemTemplate>
+												<DataTemplate DataType="vm:ScheduleDayViewModel">
+													<StackPanel>
+														<!--<TextBlock Text="{Binding DayString}" Classes="theme-text-body size-sm"/>-->
+														<ItemsControl ItemsSource="{Binding EntryViewModels}">
+															<ItemsControl.ItemTemplate>
+																<DataTemplate DataType="vm:ScheduleEntryViewModel">
+																	<StackPanel Orientation="Horizontal" Margin="11,0,0,0">
+																		<TextBlock Text="{Binding StartTime}" Classes="sch"/>
+																		<TextBlock Text="-" Classes="sch"/>
+																		<TextBlock Text="{Binding EndTime}" Classes="sch"/>
+																		<TextBlock Text="{Binding Name}" Classes="sch" Margin="6,0,0,0"/>
+																	</StackPanel>
+																</DataTemplate>
+															</ItemsControl.ItemTemplate>
+														</ItemsControl>
+													</StackPanel>
+												</DataTemplate>
+											</ItemsControl.ItemTemplate>
+										</ItemsControl>
+									</StackPanel>
 
-								<!--Live-->
-								<Border Grid.Column="2" Width="40" Height="35" Background="{DynamicResource eventLiveBackground}" HorizontalAlignment="Right" CornerRadius="3" IsVisible="{Binding IsLive}">
-									<TextBlock Text="Live" Foreground="{DynamicResource eventLiveForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-								</Border>
-							</Grid>
-						</Button>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
-		</ScrollViewer>
-		
+									<!--Live-->
+									<Border Grid.Column="2" Width="40" Height="35" Background="{DynamicResource eventLiveBackground}" HorizontalAlignment="Right" CornerRadius="3" IsVisible="{Binding IsLive}">
+										<TextBlock Text="Live" Foreground="{DynamicResource eventLiveForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+									</Border>
+								</Grid>
+							</Button>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</ScrollViewer>
+		</RefreshContainer>
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}" Grid.Row="4">
 			<Grid ColumnDefinitions="Auto,*,Auto">
 				<TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="10" Margin="4" VerticalAlignment="Center"/>

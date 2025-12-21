@@ -1,6 +1,7 @@
 ﻿using Avalonia.Threading;
 using BigMission.Avalonia.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
@@ -116,6 +117,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         }
     }
 
+    [RelayCommand]
     public void RefreshEvents()
     {
         _ = Task.Run(async () =>
@@ -126,7 +128,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error refreshing events: {ex}");
+                Logger.LogError(ex, "Error refreshing events");
             }
         });
     }
@@ -142,10 +144,11 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in AppResumeNotification handler for EventsListViewModel: {ex}");
+            Logger.LogError(ex, "Error in AppResumeNotification handler for EventsListViewModel");
         }
     }
 
+    [RelayCommand]
     public void SetDriverMode()
     {
         var routerEvent = new RouterEvent { Path = "InCarDriverSettings" };
