@@ -1,4 +1,5 @@
-﻿using DynamicData;
+﻿using Avalonia.Media;
+using DynamicData;
 using DynamicData.Binding;
 using System;
 using System.Collections.ObjectModel;
@@ -11,10 +12,12 @@ namespace RedMist.Timing.UI.ViewModels;
 public class GroupHeaderViewModel : ObservableCollection<CarViewModel>
 {
     public string Name { get; }
+    public Brush ClassColor { get; }
 
-    public GroupHeaderViewModel(string name, IObservableCache<CarViewModel, string> observableCache)
+    public GroupHeaderViewModel(string name, Brush classColor, IObservableCache<CarViewModel, string> observableCache)
     {
         Name = name;
+        ClassColor = classColor;
         observableCache.Connect()
             .AutoRefresh(t => t.OverallPosition)
             .AutoRefresh(t => t.SortablePosition)

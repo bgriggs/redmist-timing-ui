@@ -1,4 +1,5 @@
-﻿using Avalonia.Media.Imaging;
+﻿using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -11,7 +12,6 @@ using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
-using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
 using System.Collections.Generic;
@@ -47,6 +47,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private readonly ViewSizeService viewSizeService;
     private readonly EventContext eventContext;
     private readonly SessionState lastSessionState = new();
+    private Dictionary<string, string> classColors = [];
+    private Dictionary<string, string> classOrder = [];
     private readonly InMemoryLogProvider? logProvider;
 
     private ILogger Logger { get; }
@@ -187,8 +189,31 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         // Grouped by class
         carCache.Connect()
             .GroupOnProperty(c => c.Class)
-            .Transform(g => new GroupHeaderViewModel(g.Key, g.Cache), true)
-            .SortAndBind(GroupedCars, SortExpressionComparer<GroupHeaderViewModel>.Ascending(t => t.Name))
+            .Transform(g => new GroupHeaderViewModel(g.Key, GetClassColor(g.Key), g.Cache), true)
+            .SortAndBind(GroupedCars, Comparer<GroupHeaderViewModel>.Create((a, b) =>
+            {
+                var orderA = GetClassOrder(a.Name);
+                var orderB = GetClassOrder(b.Name);
+
+                // If both have defined orders, sort by order
+                if (orderA < int.MaxValue - 1 && orderB < int.MaxValue - 1)
+                    return orderA.CompareTo(orderB);
+
+                // If both have no defined order, sort alphabetically
+                if (orderA == int.MaxValue - 1 && orderB == int.MaxValue - 1)
+                    return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+
+                // If A has defined order and B doesn't, A comes first
+                if (orderA < int.MaxValue - 1)
+                    return -1;
+
+                // If B has defined order and A doesn't, B comes first
+                if (orderB < int.MaxValue - 1)
+                    return 1;
+
+                // Both are null/empty (int.MaxValue), maintain order
+                return orderA.CompareTo(orderB);
+            }))
             .DisposeMany()
             .Subscribe();
 
@@ -360,7 +385,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
         // Update event entries
         if (message.Value.EventEntries != null)
+        {
+            classColors = message.Value.ClassColors ?? lastSessionState.ClassColors;
+            classOrder = message.Value.ClassOrder ?? lastSessionState.ClassOrder;
             ApplyEntries(message.Value.EventEntries, isDeltaUpdate: false);
+        }
 
         // Update car status
         if (message.Value.CarPositions != null)
@@ -418,11 +447,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         foreach (var entry in entries)
         {
+            var classColor = GetClassColor(entry.Class);
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
                 var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService) { CurrentGroupMode = CurrentGrouping };
-                vm.ApplyEntry(entry);
+                vm.ApplyEntry(entry, classColor);
                 carCache.AddOrUpdate(vm);
 
                 if (CurrentSortMode == SortMode.Fastest)
@@ -432,7 +462,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             }
             else if (carVm.HasValue)
             {
-                carVm.Value.ApplyEntry(entry);
+                carVm.Value.ApplyEntry(entry, classColor);
             }
         }
 
@@ -447,6 +477,44 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 }
             }
         }
+    }
+
+    private SolidColorBrush GetClassColor(string @class)
+    {
+        if (string.IsNullOrEmpty(@class))
+        {
+            // No class specified
+            return new SolidColorBrush(Colors.Transparent);
+        }
+        else
+        {
+            if (classColors.TryGetValue(@class, out var classColorHex))
+            {
+                return Color.TryParse(classColorHex, out Color color) ? new SolidColorBrush(color) : new SolidColorBrush(Colors.Gray);
+            }
+            else // No class color specified
+            {
+                return new SolidColorBrush(Colors.Gray);
+            }
+        }
+    }
+
+    /// <summary>
+    /// This uses the class order dictionary to get the sort order for a class.
+    /// </summary>
+    private int GetClassOrder(string @class)
+    {
+        if (string.IsNullOrEmpty(@class))
+        {
+            return int.MaxValue;
+        }
+
+        if (classOrder.TryGetValue(@class, out var orderStr) && int.TryParse(orderStr, out var order))
+        {
+            return order;
+        }
+
+        return int.MaxValue - 1;
     }
 
     private void UpdateCars(CarPositionPatch[] carUpdates)

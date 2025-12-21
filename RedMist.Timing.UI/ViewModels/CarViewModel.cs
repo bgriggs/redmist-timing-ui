@@ -76,6 +76,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [ObservableProperty]
     private string _class = string.Empty;
     [ObservableProperty]
+    private IBrush classColor = Brushes.Gray;
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BestTimeShort))]
     private string? bestTime;
     public string BestTimeShort
@@ -269,7 +271,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     }
 
     private PositionChange? uiResetPositionsGainedLost = null;
-    private PositionChange positionsGainedLost = new();
+    private readonly PositionChange positionsGainedLost = new();
     public PositionChange PositionsGainedLost
     {
         get
@@ -573,15 +575,16 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         OnPropertyChanged(nameof(PositionsGainedLost));
     }
 
-    public void ApplyEntry(EventEntry entry)
+    public void ApplyEntry(EventEntry entry, IBrush classColor)
     {
         Number = entry.Number;
         OriginalName = entry.Name;
         Team = entry.Team;
         Class = entry.Class;
+        ClassColor = classColor;
 
         // Force reset once loaded - prevents color from getting stuck on update color
-        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH, DispatcherPriority.Send));
+        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH, DispatcherPriority.Send));
     }
 
     private void UpdateCarDetails(bool isEnabled)

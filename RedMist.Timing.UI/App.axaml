@@ -29,7 +29,8 @@
 					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">Gray</SolidColorBrush>
 					<SolidColorBrush x:Key="TextLGForegroundBrush">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="TextMedForegroundBrush">Black</SolidColorBrush>
-					<SolidColorBrush x:Key="TextSmbForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextCarNumForegroundBrush">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="IconButtonForegroundBrush">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">Green</SolidColorBrush>
 					<SolidColorBrush x:Key="PositionsLostForegroundBrush">Red</SolidColorBrush>
@@ -108,6 +109,7 @@
 					<SolidColorBrush x:Key="TextLGForegroundBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="TextMedForegroundBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextCarNumForegroundBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="IconButtonForegroundBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="EventRowBackgroundBrush">Gray</SolidColorBrush>
 					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">#78d44b</SolidColorBrush>
@@ -218,9 +220,19 @@
 			<Setter Property="FontSize" Value="11"/>
 		</Style>
 		<Style Selector="TextBlock.smb">
-			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontSize" Value="9"/>
 			<Setter Property="FontWeight" Value="Bold"/>
 			<Setter Property="Foreground" Value="{DynamicResource TextSmbForegroundBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.classgrp">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextSmbForegroundBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.carnum">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextCarNumForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.sch">
 			<Setter Property="FontSize" Value="9"/>

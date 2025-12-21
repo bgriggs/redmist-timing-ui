@@ -1,19 +1,19 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
 			 xmlns:sel="clr-namespace:RedMist.Timing.UI.TemplateSelectors"
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="490" d:DesignHeight="450"
-             x:Class="RedMist.Timing.UI.Views.LiveTimingView"
+			 mc:Ignorable="d" d:DesignWidth="490" d:DesignHeight="450"
+			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
 		<!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<design:DesignLiveTimingViewModel />
 	</Design.DataContext>
 
@@ -63,9 +63,16 @@
 				</Grid>
 				<Grid RowDefinitions="Auto,Auto,Auto" Margin="1,0,0,4" Grid.Column="1">
 					<StackPanel Orientation="Horizontal">
-						<TextBlock Text="{Binding Number, StringFormat='#{0}'}" Classes="smb" VerticalAlignment="Center"/>
-						<TextBlock Text="{Binding Name}" Margin="2,0,3,0" Classes="lg"/>
-						<TextBlock Text="{Binding Class}" Classes="smb" VerticalAlignment="Bottom"/>
+						<TextBlock Text="{Binding Number, StringFormat='#{0}'}" Classes="carnum" VerticalAlignment="Center"/>
+						<TextBlock Text="{Binding Name}" Margin="2,0,1,0" Classes="lg"/>
+						<Border Margin="1" CornerRadius="4" Background="{Binding ClassColor}">
+							<TextBlock Text="{Binding Class}" 
+									   Classes="smb" 
+									   Padding="8,2"
+									   VerticalAlignment="Bottom" 
+									   HorizontalAlignment="Center"/>
+						</Border>
+
 						<PathIcon Height="10" Width="10" Foreground="Orange" Data="{StaticResource lightning}"
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
 						<PathIcon Height="12" Width="12" Foreground="Orange" Data="{StaticResource doubleLightning}"
@@ -103,20 +110,20 @@
 							</ContentControl.DataTemplates>
 						</ContentControl>
 					</StackPanel>
-					
+
 					<!--Driver Name-->
 					<TextBlock Text="{Binding DriverName, StringFormat='Driver: {0}'}" Grid.Row="1" IsVisible="{Binding HasDriverName}" Classes="sm" Margin="0"/>
-					
+
 					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" Grid.Row="2">
 						<StackPanel Orientation="Horizontal" Width="107">
 							<TextBlock Text="{Binding LastLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 							<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 							<TextBlock Text="{Binding LastTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
 						</StackPanel>
-						
+
 						<TextBlock Text="{Binding Gap}" Grid.Column="1" Classes="sm" Width="70"/>
 						<TextBlock Text="{Binding Difference}" Grid.Column="2" Classes="sm" Width="70"/>
-						
+
 						<StackPanel Orientation="Horizontal" Grid.Column="3" IsVisible="{Binding ShowPenaltyColumn}">
 							<PathIcon Height="10" IsVisible="{Binding HasPenaltyWarnings}" Margin="0,0,0,1" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource warningopengeom}" VerticalAlignment="Center" ToolTip.Tip="Car was issued a warning"/>
 							<StackPanel Orientation="Horizontal" IsVisible="{Binding HasPenaltyLaps}">
@@ -225,8 +232,8 @@
 							<!--Positions Chart-->
 							<TabItem Header="Positions" IsSelected="{Binding IsChartTabSelected}">
 								<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
-												Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
-												ZoomMode="X" Padding="0"/>-->
+								Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
+								ZoomMode="X" Padding="0"/>-->
 								<ContentControl Content="{Binding Chart.Chart}"/>
 							</TabItem>
 
@@ -293,7 +300,7 @@
 		<Style Selector="TextBlock.pit">
 			<Setter Property="FontSize" Value="9"/>
 			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="Foreground" Value="{DynamicResource ContrastForegroundInverseBrush}"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextSmbForegroundBrush}"/>
 			<Setter Property="HorizontalAlignment" Value="Center"/>
 			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
@@ -320,8 +327,8 @@
 
 			<!--Test Buttons-->
 			<!--<StackPanel Grid.Column="2">
-				<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
-				<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
+			<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
+			<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
 			</StackPanel>-->
 
 			<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
@@ -368,12 +375,14 @@
 					<ItemsControl ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate DataType="model:GroupHeaderViewModel">
-								<Expander Header="{Binding Name}" HorizontalAlignment="Stretch"
+								<Expander Header="{Binding .}" HorizontalAlignment="Stretch"
 										  Padding="0" CornerRadius="0" MinHeight="0"
 										  Template="{StaticResource groupExpanderTemplate}">
 									<Expander.HeaderTemplate>
-										<DataTemplate>
-											<TextBlock Text="{Binding .}" Classes="lg"/>
+										<DataTemplate DataType="model:GroupHeaderViewModel">
+											<Border Background="{Binding ClassColor}" CornerRadius="4" HorizontalAlignment="Left">
+												<TextBlock Text="{Binding Name}" Classes="classgrp" Padding="8,5"/>
+											</Border>
 										</DataTemplate>
 									</Expander.HeaderTemplate>
 									<ItemsControl ItemsSource="{Binding .}" ItemTemplate="{StaticResource carExpanderTemplate}"/>
@@ -387,8 +396,8 @@
 
 		<!--Log Display-->
 		<Border Grid.Row="5" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3"
-		        Background="{DynamicResource TimingTableBackgroundBrush}"
-		        IsVisible="{Binding ShowLogDisplay}">
+				Background="{DynamicResource TimingTableBackgroundBrush}"
+				IsVisible="{Binding ShowLogDisplay}">
 			<Grid RowDefinitions="Auto,*">
 				<Grid ColumnDefinitions="*,Auto" Margin="5,3">
 					<TextBlock Text="Application Logs" Classes="tableheader"/>
