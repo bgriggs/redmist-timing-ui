@@ -63,14 +63,14 @@
 				</Grid>
 				<Grid RowDefinitions="Auto,Auto,Auto" Margin="1,0,0,4" Grid.Column="1">
 					<StackPanel Orientation="Horizontal">
-						<TextBlock Text="{Binding Number, StringFormat='#{0}'}}" Classes="smb" VerticalAlignment="Center"/>
+						<TextBlock Text="{Binding Number, StringFormat='#{0}'}" Classes="smb" VerticalAlignment="Center"/>
 						<TextBlock Text="{Binding Name}" Margin="2,0,3,0" Classes="lg"/>
 						<TextBlock Text="{Binding Class}" Classes="smb" VerticalAlignment="Bottom"/>
 						<PathIcon Height="10" Width="10" Foreground="Orange" Data="{StaticResource lightning}"
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
 						<PathIcon Height="12" Width="12" Foreground="Orange" Data="{StaticResource doubleLightning}"
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
-						<Button Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video stream" Padding="0" Height="14" Margin="3,-2,0,0">
+						<Button Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video" Padding="0" Height="13" Margin="2,0,0,0">
 							<Image Source="{Binding CarStreamImage}" Cursor="Hand"/>
 						</Button>
 

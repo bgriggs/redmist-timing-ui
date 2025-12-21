@@ -99,6 +99,7 @@
 					<SolidColorBrush x:Key="MandatoryUpdateButtonForegroundBrush">White</SolidColorBrush>
 
 					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-light.png</x:String>
+					<x:String x:Key="mrlImage">avares://RedMist.Timing.UI/Assets/MRL_Logo_light.png</x:String>
 				</ResourceDictionary>
 				<ResourceDictionary x:Key="Dark">
 					<SolidColorBrush x:Key="TextTitleForegroundBrush">White</SolidColorBrush>
@@ -176,6 +177,7 @@
 					<SolidColorBrush x:Key="MandatoryUpdateButtonForegroundBrush">White</SolidColorBrush>
 
 					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-dark.png</x:String>
+					<x:String x:Key="mrlImage">avares://RedMist.Timing.UI/Assets/MRL_Logo.png</x:String>
 				</ResourceDictionary>
 			</ResourceDictionary.ThemeDictionaries>
 		</ResourceDictionary>

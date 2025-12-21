@@ -18,8 +18,6 @@ using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
 using System.Globalization;
-using System.Linq;
-using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -38,6 +36,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     public const string CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH = "carRowLapTextForegroundOverallBestBrush";
 
     public const string SENTINEL_IMAGE = "sentinelImage";
+    public const string MRL_IMAGE = "mrlImage";
 
     #endregion
 
@@ -634,11 +633,19 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         });
     }
 
-    private static Bitmap GetCarSourceImage(VideoSystemType type)
+    private static IImage GetCarSourceImage(VideoSystemType type)
     {
         if (type == VideoSystemType.Sentinel)
         {
             if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, SENTINEL_IMAGE) is string image)
+            {
+                return new Bitmap(AssetLoader.Open(new Uri(image)));
+            }
+        }
+        else if (type == VideoSystemType.MyRacesLive)
+        {
+            //return new SvgImage { Source = SvgSource.Load("avares://RedMist.Timing.UI/Assets/MRL_vectorial.svg", null) };
+            if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, MRL_IMAGE) is string image)
             {
                 return new Bitmap(AssetLoader.Open(new Uri(image)));
             }

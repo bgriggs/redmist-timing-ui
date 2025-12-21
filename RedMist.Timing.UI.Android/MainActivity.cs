@@ -3,7 +3,6 @@ using Android.Content.PM;
 using Android.OS;
 using Avalonia;
 using Avalonia.Android;
-using Microsoft.Maui.ApplicationModel;
 using RedMist.Timing.UI.ViewModels;
 
 namespace RedMist.Timing.UI.Android;
@@ -25,8 +24,6 @@ public class MainActivity : AvaloniaMainActivity<App>
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-        Platform.Init(this, savedInstanceState);
-        //OnBackPressedDispatcher.AddCallback(this, new MyBackPressedCallback(true));
     }
 
     public override void OnBackPressed()
