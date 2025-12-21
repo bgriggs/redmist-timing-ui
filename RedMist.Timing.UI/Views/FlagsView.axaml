@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
 			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
@@ -18,21 +18,21 @@
 		<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
 	</UserControl.Resources>
 	
-	<StackPanel>
+	<Grid RowDefinitions="Auto,Auto,Auto,*">
 		<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
 			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
 			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
 		</Grid>
 
-		<StackPanel Orientation="Horizontal">
+		<StackPanel Orientation="Horizontal" Grid.Row="1">
 			<TextBlock Text="Flags" FontSize="16" FontWeight="Bold" Margin="4,15,4,0" Width="82"/>
 			<TextBlock Text="Start" Classes="flagdurationheader" Width="62"/>
 			<TextBlock Text="End" Classes="flagdurationheader" Width="66"/>
 			<TextBlock Text="Duration" Classes="flagdurationheader" Width="50"/>
 		</StackPanel>
-		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title"/>
-		<ScrollViewer IsVisible="{Binding !IsLoading}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title" Grid.Row="2"/>
+		<ScrollViewer IsVisible="{Binding !IsLoading}" Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 			<ItemsControl ItemsSource="{Binding Flags}" Margin="4,2,4,4">
 				<ItemsControl.ItemTemplate>
 					<DataTemplate DataType="vm:FlagViewModel">
@@ -49,5 +49,5 @@
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>
 		</ScrollViewer>
-	</StackPanel>
+	</Grid>
 </UserControl>
