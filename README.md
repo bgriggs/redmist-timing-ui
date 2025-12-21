@@ -1,4 +1,8 @@
 # Red Mist Timing Frontend App
+[![Build](https://github.com/bgriggs/redmist-timing-ui/actions/workflows/build.yml/badge.svg)](https://github.com/bgriggs/redmist-timing-scoring-backend/actions/workflows/build.yml)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/download)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Red Mist provides race timing and scoring services for motorsport events. This repository contains the frontend application for the Red Mist Timing system, built with Avalonia. It is designed to be run on iOS, Android, Browsers, Windows, Linux, macOS, and other platforms.
 
 # Development Setup

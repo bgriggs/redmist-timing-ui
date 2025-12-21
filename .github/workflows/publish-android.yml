@@ -1,8 +1,5 @@
 name: Publish Timing Android App
 
-#on:
-#  release:
-#    types: [published]
 on:
    workflow_dispatch: # Run manually
 
@@ -17,7 +14,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Install Android workload
         run: dotnet workload install android
