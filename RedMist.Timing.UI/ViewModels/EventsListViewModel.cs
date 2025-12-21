@@ -1,5 +1,6 @@
 ﻿using Avalonia.Threading;
 using BigMission.Avalonia.Utilities;
+using BigMission.Avalonia.Utilities.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -55,7 +56,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         IsLoading = true;
         try
         {
-            var events = await eventClient.ExecuteWithRetryAsync(eventClient.LoadRecentEventsAsync, 
+            var events = await eventClient.ExecuteWithRetryAsync(eventClient.LoadRecentEventsAsync,
                 nameof(eventClient.LoadRecentEventsAsync), maxRetries: 5);
             if (events != null)
             {
@@ -66,38 +67,26 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
                 }
                 else
                 {
-                    // Load icons for organizations
-                    var iconTasks = new Dictionary<int, Task<byte[]>>();
-                    var orgIds = events.Select(e => e.OrganizationId).Distinct();
-                    foreach (var orgId in orgIds)
-                    {
-                        iconTasks[orgId] = organizationClient.GetOrganizationIconAsync(orgId);
-                    }
-
-                    await Task.WhenAll(iconTasks.Values);
-                    var orgIconLookup = new Dictionary<int, byte[]>();
-                    foreach (var ot in iconTasks)
-                    {
-                        var orgId = ot.Key;
-                        var icon = ot.Value.Result;
-                        if (icon != null)
-                        {
-                            orgIconLookup[orgId] = icon;
-                        }
-                    }
-
-                    // Order the live events at the top
+                    // Order the live events at the top and create ViewModels without icons initially
                     var vms = new List<EventViewModel>();
                     foreach (var e in events.Where(e => e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
                     {
-                        vms.Add(new EventViewModel(e, orgIconLookup[e.OrganizationId]));
+                        vms.Add(new EventViewModel(e, []));
                     }
                     foreach (var e in events.Where(e => !e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
                     {
-                        vms.Add(new EventViewModel(e, orgIconLookup[e.OrganizationId]));
+                        vms.Add(new EventViewModel(e, []));
                     }
 
-                    Dispatcher.UIThread.Post(() => Events.SetRange(vms));
+                    // Display events immediately
+                    Dispatcher.UIThread.InvokeOnUIThread(() => Events.SetRange(vms));
+
+                    // Load icons asynchronously in the background
+                    var orgIds = events.Select(e => e.OrganizationId).Distinct();
+                    foreach (var orgId in orgIds)
+                    {
+                        _ = LoadOrganizationIconAsync(orgId, vms);
+                    }
                 }
             }
             else
@@ -114,6 +103,27 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task LoadOrganizationIconAsync(int organizationId, List<EventViewModel> eventViewModels)
+    {
+        try
+        {
+            var icon = await organizationClient.GetOrganizationIconCdnAsync(organizationId);
+            if (icon != null && icon.Length > 0)
+            {
+                // Update all events with this organization's icon
+                var eventsToUpdate = eventViewModels.Where(vm => vm.OrganizationId == organizationId);
+                foreach (var eventVm in eventsToUpdate)
+                {
+                    Dispatcher.UIThread.InvokeOnUIThread(() => eventVm.UpdateIcon(icon));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load icon for organization {OrganizationId}", organizationId);
         }
     }
 

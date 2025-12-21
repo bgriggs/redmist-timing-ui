@@ -41,7 +41,7 @@ public partial class EventInformationViewModel : ObservableObject
             if (EventModel.OrganizationLogo is not null && EventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(EventModel.OrganizationLogo);
-                return Bitmap.DecodeToWidth(ms, 55);
+                return Bitmap.DecodeToWidth(ms, 165);
             }
             return null;
         }

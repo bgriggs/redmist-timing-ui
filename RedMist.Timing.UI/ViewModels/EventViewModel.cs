@@ -16,7 +16,11 @@ public partial class EventViewModel : ObservableObject
     public EventListSummary EventModel { get; }
     public string Name => EventModel.EventName;
     public string Organization => EventModel.OrganizationName;
-    public Bitmap? OrganizationLogo { get; private set; }
+    public int OrganizationId => EventModel.OrganizationId;
+
+    [ObservableProperty]
+    private Bitmap? organizationLogo;
+
     public ObservableCollection<ScheduleDayViewModel> ScheduleDays { get; } = [];
     public bool IsLive => EventModel.IsLive;
 
@@ -26,10 +30,9 @@ public partial class EventViewModel : ObservableObject
         EventModel = eventModel;
         if (organizationLogo is not null && organizationLogo.Length > 0)
         {
-            using MemoryStream ms = new(organizationLogo);
-            OrganizationLogo = Bitmap.DecodeToWidth(ms, 55);
+            UpdateIcon(organizationLogo);
         }
-        
+
         if (EventModel.Schedule != null)
         {
             var today = DateTime.Now.Day;
@@ -44,6 +47,24 @@ public partial class EventViewModel : ObservableObject
                 {
                     break;
                 }
+            }
+        }
+    }
+
+    public void UpdateIcon(byte[] iconBytes)
+    {
+        if (iconBytes is not null && iconBytes.Length > 0)
+        {
+            try
+            {
+                using MemoryStream ms = new(iconBytes);
+                // Decode at 2x-3x the display size for crisp rendering on high-DPI screens
+                OrganizationLogo = Bitmap.DecodeToWidth(ms, 165);
+            }
+            catch (Exception)
+            {
+                // If decode fails, leave logo as null
+                OrganizationLogo = null;
             }
         }
     }

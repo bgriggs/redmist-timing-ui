@@ -35,7 +35,11 @@
 									BorderBrush="{DynamicResource boldItemBorder}" HorizontalAlignment="Stretch" Padding="4,1,3,4"
 									Command="{Binding SelectEvent}" CommandParameter="{Binding .}">
 								<Grid ColumnDefinitions="Auto,*,Auto">
-									<Image Source="{Binding OrganizationLogo}" Height="55" Width="55" VerticalAlignment="Center"/>
+									<Image Source="{Binding OrganizationLogo}" 
+										   Height="55" 
+										   Width="55" 
+										   VerticalAlignment="Center"
+										   RenderOptions.BitmapInterpolationMode="HighQuality"/>
 
 									<!--Event Information-->
 									<StackPanel Grid.Column="1" VerticalAlignment="Center">

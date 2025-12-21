@@ -32,7 +32,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
             if (eventModel.OrganizationLogo is not null && eventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(eventModel.OrganizationLogo);
-                return Bitmap.DecodeToWidth(ms, 55);
+                return Bitmap.DecodeToWidth(ms, 165);
             }
             return null;
         }

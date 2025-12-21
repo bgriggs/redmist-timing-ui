@@ -80,6 +80,9 @@ public partial class App : Application
         services.AddSingleton(inMemoryLogProvider);
         loggerFactory.AddProvider(inMemoryLogProvider);
 
+        // Add HttpClient factory
+        services.AddHttpClient();
+
         ConfigureServices(services);
 
         // Register version check services
