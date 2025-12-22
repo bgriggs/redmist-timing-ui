@@ -200,7 +200,7 @@
 							<!--Laps-->
 							<TabItem Header="Laps" IsSelected="{Binding IsTableTabSelected}">
 								<Grid RowDefinitions="Auto,*" Margin="10,3">
-									<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME"/>
+									<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME    DRIVER"/>
 									<ScrollViewer MaxHeight="250" Grid.Row="1">
 										<ItemsControl ItemsSource="{Binding LapList.Laps}">
 											<ItemsControl.ItemTemplate>
@@ -220,7 +220,8 @@
 														<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
 														<TextBlock Text="{Binding InPit}" Classes="sm" Width="20"/>
 														<PathIcon Height="11" Width="70" Foreground="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" Data="{StaticResource flaggeom}" ToolTip.Tip="{Binding FlagStr}"/>
-														<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0"/>
+														<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0" Width="67"/>
+														<TextBlock Text="{Binding DriverName}" Classes="sm" Margin="1,0,0,0"/>
 													</StackPanel>
 												</DataTemplate>
 											</ItemsControl.ItemTemplate>

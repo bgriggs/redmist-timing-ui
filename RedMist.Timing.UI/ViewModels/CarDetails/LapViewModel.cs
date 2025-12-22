@@ -29,6 +29,7 @@ public partial class LapViewModel(CarPosition carPosition) : ObservableObject
             return string.Empty;
         }
     }
+    public string DriverName => carPosition.DriverName;
 
     [ObservableProperty]
     private bool gainedOverallPosition;

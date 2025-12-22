@@ -34,7 +34,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallGap = "00:02.872",
             OverallDifference = "00:12.872",
             Class = "GP3",
-            PitState = PitStates.ExitedPit
+            PitState = PitStates.ExitedPit,
+            DriverName = "Jane Smith",
         });
 
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
@@ -49,6 +50,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallGap = "00:02.872",
             OverallDifference = "00:12.872",
             Class = "GP3",
+            PitState = PitStates.InPit,
+            DriverName = "John Doe",
         });
 
         carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
