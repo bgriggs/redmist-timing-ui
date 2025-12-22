@@ -6,6 +6,7 @@
 		<Nullable>enable</Nullable>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<Version>$(SharedVersion)</Version>
+		<WasmBuildNative>true</WasmBuildNative>
 	</PropertyGroup>
 	<ItemGroup>
 		<AvaloniaResource Include="wwwroot\favicon.ico" />
