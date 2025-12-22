@@ -43,6 +43,9 @@ jobs:
           
           # Update Hub URL
           $json.Hub.Url = "${{ vars.HUB_URL || 'https://api.redmist.racing/status/event-status' }}"
+
+          # Update Cdn BaseUrl
+          $json.Cdn.BaseUrl = "${{ vars.ASSETS_URL || 'https://assets.redmist.racing' }}"
           
           # Save the updated JSON
           $json | ConvertTo-Json -Depth 10 | Set-Content $appsettingsPath -Encoding UTF8
