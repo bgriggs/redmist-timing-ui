@@ -37,5 +37,7 @@
     <!-- For other platforms, use the standard version -->
     <PackageVersion Include="SkiaSharp" Version="3.119.1" />
     <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="2.88.9" />
+    <PackageVersion Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="8.3.1.1" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,8 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<Version>$(SharedVersion)</Version>
 		<WasmBuildNative>true</WasmBuildNative>
+		<EmccLinkOptimizationFlag>-O1</EmccLinkOptimizationFlag>
+		<WasmStripILAfterAOT>false</WasmStripILAfterAOT>
 	</PropertyGroup>
 	<ItemGroup>
 		<AvaloniaResource Include="wwwroot\favicon.ico" />
@@ -14,6 +16,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Browser" />
+		<PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
+		<PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
 	</ItemGroup>
 
 	<ItemGroup>
