@@ -69,4 +69,4 @@ jobs:
         run: dotnet clean RedMist.Timing.UI.iOS/RedMist.Timing.UI.iOS.csproj -c Release
 
       - name: Build
-        run: dotnet build RedMist.Timing.UI.iOS/RedMist.Timing.UI.iOS.csproj -f net9.0-ios -c Release -p:ArchiveOnBuild=true -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist"
+        run: dotnet build RedMist.Timing.UI.iOS/RedMist.Timing.UI.iOS.csproj -f net10.0-ios -c Release -p:ArchiveOnBuild=true -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist"
