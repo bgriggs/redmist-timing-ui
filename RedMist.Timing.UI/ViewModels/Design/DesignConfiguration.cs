@@ -16,7 +16,9 @@ class DesignConfiguration : IConfiguration
         { "Keycloak:AuthServerUrl", "https://localhost:5001/auth" },
         { "Keycloak:Realm", "test" },
         { "Keycloak:ClientId", "1" },
-        { "Keycloak:ClientSecret", "secret" }
+        { "Keycloak:ClientSecret", "secret" },
+        { "Cdn:BaseUrl", "https://assets.redmist.racing/" },
+        { "Cdn:Logos", "logos/" },
     };
 
     public string? this[string key] { get => config[key]; set => throw new NotImplementedException(); }
