@@ -19,7 +19,7 @@ public partial class ControlLogEntryViewModel : ObservableObject
 
     public string Status => LogEntry.Status;
 
-    public string PenalityAction => LogEntry.PenalityAction;
+    public string PenaltyAction => LogEntry.PenaltyAction;
 
     public string OtherNotes => LogEntry.OtherNotes;
 
@@ -42,8 +42,8 @@ public partial class ControlLogEntryViewModel : ObservableObject
             OnPropertyChanged(nameof(Car2));
         if (logEntry.Status != old.Status)
             OnPropertyChanged(nameof(Status));
-        if (logEntry.PenalityAction != old.PenalityAction)
-            OnPropertyChanged(nameof(PenalityAction));
+        if (logEntry.PenaltyAction != old.PenaltyAction)
+            OnPropertyChanged(nameof(PenaltyAction));
         if (logEntry.OtherNotes != old.OtherNotes)
             OnPropertyChanged(nameof(OtherNotes));
     }

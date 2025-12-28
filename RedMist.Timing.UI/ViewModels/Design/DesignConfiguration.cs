@@ -19,6 +19,7 @@ class DesignConfiguration : IConfiguration
         { "Keycloak:ClientSecret", "secret" },
         { "Cdn:BaseUrl", "https://assets.redmist.racing/" },
         { "Cdn:Logos", "logos/" },
+        { "Cdn:ArchiveUrl", "https://archive.redmist.racing/" },
     };
 
     public string? this[string key] { get => config[key]; set => throw new NotImplementedException(); }

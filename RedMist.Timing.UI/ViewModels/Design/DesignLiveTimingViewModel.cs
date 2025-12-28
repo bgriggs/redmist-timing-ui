@@ -1,28 +1,34 @@
 ﻿using DynamicData;
+using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignLiveTimingViewModel : LiveTimingViewModel
 {
-    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext())
+    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration())
     {
         var pitTracking = new PitTracking();
         var viewSizeService = new ViewSizeService();
         var ec = new DesignEventClient(new DesignConfiguration());
         var hc = new DesignHubClient();
+        var httpClientFactory = new DesignHttpClientFactory();
+        var configuration = new DesignConfiguration();
+        var evt = new Event { EventId = 1 }; // Mock event for design time
         SessionName = "Design Event";
         Flag = "Green";
         TimeToGo = "03:45:00";
         RaceTime = "01:00:00";
         LocalTime = "9:14:33 am";
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
         {
             Number = "34",
             OriginalName = "Team Awesome 1",
@@ -38,7 +44,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             DriverName = "Jane Smith",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
         {
             Number = "14",
             OriginalName = "Team Awesome 2",
@@ -54,7 +60,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             DriverName = "John Doe",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
         {
             Number = "12",
             OriginalName = "Team Awesome Really Long Team Name 12345678123123123123123123",
@@ -70,7 +76,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP3",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
         {
             Number = "1x",
             OriginalName = "Team Stale",
@@ -100,7 +106,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsPitStartFinish = true,
         }));
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
         {
             Number = "111",
             OriginalName = "Team Cars Best Time",
@@ -128,7 +134,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsEnteredPit = true,
         }));
 
-        carCache.AddOrUpdate(new CarViewModel(1, ec, hc, pitTracking, viewSizeService)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
         {
             Number = "222",
             OriginalName = "Team Overall Best Time",
@@ -142,7 +148,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP1",
         });
 
-        carCache.Lookup("222").Value.CarDetailsViewModel = new DetailsViewModel(1, 1, "222", new DesignEventClient(new DesignConfiguration()), hc, pitTracking);
+        carCache.Lookup("222").Value.CarDetailsViewModel = new DetailsViewModel(evt, 1, "222", new DesignEventClient(new DesignConfiguration()), hc, pitTracking, httpClientFactory, configuration);
         carCache.Lookup("222").Value.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), new CarPosition
         {
             Number = "222",

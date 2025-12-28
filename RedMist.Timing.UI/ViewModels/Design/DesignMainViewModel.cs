@@ -6,7 +6,7 @@ public class DesignMainViewModel : MainViewModel
         base(new EventsListViewModel(new Clients.EventClient(new DesignConfiguration(), new DebugLoggerFactory()), new DesignOrganizationClient(), new DebugLoggerFactory()), 
         new DesignLiveTimingViewModel(), new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(),
         new Services.ViewSizeService(), new EventContext(),
-        new DesignPlatformDetectionService(), new DesignVersionCheckService())
+        new DesignPlatformDetectionService(), new DesignVersionCheckService(), new DesignHttpClientFactory(), new DesignConfiguration())
     {
         IsContentVisible = true;
     }

@@ -46,7 +46,7 @@
 				<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
 				<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
 				<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-				<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenalityAction}"/>
+				<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenaltyAction}"/>
 				<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
 			</DataGrid.Columns>
 		</DataGrid>

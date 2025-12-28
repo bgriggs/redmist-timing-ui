@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.TimingCommon;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.Configuration;
 using RedMist.TimingCommon.Models.InCarDriverMode;
 using RestSharp;
 using System;
@@ -70,11 +71,19 @@ public class EventClient
         return await restClient.GetAsync<List<EventListSummary>>(request) ?? [];
     }
 
-    public virtual async Task<Event?> LoadEventAsync(int eventId)
+    public virtual async Task<List<EventListSummary>> LoadArchivedEventsAsync(int offset, int take)
+    {
+        var request = new RestRequest("LoadArchivedEvents", Method.Get);
+        request.AddQueryParameter("offset", offset);
+        request.AddQueryParameter("take", take);
+        return await restClient.GetAsync<List<EventListSummary>>(request) ?? [];
+    }
+
+    public virtual async Task<TimingCommon.Models.Event?> LoadEventAsync(int eventId)
     {
         var request = new RestRequest("LoadEvent", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await restClient.GetAsync<Event?>(request);
+        return await restClient.GetAsync<TimingCommon.Models.Event?>(request);
     }
 
     public virtual async Task<SessionState?> LoadEventStatusAsync(int eventId)

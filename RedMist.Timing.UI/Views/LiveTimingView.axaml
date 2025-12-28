@@ -218,7 +218,7 @@
 															<PathIcon Height="10" Width="6" IsVisible="{Binding LostClassPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
 														</StackPanel>
 														<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
-														<TextBlock Text="{Binding InPit}" Classes="sm" Width="20"/>
+														<TextBlock Text="{Binding InPit}" Classes="sm" Width="21"/>
 														<PathIcon Height="11" Width="70" Foreground="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" Data="{StaticResource flaggeom}" ToolTip.Tip="{Binding FlagStr}"/>
 														<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0" Width="67"/>
 														<TextBlock Text="{Binding DriverName}" Classes="sm" Margin="1,0,0,0"/>
@@ -249,7 +249,7 @@
 										<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
 										<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
 										<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-										<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenalityAction}"/>
+										<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenaltyAction}"/>
 										<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
 									</DataGrid.Columns>
 								</DataGrid>

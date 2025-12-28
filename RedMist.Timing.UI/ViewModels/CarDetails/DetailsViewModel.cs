@@ -1,6 +1,8 @@
 ﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using MessagePack;
+using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
@@ -10,19 +12,25 @@ using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
 public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogNotification>, IRecipient<AppResumeNotification>, IDisposable
 {
-    private readonly int eventId;
+    private readonly Event evt;
     private readonly int sessionId;
     private readonly string carNumber;
     private readonly EventClient serverClient;
     private readonly HubClient hubClient;
     private readonly PitTracking pitTracking;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly string archiveBaseUrl;
     [ObservableProperty]
     private bool isLoading = false;
 
@@ -57,14 +65,16 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
 
 
-    public DetailsViewModel(int eventId, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient, PitTracking pitTracking)
+    public DetailsViewModel(Event evt, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
-        this.eventId = eventId;
+        this.evt = evt;
         this.sessionId = sessionId;
         this.carNumber = carNumber;
         this.serverClient = serverClient;
         this.hubClient = hubClient;
         this.pitTracking = pitTracking;
+        this.httpClientFactory = httpClientFactory;
+        archiveBaseUrl = configuration["Cdn:ArchiveUrl"] ?? throw new InvalidOperationException("Cdn:ArchiveUrl is not configured.");
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -75,14 +85,14 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = true);
             // Subscribe to get control logs
-            _ = hubClient.SubscribeToCarControlLogsAsync(eventId, carNumber);
+            _ = hubClient.SubscribeToCarControlLogsAsync(evt.EventId, carNumber);
 
             // Load Competitor Metadata
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    var competitorMetadata = await serverClient.LoadCompetitorMetadataAsync(eventId, carNumber);
+                    var competitorMetadata = await serverClient.LoadCompetitorMetadataAsync(evt.EventId, carNumber);
                     if (competitorMetadata != null)
                     {
                         UpdateCompetitorMetadata(competitorMetadata);
@@ -95,15 +105,22 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             });
 
             // Load control logs
-            var carControlLogsTask = serverClient.LoadCarControlLogsAsync(eventId, carNumber);
+            var carControlLogsTask = serverClient.LoadCarControlLogsAsync(evt.EventId, carNumber);
 
-            // Load laps
-            var carPositions = await serverClient.LoadCarLapsAsync(eventId, sessionId, carNumber);
-            
+            List<CarPosition>? laps = null;
+            if (evt.IsArchived)
+            {
+                laps = await LoadArchivedLapsAsync(evt.EventId, sessionId, carNumber);
+            }
+            else // Load laps
+            {
+                laps = await serverClient.LoadCarLapsAsync(evt.EventId, sessionId, carNumber);
+            }
+
             Dispatcher.UIThread.InvokeOnUIThread(() =>
             {
-                Chart.UpdateLaps(carPositions);
-                LapList.UpdateLaps(carPositions);
+                Chart.UpdateLaps(laps);
+                LapList.UpdateLaps(laps);
             });
 
             // Apply control logs
@@ -189,11 +206,46 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         });
     }
 
+    private async Task<List<CarPosition>> LoadArchivedLapsAsync(int eventId, int sessionId, string carNumber)
+    {
+        try
+        {
+            // Build the URL: {archiveBaseUrl}/event-{eventId}-session-{sessionId}-car-laps/car-{carNum}-laps.gz
+            var url = $"{archiveBaseUrl.TrimEnd('/')}/event-laps/event-{eventId}-session-{sessionId}-car-laps/car-{carNumber}-laps.gz";
+
+            // Download the compressed file
+            using var httpClient = httpClientFactory.CreateClient();
+            var response = await httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to download archived laps from {url}: {response.StatusCode}");
+                return [];
+            }
+
+            // Get the compressed stream
+            await using var compressedStream = await response.Content.ReadAsStreamAsync();
+
+            // Decompress using GZipStream
+            await using var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
+
+            // Read the decompressed content for debugging
+            using var memoryStream = new MemoryStream();
+            var laps = await JsonSerializer.DeserializeAsync<List<CarPosition>>(gzipStream);
+            return laps ?? [];
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading archived laps: {ex}");
+            return [];
+        }
+    }
+
     public void Dispose()
     {
         try
         {
-            _ = hubClient.UnsubscribeFromCarControlLogsAsync(eventId, carNumber);
+            _ = hubClient.UnsubscribeFromCarControlLogsAsync(evt.EventId, carNumber);
         }
         catch { }
         finally

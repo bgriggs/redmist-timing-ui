@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
@@ -12,6 +13,7 @@ using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels.InCarDriverMode;
 using RedMist.TimingCommon.Models;
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -44,6 +46,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly EventContext eventContext;
     private readonly IPlatformDetectionService platformDetectionService;
     private readonly IVersionCheckService versionCheckService;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly IConfiguration configuration;
     private readonly ILogger Logger;
     [ObservableProperty]
     private bool isContentVisible = false;
@@ -147,7 +151,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
         EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext,
-        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService)
+        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -158,6 +162,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.eventContext = eventContext;
         this.platformDetectionService = platformDetectionService;
         this.versionCheckService = versionCheckService;
+        this.httpClientFactory = httpClientFactory;
+        this.configuration = configuration;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -262,7 +268,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                         });
                     }
 
-                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext);
+                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration);
                     EventInformationViewModel = new EventInformationViewModel(eventModel);
                     ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient);
                     FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext);

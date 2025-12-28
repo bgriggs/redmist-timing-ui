@@ -9,6 +9,7 @@ using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -18,6 +19,7 @@ using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
 using System.Globalization;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -358,11 +360,13 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
-    private readonly int eventId;
+    private readonly Event evt;
     private readonly EventClient serverClient;
     private readonly HubClient hubClient;
     private readonly PitTracking pitTracking;
     private readonly ViewSizeService viewSizeService;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly IConfiguration configuration;
     [ObservableProperty]
     private DetailsViewModel? carDetailsViewModel;
 
@@ -388,13 +392,15 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private string driverName = string.Empty;
 
 
-    public CarViewModel(int eventId, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService)
+    public CarViewModel(Event evt, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
-        this.eventId = eventId;
+        this.evt = evt;
         this.serverClient = serverClient;
         this.hubClient = hubClient;
         this.pitTracking = pitTracking;
         this.viewSizeService = viewSizeService;
+        this.httpClientFactory = httpClientFactory;
+        this.configuration = configuration;
         WeakReferenceMessenger.Default.RegisterAll(this);
         Receive(new SizeChangedNotification(Size.Infinity));
     }
@@ -592,7 +598,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         if (isEnabled && CarDetailsViewModel == null)
         {
             _ = int.TryParse(LastCarPosition?.SessionId ?? "0", out int sessionId);
-            CarDetailsViewModel = new DetailsViewModel(eventId, sessionId, Number, serverClient, hubClient, pitTracking);
+            CarDetailsViewModel = new DetailsViewModel(evt, sessionId, Number, serverClient, hubClient, pitTracking, httpClientFactory, configuration);
             _ = CarDetailsViewModel.Initialize();
         }
         else if (!isEnabled && CarDetailsViewModel != null)

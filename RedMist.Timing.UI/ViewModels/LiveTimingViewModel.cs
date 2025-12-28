@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Extensions;
@@ -20,6 +21,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -46,6 +48,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private readonly EventClient serverClient;
     private readonly ViewSizeService viewSizeService;
     private readonly EventContext eventContext;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly IConfiguration configuration;
     private readonly SessionState lastSessionState = new();
     private Dictionary<string, string> classColors = [];
     private Dictionary<string, string> classOrder = [];
@@ -161,12 +165,14 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private DateTime lastLogoClickTime = DateTime.MinValue;
 
 
-    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, InMemoryLogProvider? logProvider = null)
+    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, InMemoryLogProvider? logProvider = null)
     {
         this.hubClient = hubClient;
         this.serverClient = serverClient;
         this.viewSizeService = viewSizeService;
         this.eventContext = eventContext;
+        this.httpClientFactory = httpClientFactory;
+        this.configuration = configuration;
         this.logProvider = logProvider;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
@@ -451,7 +457,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService) { CurrentGroupMode = CurrentGrouping };
+                var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration) { CurrentGroupMode = CurrentGrouping };
                 vm.ApplyEntry(entry, classColor);
                 carCache.AddOrUpdate(vm);
 
@@ -691,7 +697,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public void InsertDuplicateCar()
     {
-        var vm = new CarViewModel(EventModel.EventId, serverClient, hubClient, pitTracking, viewSizeService)
+        var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration)
         {
             Number = "DuplicateCar",
             Class = "Test Class",

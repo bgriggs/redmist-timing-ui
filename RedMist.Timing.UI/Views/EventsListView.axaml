@@ -17,7 +17,7 @@
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}">
 			<Grid ColumnDefinitions="70,*,70">
 				<Image Source="avares://RedMist.Timing.UI/Assets/redmist.png" Width="70" Height="35" Margin="5,4,0,5"/>
-				<TextBlock Text="Events" Classes="title" Margin="0,-3,0,0" VerticalAlignment="Center" Grid.Column="1" HorizontalAlignment="Center"/>
+				<TextBlock Text="{Binding PageTitle}" Classes="title" Margin="0,-3,0,0" VerticalAlignment="Center" Grid.Column="1" HorizontalAlignment="Center"/>
 				<Button Grid.Column="2" ToolTip.Tip="Reload Events" Margin="7" Command="{Binding RefreshEvents}" HorizontalAlignment="Right">
 					<PathIcon Height="12" Width="12" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource refreshArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>
 				</Button>
@@ -85,8 +85,18 @@
 		</RefreshContainer>
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}" Grid.Row="4">
 			<Grid ColumnDefinitions="Auto,*,Auto">
-				<TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="10" Margin="4" VerticalAlignment="Center"/>
-				<Button Grid.Column="2" Command="{Binding SetDriverMode}" Margin="0,1,3,1">
+				<Button Grid.Column="0" Command="{Binding ToggleLiveArchiveCommand}" Margin="0,1,3,1">
+					<StackPanel Orientation="Horizontal">
+						<PathIcon Height="9" Data="{StaticResource trophygeom}">
+							<PathIcon.RenderTransform>
+								<RotateTransform Angle="180"/>
+							</PathIcon.RenderTransform>
+						</PathIcon>
+						<TextBlock Text="{Binding ToggleButtonText}" Classes="size-xs"/>
+					</StackPanel>
+				</Button>
+				<!--<TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="10" Margin="4" VerticalAlignment="Center"/>-->
+				<Button Grid.Column="2" Command="{Binding SetDriverModeCommand}" Margin="0,1,3,1">
 					<StackPanel Orientation="Horizontal">
 						<PathIcon Height="9" Data="{StaticResource racehelmet}"/>
 						<TextBlock Text="Driver Mode" Classes="size-xs"/>

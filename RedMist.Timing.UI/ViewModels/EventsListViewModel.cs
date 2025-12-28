@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -30,10 +31,18 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     public LargeObservableCollection<EventViewModel> Events { get; } = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PageTitle), nameof(ToggleButtonText))]
+    private bool liveAndUpcomingEventsShown = true;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
     private string message = string.Empty;
 
     public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
+
+    public string PageTitle => LiveAndUpcomingEventsShown ? "Live and Upcoming" : "Completed Events";
+
+    public string ToggleButtonText => LiveAndUpcomingEventsShown ? "Completed Events" : "Live and Upcoming";
 
     public static string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty;
 
@@ -54,10 +63,22 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     {
         Message = string.Empty;
         IsLoading = true;
+        Dispatcher.UIThread.InvokeOnUIThread(Events.Clear);
         try
         {
-            var events = await eventClient.ExecuteWithRetryAsync(eventClient.LoadRecentEventsAsync,
-                nameof(eventClient.LoadRecentEventsAsync), maxRetries: 5);
+            List<EventListSummary>? events;
+
+            if (LiveAndUpcomingEventsShown)
+            {
+                events = await eventClient.ExecuteWithRetryAsync(eventClient.LoadRecentEventsAsync,
+                    nameof(eventClient.LoadRecentEventsAsync), maxRetries: 5);
+            }
+            else
+            {
+                events = await eventClient.ExecuteWithRetryAsync(() => eventClient.LoadArchivedEventsAsync(0, 25),
+                    nameof(eventClient.LoadArchivedEventsAsync), maxRetries: 5);
+            }
+
             if (events != null)
             {
                 if (events.Count == 0)
@@ -67,15 +88,27 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
                 }
                 else
                 {
-                    // Order the live events at the top and create ViewModels without icons initially
                     var vms = new List<EventViewModel>();
-                    foreach (var e in events.Where(e => e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
+
+                    if (LiveAndUpcomingEventsShown)
                     {
-                        vms.Add(new EventViewModel(e, []));
+                        // Order the live events at the top and create ViewModels without icons initially
+                        foreach (var e in events.Where(e => e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
+                        {
+                            vms.Add(new EventViewModel(e, []));
+                        }
+                        foreach (var e in events.Where(e => !e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
+                        {
+                            vms.Add(new EventViewModel(e, []));
+                        }
                     }
-                    foreach (var e in events.Where(e => !e.IsLive).OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
+                    else
                     {
-                        vms.Add(new EventViewModel(e, []));
+                        // For archived events, just order by date
+                        foreach (var e in events.OrderByDescending(e => DateTime.ParseExact(e.EventDate, "yyyy-MM-dd", CultureInfo.InvariantCulture)))
+                        {
+                            vms.Add(new EventViewModel(e, []));
+                        }
                     }
 
                     // Display events immediately
@@ -163,5 +196,22 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     {
         var routerEvent = new RouterEvent { Path = "InCarDriverSettings" };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
+    }
+
+    [RelayCommand]
+    public void ToggleLiveArchive()
+    {
+        LiveAndUpcomingEventsShown = !LiveAndUpcomingEventsShown;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Initialize();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error toggling live/archive events");
+            }
+        });
     }
 }

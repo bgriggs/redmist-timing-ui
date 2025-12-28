@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Extensions;
@@ -14,6 +15,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -47,6 +49,8 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private readonly ILoggerFactory loggerFactory;
     private readonly ViewSizeService viewSizeService;
     private readonly EventContext eventContext;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly IConfiguration configuration;
 
     public Bitmap? OrganizationLogo
     {
@@ -65,7 +69,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private bool allowEventList = true;
 
 
-    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext)
+    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         EventModel = eventModel;
         this.hubClient = hubClient;
@@ -73,6 +77,8 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         this.loggerFactory = loggerFactory;
         this.viewSizeService = viewSizeService;
         this.eventContext = eventContext;
+        this.httpClientFactory = httpClientFactory;
+        this.configuration = configuration;
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         InitializeSessions(eventModel.Sessions);
@@ -112,7 +118,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                     //logger.LogError(ex, "Error loading session results");
                 }
 
-                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext) 
+                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration) 
                 { 
                     BackRouterPath = "SessionResultsList",
                     EventModel = EventModel,
