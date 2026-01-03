@@ -67,7 +67,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
 
 
-    public DetailsViewModel(Event evt, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient, 
+    public DetailsViewModel(Event evt, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient,
         PitTracking pitTracking, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         this.evt = evt;
@@ -95,7 +95,15 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             {
                 try
                 {
-                    var competitorMetadata = await serverClient.LoadCompetitorMetadataAsync(evt.EventId, carNumber);
+                    CompetitorMetadata? competitorMetadata = null;
+                    if (evt.IsArchived)
+                    {
+                        competitorMetadata = await LoadArchivedCompetitorMetadataAsync(evt.EventId, carNumber);
+                    }
+                    else
+                    {
+                        competitorMetadata = await serverClient.LoadCompetitorMetadataAsync(evt.EventId, carNumber);
+                    }
                     if (competitorMetadata != null)
                     {
                         UpdateCompetitorMetadata(competitorMetadata);
@@ -222,6 +230,22 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             System.Diagnostics.Debug.WriteLine($"Error loading archived laps: {ex}");
             return [];
+        }
+    }
+
+    private async Task<CompetitorMetadata?> LoadArchivedCompetitorMetadataAsync(int eventId, string carNumber)
+    {
+        try
+        {
+            var url = $"{archiveBaseUrl.TrimEnd('/')}/event-competitor-metadata/event-{eventId}-competitor-metadata.gz";
+            var eventMetadata = await ArchiveHelper.LoadArchivedData<List<CompetitorMetadata>>(httpClientFactory, url);
+            var carMetadata = eventMetadata?.FirstOrDefault(cm => cm.CarNumber == carNumber);
+            return carMetadata;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading archived laps: {ex}");
+            return null;
         }
     }
 
