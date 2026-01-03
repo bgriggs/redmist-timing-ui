@@ -1,26 +1,35 @@
 ﻿using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using BigMission.Avalonia.Utilities.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Utilities;
 using RedMist.TimingCommon.Models;
+using RedMist.TimingCommon.Models.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
 public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatusNotification>
 {
-    private Event eventModel;
-    private EventContext eventContext;
+    private readonly TimingCommon.Models.Event eventModel;
+    private readonly EventContext eventContext;
+    private readonly IHttpClientFactory httpClientFactory;
     private readonly EventClient eventClient;
+    private readonly string archiveBaseUrl;
 
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
     private List<FlagDuration> lastFlagDurations = [];
@@ -44,21 +53,20 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     private bool isLoading = false;
 
 
-    public FlagsViewModel(Event eventModel, EventClient eventClient, EventContext eventContext)
+    public FlagsViewModel(TimingCommon.Models.Event eventModel, EventClient eventClient, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         this.eventModel = eventModel;
         this.eventClient = eventClient;
         this.eventContext = eventContext;
+        this.httpClientFactory = httpClientFactory;
+        archiveBaseUrl = configuration["Cdn:ArchiveUrl"] ?? throw new ArgumentException("Cdn:ArchiveUrl is not configured.");
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
 
     public void Initialize()
     {
-        if (Dispatcher.UIThread.CheckAccess())
-            _ = Refresh();
-        else
-            Dispatcher.UIThread.Post(async () => await Refresh());
+        Dispatcher.UIThread.InvokeOnUIThread(async () => await Refresh());
     }
 
     private async Task Refresh()
@@ -73,7 +81,15 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
         try
         {
             IsLoading = true;
-            var flags = await eventClient.LoadFlagsAsync(eventModel.EventId, sessionId);
+            List<FlagDuration> flags;
+            if (eventModel.IsArchived)
+            {
+                flags = await LoadFlagsFromArchiveAsync(eventModel.EventId, sessionId);
+            }
+            else
+            {
+                flags = await eventClient.LoadFlagsAsync(eventModel.EventId, sessionId);
+            }
             var sp = new SessionStatePatch { FlagDurations = flags };
             Receive(new SessionStatusNotification(sp));
         }
@@ -89,10 +105,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
 
     public void Receive(SessionStatusNotification message)
     {
-        if (Dispatcher.UIThread.CheckAccess())
-            UpdateSession(message.Value);
-        else
-            Dispatcher.UIThread.Post(() => UpdateSession(message.Value));
+        Dispatcher.UIThread.InvokeOnUIThread(() => UpdateSession(message.Value));
     }
 
     private void UpdateSession(SessionStatePatch session)
@@ -140,10 +153,18 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
         return fds;
     }
 
+    [RelayCommand]
     public void Back()
     {
         var routerEvent = new RouterEvent { Path = "EventsList" };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
+    }
+
+    private async Task<List<FlagDuration>> LoadFlagsFromArchiveAsync(int eventId, int sessionId)
+    {
+        var url = $"{archiveBaseUrl.TrimEnd('/')}/event-flags/event-{eventId}-session-{sessionId}-flags.gz";
+        var flags = await ArchiveHelper.LoadArchivedData<List<FlagDuration>>(httpClientFactory, url);
+        return flags ?? [];
     }
 }
 

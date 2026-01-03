@@ -7,6 +7,7 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
+using RedMist.Timing.UI.Utilities;
 using RedMist.Timing.UI.ViewModels.CarDetails;
 using RedMist.TimingCommon.Models;
 using System;
@@ -31,6 +32,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     private readonly PitTracking pitTracking;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly string archiveBaseUrl;
+
     [ObservableProperty]
     private bool isLoading = false;
 
@@ -65,7 +67,8 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
 
 
-    public DetailsViewModel(Event evt, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public DetailsViewModel(Event evt, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient, 
+        PitTracking pitTracking, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         this.evt = evt;
         this.sessionId = sessionId;
@@ -74,7 +77,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         this.hubClient = hubClient;
         this.pitTracking = pitTracking;
         this.httpClientFactory = httpClientFactory;
-        archiveBaseUrl = configuration["Cdn:ArchiveUrl"] ?? throw new InvalidOperationException("Cdn:ArchiveUrl is not configured.");
+        archiveBaseUrl = configuration["Cdn:ArchiveUrl"] ?? throw new ArgumentException("Cdn:ArchiveUrl is not configured.");
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -212,26 +215,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             // Build the URL: {archiveBaseUrl}/event-{eventId}-session-{sessionId}-car-laps/car-{carNum}-laps.gz
             var url = $"{archiveBaseUrl.TrimEnd('/')}/event-laps/event-{eventId}-session-{sessionId}-car-laps/car-{carNumber}-laps.gz";
-
-            // Download the compressed file
-            using var httpClient = httpClientFactory.CreateClient();
-            var response = await httpClient.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to download archived laps from {url}: {response.StatusCode}");
-                return [];
-            }
-
-            // Get the compressed stream
-            await using var compressedStream = await response.Content.ReadAsStreamAsync();
-
-            // Decompress using GZipStream
-            await using var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
-
-            // Read the decompressed content for debugging
-            using var memoryStream = new MemoryStream();
-            var laps = await JsonSerializer.DeserializeAsync<List<CarPosition>>(gzipStream);
+            var laps = await ArchiveHelper.LoadArchivedData<List<CarPosition>>(httpClientFactory, url);
             return laps ?? [];
         }
         catch (Exception ex)
