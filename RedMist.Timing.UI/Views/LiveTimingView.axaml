@@ -57,7 +57,7 @@
 								<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource upArrow}"/>
 								<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource downArrow}" Margin="0,-2,0,0"/>
 							</StackPanel>
-							<TextBlock Text="0" Classes="sm" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Grid.Column="1" Margin="1,0,0,0" VerticalAlignment=""/>
+							<TextBlock Text="0" Classes="sm" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Grid.Column="1" Margin="1,0,0,0" VerticalAlignment="Center"/>
 						</Grid>
 					</StackPanel>
 				</Grid>
@@ -314,10 +314,10 @@
 
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold"/>
-				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
-				<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
-				<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}}" Classes="h1"/>
-				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}}" Classes="h1"/>
+				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
+				<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
+				<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}" Classes="h1"/>
+				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}" Classes="h1"/>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock Text="Watch Along: " Classes="h1" IsVisible="{Binding IsBroadcastVisible}"/>
 					<Button IsVisible="{Binding IsBroadcastVisible}" Classes="link" Command="{Binding LaunchBroadcast}">

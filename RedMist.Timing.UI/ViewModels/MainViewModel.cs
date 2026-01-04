@@ -270,7 +270,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
                     ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration);
                     EventInformationViewModel = new EventInformationViewModel(eventModel);
-                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient);
+                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext);
                     FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration);
                     IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
 

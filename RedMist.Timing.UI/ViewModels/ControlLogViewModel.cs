@@ -1,18 +1,25 @@
 ﻿using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using BigMission.Avalonia.Utilities.Extensions;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Utilities;
 using RedMist.TimingCommon.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -27,6 +34,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     public Event EventModel { get; }
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
+    private readonly EventContext eventContext;
 
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
@@ -50,11 +58,13 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     private bool isLoading = false;
 
 
-    public ControlLogViewModel(Event EventModel, HubClient hubClient, EventClient eventClient)
+    public ControlLogViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, EventContext eventContext)
     {
-        this.EventModel = EventModel;
+        EventModel = eventModel;
         this.hubClient = hubClient;
         this.eventClient = eventClient;
+        this.eventContext = eventContext;
+
         logCache.Connect()
             .AutoRefresh(t => t.Timestamp)
             .SortAndBind(ControlLog, SortExpressionComparer<ControlLogEntryViewModel>.Descending(t => t.LogEntry.Timestamp))
@@ -87,7 +97,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 
     private Task ProcessControlLogs(ControlLogNotification message)
     {
-        Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
             try
             {
@@ -119,6 +129,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         return Task.CompletedTask;
     }
 
+    [RelayCommand]
     public void Back()
     {
         var routerEvent = new RouterEvent { Path = "EventsList" };
@@ -127,10 +138,17 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 
     public async Task Initialize()
     {
+        Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = true);
         try
         {
-            Dispatcher.UIThread.Post(() => IsLoading = true);
-            var controlLogEntries = await eventClient.LoadControlLogAsync(EventModel.EventId);
+            // First see if there are any logs saved/finalized as the session may be over
+            var controlLogEntries = await eventClient.LoadSessionHistoricalControlLogAsync(EventModel.EventId, eventContext.SessionId);
+            if (controlLogEntries.Count == 0 && !EventModel.IsArchived)
+            {
+                // If no finalized logs, try to load live logs
+                controlLogEntries = await eventClient.LoadControlLogAsync(EventModel.EventId);
+            }
+
             await ProcessControlLogs(new ControlLogNotification(new CarControlLogs { ControlLogEntries = controlLogEntries }));
             await hubClient.SubscribeToControlLogsAsync(EventModel.EventId);
         }
@@ -140,7 +158,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         }
         finally
         {
-            Dispatcher.UIThread.Post(() => IsLoading = false);
+            Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = false);
         }
     }
 

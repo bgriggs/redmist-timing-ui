@@ -132,6 +132,14 @@ public class EventClient
         return await restClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
     }
 
+    public virtual async Task<List<ControlLogEntry>> LoadSessionHistoricalControlLogAsync(int eventId, int sessionId)
+    {
+        var request = new RestRequest("LoadSessionHistoricalControlLog", Method.Get);
+        request.AddQueryParameter("eventId", eventId);
+        request.AddQueryParameter("sessionId", sessionId);
+        return await restClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
+    }
+
     public virtual async Task<CarControlLogs?> LoadCarControlLogsAsync(int eventId, string car)
     {
         var request = new RestRequest("LoadCarControlLogs", Method.Get);
