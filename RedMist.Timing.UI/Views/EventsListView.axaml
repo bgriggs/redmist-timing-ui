@@ -46,7 +46,8 @@
 
 									<!--Event Information-->
 									<StackPanel Grid.Column="1" VerticalAlignment="Center">
-										<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap"/>
+										<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap" IsVisible="{Binding !IsSimulation}"/>
+										<TextBlock Text="{Binding Name}" Margin="8,3,3,1" VerticalAlignment="Top" TextWrapping="Wrap" FontStyle="Italic" IsVisible="{Binding IsSimulation}"/>
 
 										<!--Schedule-->
 										<ItemsControl ItemsSource="{Binding ScheduleDays}" Margin="13,0,0,0">
@@ -73,9 +74,14 @@
 									</StackPanel>
 
 									<!--Live-->
-									<Border Grid.Column="2" Width="40" Height="35" Background="{DynamicResource eventLiveBackground}" HorizontalAlignment="Right" CornerRadius="3" IsVisible="{Binding IsLive}">
-										<TextBlock Text="Live" Foreground="{DynamicResource eventLiveForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-									</Border>
+									<StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="4" Orientation="Horizontal">
+										<Border Width="40" Height="30" Background="{DynamicResource eventLiveBackground}" CornerRadius="3" IsVisible="{Binding IsLive}">
+											<TextBlock Text="Live" Foreground="{DynamicResource eventLiveForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+										</Border>
+										<Border Width="45" Height="30" Background="Gray" CornerRadius="3" IsVisible="{Binding IsSimulation}">
+											<TextBlock Text="Simulation" Foreground="White" FontStyle="Italic" FontSize="8" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+										</Border>
+									</StackPanel>
 								</Grid>
 							</Button>
 						</DataTemplate>
@@ -84,8 +90,8 @@
 			</ScrollViewer>
 		</RefreshContainer>
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}" Grid.Row="4">
-			<Grid ColumnDefinitions="Auto,*,Auto">
-				<Button Grid.Column="0" Command="{Binding ToggleLiveArchiveCommand}" Margin="0,1,3,1">
+			<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+				<Button Grid.Column="0" Command="{Binding ToggleLiveArchiveCommand}" Margin="0,1,3,0">
 					<StackPanel Orientation="Horizontal">
 						<PathIcon Height="9" Data="{StaticResource trophygeom}">
 							<PathIcon.RenderTransform>
@@ -95,13 +101,15 @@
 						<TextBlock Text="{Binding ToggleButtonText}" Classes="size-xs"/>
 					</StackPanel>
 				</Button>
-				<!--<TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="10" Margin="4" VerticalAlignment="Center"/>-->
-				<Button Grid.Column="2" Command="{Binding SetDriverModeCommand}" Margin="0,1,3,1">
+				
+				<Button Grid.Column="2" Command="{Binding SetDriverModeCommand}" Margin="0,1,3,0">
 					<StackPanel Orientation="Horizontal">
 						<PathIcon Height="9" Data="{StaticResource racehelmet}"/>
 						<TextBlock Text="Driver Mode" Classes="size-xs"/>
 					</StackPanel>
 				</Button>
+
+				<TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="8" Margin="4,0,0,0" VerticalAlignment="Center" Grid.Row="1"/>
 			</Grid>
 		</Border>
 	</Grid>

@@ -23,7 +23,7 @@ public partial class EventViewModel : ObservableObject
 
     public ObservableCollection<ScheduleDayViewModel> ScheduleDays { get; } = [];
     public bool IsLive => EventModel.IsLive;
-
+    public bool IsSimulation => EventModel.IsSimulation;
 
     public EventViewModel(EventListSummary eventModel, byte[]? organizationLogo)
     {

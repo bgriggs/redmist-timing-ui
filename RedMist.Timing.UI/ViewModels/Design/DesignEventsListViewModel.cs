@@ -10,7 +10,9 @@ public class DesignEventsListViewModel : EventsListViewModel
         //var s1 = new Session { IsLive = true };
         var e1 = new EventListSummary { Id = 1, EventName = "World Racing League - Eagles Canyon", EventDate = "2025-02-02" };
         var e2 = new EventListSummary { Id = 2, EventName = "World Racing League - Barber", EventDate = "2025-02-02" };
+        var e3 = new EventListSummary { Id = 2, EventName = "World Racing League - Sim", EventDate = "2025-02-02", IsSimulation = true, IsLive = true };
         Events.Add(new EventViewModel(e1, null) { });
         Events.Add(new EventViewModel(e2, null));
+        Events.Add(new EventViewModel(e3, null));
     }
 }
