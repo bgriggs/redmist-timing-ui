@@ -48,4 +48,13 @@ public partial class LiveTimingView : UserControl, IRecipient<CopyToClipboardReq
             System.Diagnostics.Debug.WriteLine($"Error copying to clipboard: {ex}");
         }
     }
+
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+
+        double availableWidth = e.NewSize.Width - 10;
+        tableHeader.MaxWidth = availableWidth;
+        this.tableBody.MaxWidth = availableWidth;
+    }
 }

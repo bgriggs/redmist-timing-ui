@@ -74,6 +74,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             PenaltyWarnings = 1,
             PenaltyLaps = 2,
             Class = "GP3",
+            DriverName = "Alex Johnson",
         });
 
         carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)

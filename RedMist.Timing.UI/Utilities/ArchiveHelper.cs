@@ -12,7 +12,7 @@ namespace RedMist.Timing.UI.Utilities;
 
 internal class ArchiveHelper
 {
-    public static async Task<T?> LoadArchivedData<T>(IHttpClientFactory httpClientFactory, string url)
+    public static async Task<T?> DownloadArchivedDataAsync<T>(IHttpClientFactory httpClientFactory, string url)
     {
         using var httpClient = httpClientFactory.CreateClient();
         var response = await httpClient.GetAsync(url);

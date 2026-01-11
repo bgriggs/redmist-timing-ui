@@ -161,7 +161,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     private async Task<List<FlagDuration>> LoadFlagsFromArchiveAsync(int eventId, int sessionId)
     {
         var url = $"{archiveBaseUrl.TrimEnd('/')}/event-flags/event-{eventId}-session-{sessionId}-flags.gz";
-        var flags = await ArchiveHelper.LoadArchivedData<List<FlagDuration>>(httpClientFactory, url);
+        var flags = await ArchiveHelper.DownloadArchivedDataAsync<List<FlagDuration>>(httpClientFactory, url);
         return flags ?? [];
     }
 }

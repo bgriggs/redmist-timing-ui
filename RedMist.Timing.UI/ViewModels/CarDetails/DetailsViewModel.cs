@@ -223,7 +223,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             // Build the URL: {archiveBaseUrl}/event-{eventId}-session-{sessionId}-car-laps/car-{carNum}-laps.gz
             var url = $"{archiveBaseUrl.TrimEnd('/')}/event-laps/event-{eventId}-session-{sessionId}-car-laps/car-{carNumber}-laps.gz";
-            var laps = await ArchiveHelper.LoadArchivedData<List<CarPosition>>(httpClientFactory, url);
+            var laps = await ArchiveHelper.DownloadArchivedDataAsync<List<CarPosition>>(httpClientFactory, url);
             return laps ?? [];
         }
         catch (Exception ex)
@@ -238,7 +238,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         try
         {
             var url = $"{archiveBaseUrl.TrimEnd('/')}/event-competitor-metadata/event-{eventId}-competitor-metadata.gz";
-            var eventMetadata = await ArchiveHelper.LoadArchivedData<List<CompetitorMetadata>>(httpClientFactory, url);
+            var eventMetadata = await ArchiveHelper.DownloadArchivedDataAsync<List<CompetitorMetadata>>(httpClientFactory, url);
             var carMetadata = eventMetadata?.FirstOrDefault(cm => cm.CarNumber == carNumber);
             return carMetadata;
         }
