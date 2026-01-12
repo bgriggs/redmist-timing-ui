@@ -36,6 +36,10 @@ public partial class App : Application
 
         // Set up global exception handlers as early as possible
         SetupGlobalExceptionHandlers();
+
+#if DEBUG
+        this.AttachDeveloperTools();
+#endif
     }
 
     public override void OnFrameworkInitializationCompleted()

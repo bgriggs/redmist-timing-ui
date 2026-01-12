@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net10.0-android</TargetFramework>
-		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
 		<Nullable>enable</Nullable>
 		<ApplicationId>com.bigmissionmotorsports.redmist</ApplicationId>
 		<ApplicationVersion>$(SharedVersion)</ApplicationVersion>
@@ -18,10 +18,17 @@
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Android" />
 		<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
-		
+
 		<!-- Add explicit SkiaSharp references for Android 16KB page size requirement -->
 		<PackageReference Include="SkiaSharp" />
 		<PackageReference Include="SkiaSharp.HarfBuzz" />
+
+		<!-- Explicit AndroidX Lifecycle package versions to resolve dependency conflicts -->
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" />
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" />
+
+		<!-- AndroidX Activity for modern back press handling -->
+		<PackageReference Include="Xamarin.AndroidX.Activity" />
 	</ItemGroup>
 
 	<ItemGroup>

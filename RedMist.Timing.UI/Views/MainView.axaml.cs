@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Controls.Platform;
 using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Models;
@@ -23,7 +24,20 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
         var insetsManager = TopLevel.GetTopLevel(this)?.InsetsManager;
         if (insetsManager is not null)
         {
-            insetsManager.DisplayEdgeToEdge = true;
+            // Use dynamic to set DisplayEdgeToEdgePreference (enum value not directly accessible)
+            // This property replaces the obsolete DisplayEdgeToEdge boolean
+            try
+            {
+                dynamic manager = insetsManager;
+                manager.DisplayEdgeToEdgePreference = 1; // 1 = Always
+            }
+            catch
+            {
+                // Fallback for versions without the new property
+#pragma warning disable CS0618 // Type or member is obsolete
+                insetsManager.DisplayEdgeToEdge = true;
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
         }
 
         if (DataContext is MainViewModel vm)
@@ -44,7 +58,7 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
         }
         catch //(Exception ex)
         {
-           // Logger.LogError(ex, "Failed to launch URI");
+            // Logger.LogError(ex, "Failed to launch URI");
         }
     }
 

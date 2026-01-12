@@ -9,11 +9,17 @@
     <PackageVersion Include="Avalonia.Browser" Version="11.3.10" />
     <PackageVersion Include="Avalonia.Android" Version="11.3.10" />
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.3.10" />
+    <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.1.1" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.1" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
     <PackageVersion Include="Microsoft.Maui.Essentials" Version="10.0.20" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.1" />
+    <!-- AndroidX Lifecycle dependencies - align versions to fix dependency conflicts -->
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.10.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.10.0.1" />
+    <!-- AndroidX Activity for modern back press handling -->
+    <PackageVersion Include="Xamarin.AndroidX.Activity" Version="1.11.0" />
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="25.2.1" />
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.2.1" />
     <PackageVersion Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250319-build.2093" />
