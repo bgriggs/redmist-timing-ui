@@ -5,12 +5,6 @@
 
 Red Mist provides race timing and scoring services for motorsport events. This repository contains the frontend application for the Red Mist Timing system, built with Avalonia. It is designed to be run on iOS, Android, Browsers, Windows, Linux, macOS, and other platforms.
 
-# Development Setup
-After cloning, initialize the submodules with the following command:
-```bash
-git submodule update --init --recursive
-```
-
 # Building the Application
 Reference the Avalonia documentation for editor setup:
 https://docs.avaloniaui.net/docs/get-started/set-up-an-editor
