@@ -14,5 +14,9 @@ public class DesignEventsListViewModel : EventsListViewModel
         Events.Add(new EventViewModel(e1, null) { });
         Events.Add(new EventViewModel(e2, null));
         Events.Add(new EventViewModel(e3, null));
+
+        // Set design-time paging properties
+        CurrentPage = 2;
+        HasMorePages = true;
     }
 }

@@ -49,6 +49,21 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     [ObservableProperty]
     private bool isLoading = false;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreviousPage), nameof(HasNextPage), nameof(DisplayPageNumber))]
+    private int currentPage = 0;
+
+    [ObservableProperty]
+    private bool hasMorePages = false;
+
+    public bool HasPreviousPage => CurrentPage > 0;
+
+    public bool HasNextPage => HasMorePages;
+
+    public int DisplayPageNumber => CurrentPage + 1;
+
+    private const int PageSize = 25;
+
 
     public EventsListViewModel(EventClient eventClient, OrganizationClient organizationClient, ILoggerFactory loggerFactory)
     {
@@ -75,8 +90,20 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
             }
             else
             {
-                events = await eventClient.ExecuteWithRetryAsync(() => eventClient.LoadArchivedEventsAsync(0, 25),
+                // Load one extra event to determine if there are more pages
+                events = await eventClient.ExecuteWithRetryAsync(() => eventClient.LoadArchivedEventsAsync(CurrentPage * PageSize, PageSize + 1),
                     nameof(eventClient.LoadArchivedEventsAsync), maxRetries: 5);
+
+                // Check if there are more pages
+                if (events != null && events.Count > PageSize)
+                {
+                    HasMorePages = true;
+                    events.RemoveAt(events.Count - 1); // Remove the extra event
+                }
+                else
+                {
+                    HasMorePages = false;
+                }
             }
 
             if (events != null)
@@ -202,6 +229,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     public void ToggleLiveArchive()
     {
         LiveAndUpcomingEventsShown = !LiveAndUpcomingEventsShown;
+        CurrentPage = 0; // Reset to first page when toggling
         _ = Task.Run(async () =>
         {
             try
@@ -211,6 +239,46 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error toggling live/archive events");
+            }
+        });
+    }
+
+    [RelayCommand]
+    public void NextPage()
+    {
+        if (!HasNextPage)
+            return;
+
+        CurrentPage++;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Initialize();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading next page");
+            }
+        });
+    }
+
+    [RelayCommand]
+    public void PreviousPage()
+    {
+        if (!HasPreviousPage)
+            return;
+
+        CurrentPage--;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Initialize();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading previous page");
             }
         });
     }
