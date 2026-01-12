@@ -80,7 +80,7 @@ public partial class App : Application
         services.AddSingleton(loggerFactory);
 
         // Add in-memory log provider for UI display
-        var inMemoryLogProvider = new InMemoryLogProvider();
+        var inMemoryLogProvider = new InMemoryLogProvider(50);
         services.AddSingleton(inMemoryLogProvider);
         loggerFactory.AddProvider(inMemoryLogProvider);
 

@@ -240,7 +240,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             try
             {
                 Logger.LogInformation("ResetState...");
-                await RefreshStatus();
+                await RefreshStatusAsync();
                 Logger.LogInformation("Subscribe...");
                 await hubClient.SubscribeToEventAsync(EventModel.EventId);
                 Logger.LogInformation("Completed subscribe...");
@@ -275,7 +275,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 catch { }
                 fullUpdateInterval = null;
             }
-            fullUpdateInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(async _ => await RefreshStatus());
+            fullUpdateInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(async _ => await RefreshStatusAsync());
         }
         catch (Exception ex)
         {
@@ -283,7 +283,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
-    public async Task RefreshStatus()
+    public async Task RefreshStatusAsync()
     {
         var sw = Stopwatch.StartNew();
 
@@ -338,7 +338,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             try
             {
                 IsLoading = true;
-                await RefreshStatus();
+                await RefreshStatusAsync();
             }
             finally
             {
@@ -443,7 +443,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
             ResetEvent();
-            _ = RefreshStatus();
+            _ = RefreshStatusAsync();
         });
 
         return;
@@ -829,9 +829,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     #endregion
 
+    #region Logging
+
     private void OnLogAdded(object? sender, LogEntry logEntry)
     {
-        Dispatcher.UIThread.InvokeOnUIThread(RefreshLogMessages, DispatcherPriority.Background);
+        Dispatcher.UIThread.InvokeOnUIThread(RefreshLogMessages, DispatcherPriority.ContextIdle);
     }
 
     private void RefreshLogMessages()
@@ -839,7 +841,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (logProvider == null)
             return;
 
-        var logs = logProvider.GetLogEntries().Take(100);
+        var logs = logProvider.GetLogEntries().Take(25);
         LogMessages = string.Join(Environment.NewLine, logs.Select(l => l.FormattedMessage));
     }
+
+    #endregion
 }

@@ -47,6 +47,7 @@ public class InMemoryLogProvider : ILoggerProvider
     public void Dispose()
     {
         _logEntries.Clear();
+        GC.SuppressFinalize(this);
     }
 
     private class InMemoryLogger : ILogger
