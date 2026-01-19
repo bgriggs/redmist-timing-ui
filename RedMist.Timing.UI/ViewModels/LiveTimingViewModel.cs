@@ -231,7 +231,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         try
         {
-            Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = true);
+            Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = true, DispatcherPriority.Background);
             EventModel = eventModel;
             Flag = string.Empty;
             pitTracking.Clear();
@@ -240,9 +240,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             try
             {
                 Logger.LogInformation("ResetState...");
-                await RefreshStatusAsync();
+                await Task.Run(() => RefreshStatusAsync());
                 Logger.LogInformation("Subscribe...");
-                await hubClient.SubscribeToEventAsync(EventModel.EventId);
+                await Task.Run(() => hubClient.SubscribeToEventAsync(EventModel.EventId));
                 Logger.LogInformation("Completed subscribe...");
                 IsLive = true;
             }
@@ -253,7 +253,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             }
             finally
             {
-                Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = false);
+                Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = false, DispatcherPriority.Background);
             }
             //if (consistencyCheckInterval != null)
             //{
