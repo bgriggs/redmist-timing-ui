@@ -26,11 +26,7 @@
 
 		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="2" TextWrapping="Wrap" FontSize="9"/>
-		<RefreshContainer Grid.Row="3" PullDirection="TopToBottom" RefreshRequested="EventsRefreshContainer_RefreshRequested">
-			<RefreshContainer.Visualizer>
-				<RefreshVisualizer />
-			</RefreshContainer.Visualizer>
-			<ScrollViewer IsVisible="{Binding !IsLoading}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+		<ScrollViewer Grid.Row="3" IsVisible="{Binding !IsLoading}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
 				<ItemsControl ItemsSource="{Binding Events}">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
@@ -88,7 +84,6 @@
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
 			</ScrollViewer>
-		</RefreshContainer>
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,2" BorderBrush="{DynamicResource boldItemBorder}" Grid.Row="4">
 			<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
 				<!-- Paging controls for archived events -->
