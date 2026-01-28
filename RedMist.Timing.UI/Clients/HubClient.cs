@@ -61,17 +61,6 @@ public class HubClient : HubClientBase
                     return null;
                 }
             };
-
-            // Configure HttpClient to include cookies
-            options.HttpMessageHandlerFactory = handler =>
-            {
-                if (handler is HttpClientHandler clientHandler)
-                {
-                    clientHandler.UseCookies = true;
-                    clientHandler.CookieContainer = new CookieContainer();
-                }
-                return handler;
-            };
         })
         .WithAutomaticReconnect(new InfiniteRetryPolicy())
         .TryAddMessagePack();
