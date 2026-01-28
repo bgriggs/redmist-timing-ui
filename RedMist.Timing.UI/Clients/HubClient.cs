@@ -60,8 +60,6 @@ public class HubClient : HubClientBase
                     return null;
                 }
             };
-            // Enable credentials to send sticky session cookies
-            options.UseDefaultCredentials = true;
         })
         .WithAutomaticReconnect(new InfiniteRetryPolicy())
         .TryAddMessagePack();
