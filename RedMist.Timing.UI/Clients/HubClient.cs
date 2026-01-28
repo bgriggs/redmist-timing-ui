@@ -11,6 +11,7 @@ using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarDriverMode;
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -60,6 +61,17 @@ public class HubClient : HubClientBase
                     return null;
                 }
             };
+
+            // Configure HttpClient to include cookies
+            options.HttpMessageHandlerFactory = handler =>
+            {
+                if (handler is HttpClientHandler clientHandler)
+                {
+                    clientHandler.UseCookies = true;
+                    clientHandler.CookieContainer = new CookieContainer();
+                }
+                return handler;
+            };
         })
         .WithAutomaticReconnect(new InfiniteRetryPolicy())
         .TryAddMessagePack();
@@ -80,7 +92,7 @@ public class HubClient : HubClientBase
             {
                 if (subscribedEventId != null)
                 {
-                    _ = debouncer.ExecuteAsync(async () => 
+                    _ = debouncer.ExecuteAsync(async () =>
                     {
                         try
                         {
@@ -101,10 +113,10 @@ public class HubClient : HubClientBase
                     {
                         try
                         {
-                            Logger.LogInformation("Invoking SubscribeToInCarDriverEventV2 for event {EventId}, car {Car}", 
+                            Logger.LogInformation("Invoking SubscribeToInCarDriverEventV2 for event {EventId}, car {Car}",
                                 subscribedInCarDriverEventIdAndCar.Value.eventId, subscribedInCarDriverEventIdAndCar.Value.car);
-                            await hub.InvokeAsync("SubscribeToInCarDriverEventV2", 
-                                subscribedInCarDriverEventIdAndCar.Value.eventId, 
+                            await hub.InvokeAsync("SubscribeToInCarDriverEventV2",
+                                subscribedInCarDriverEventIdAndCar.Value.eventId,
                                 subscribedInCarDriverEventIdAndCar.Value.car);
                             Logger.LogInformation("Successfully invoked SubscribeToInCarDriverEventV2");
                         }
@@ -144,7 +156,7 @@ public class HubClient : HubClientBase
                 Logger.LogError(ex, "Failed to dispose hub connection");
             }
         }
-        
+
         try
         {
             subscribedEventId = eventId;
@@ -250,7 +262,7 @@ public class HubClient : HubClientBase
     {
         if (hub == null)
             return;
-            
+
         try
         {
             await hub.InvokeAsync("UnsubscribeFromControlLogs", eventId);
@@ -265,7 +277,7 @@ public class HubClient : HubClientBase
     {
         if (hub == null)
             return;
-            
+
         try
         {
             await hub.InvokeAsync("SubscribeToCarControlLogs", eventId, carNum);
@@ -283,7 +295,7 @@ public class HubClient : HubClientBase
     {
         if (hub == null)
             return;
-            
+
         try
         {
             await hub.InvokeAsync("UnsubscribeFromCarControlLogs", eventId, carNum);
@@ -325,7 +337,7 @@ public class HubClient : HubClientBase
                 Logger.LogError(ex, "Failed to dispose hub connection");
             }
         }
-        
+
         try
         {
             subscribedInCarDriverEventIdAndCar = (eventId, car);
