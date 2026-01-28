@@ -81,6 +81,8 @@ public class EventClient
 
     public virtual async Task<TimingCommon.Models.Event?> LoadEventAsync(int eventId)
     {
+        if (eventId == 0)
+            return null;
         var request = new RestRequest("LoadEvent", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         return await restClient.GetAsync<TimingCommon.Models.Event?>(request);
@@ -88,6 +90,8 @@ public class EventClient
 
     public virtual async Task<SessionState?> LoadEventStatusAsync(int eventId)
     {
+        if (eventId == 0)
+            return null;
         var request = new RestRequest("GetCurrentSessionState", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         return await restClient.GetAsync<SessionState?>(request);
