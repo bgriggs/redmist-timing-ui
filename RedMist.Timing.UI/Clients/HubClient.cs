@@ -10,6 +10,7 @@ using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarDriverMode;
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -59,6 +60,8 @@ public class HubClient : HubClientBase
                     return null;
                 }
             };
+            // Enable credentials to send sticky session cookies
+            options.UseDefaultCredentials = true;
         })
         .WithAutomaticReconnect(new InfiniteRetryPolicy())
         .TryAddMessagePack();
