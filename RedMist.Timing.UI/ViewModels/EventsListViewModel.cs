@@ -54,6 +54,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     private int currentPage = 0;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasNextPage))]
     private bool hasMorePages = false;
 
     public bool HasPreviousPage => CurrentPage > 0;
