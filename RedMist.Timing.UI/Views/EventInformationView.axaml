@@ -82,7 +82,7 @@
 				</StackPanel>
 
 				<StackPanel IsVisible="{Binding IsScheduleVisible}" Margin="0,12,0,5">
-					<TextBlock Classes="theme-text-heading size-xs" Text="Schedule" FontWeight="Bold"/>
+					<TextBlock Classes="theme-text-heading size-xs" Text="Schedule" FontWeight="SemiBold"/>
 					<ItemsControl ItemsSource="{Binding ScheduleDays}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate DataType="model:ScheduleDayViewModel">
@@ -95,7 +95,7 @@
 													<TextBlock Text="{Binding StartTime}"/>
 													<TextBlock Text="-"/>
 													<TextBlock Text="{Binding EndTime}"/>
-													<TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="6,0,0,0"/>
+													<TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="6,0,0,0"/>
 												</StackPanel>
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>

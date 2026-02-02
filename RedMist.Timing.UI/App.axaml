@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
              x:Class="RedMist.Timing.UI.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Dark">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Resources>
@@ -287,8 +287,9 @@
 			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
 		<Style Selector="TextBlock.flagdurationheader">
-			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontSize" Value="13"/>
 			<Setter Property="VerticalAlignment" Value="Bottom"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
 		</Style>
 
 		<!-- Event Information Styles -->
