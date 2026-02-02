@@ -212,8 +212,8 @@
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
 		<FluentTheme>
 			<FluentTheme.Palettes>
-				<ColorPaletteResources x:Key="Light" Accent="#ffd7412c" AltHigh="White" AltLow="White" AltMedium="White" AltMediumHigh="White" AltMediumLow="White" BaseHigh="Black" BaseLow="#ffd7412c" BaseMedium="#ff9d1a12" BaseMediumHigh="#ff760000" BaseMediumLow="#ff890d09" ChromeAltLow="#ff760000" ChromeBlackHigh="Black" ChromeBlackLow="#ffd7412c" ChromeBlackMedium="#ff760000" ChromeBlackMediumLow="#ff9d1a12" ChromeDisabledHigh="#ffD1D5DB" ChromeDisabledLow="#ffE5E7EB" ChromeGray="#ff890d09" ChromeHigh="#ffd7412c" ChromeLow="#fffbb5ab" ChromeMedium="#fff49e92" ChromeMediumLow="#fffbb5ab" ChromeWhite="White" ListLow="#fff49e92" ListMedium="#ffd7412c" RegionColor="#fff1f1f1" />
-				<ColorPaletteResources x:Key="Dark" Accent="#ffd7412c" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ffd7412c" BaseMedium="#fff49e92" BaseMediumHigh="#fffbb5ab" BaseMediumLow="#ffe56f5f" ChromeAltLow="#fffbb5ab" ChromeBlackHigh="Black" ChromeBlackLow="#fffbb5ab" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ff4B5563" ChromeDisabledLow="#ff6B7280" ChromeGray="#ffed8778" ChromeHigh="#ffed8778" ChromeLow="#ff890d09" ChromeMedium="#ff9d1a12" ChromeMediumLow="#ffc43423" ChromeWhite="White" ListLow="#ff9d1a12" ListMedium="#ffd7412c" RegionColor="Black" />
+				<ColorPaletteResources x:Key="Light" Accent="#ff6B7280" AltHigh="White" AltLow="White" AltMedium="White" AltMediumHigh="White" AltMediumLow="White" BaseHigh="Black" BaseLow="#ff9CA3AF" BaseMedium="#ff6B7280" BaseMediumHigh="#ff4B5563" BaseMediumLow="#ff9CA3AF" ChromeAltLow="#ff4B5563" ChromeBlackHigh="Black" ChromeBlackLow="#ff9CA3AF" ChromeBlackMedium="#ff4B5563" ChromeBlackMediumLow="#ff6B7280" ChromeDisabledHigh="#ffD1D5DB" ChromeDisabledLow="#ffE5E7EB" ChromeGray="#ff9CA3AF" ChromeHigh="#ff6B7280" ChromeLow="#ffE5E7EB" ChromeMedium="#ffD1D5DB" ChromeMediumLow="#ffE5E7EB" ChromeWhite="White" ListLow="#ffD1D5DB" ListMedium="#ff6B7280" RegionColor="#fff1f1f1" />
+				<ColorPaletteResources x:Key="Dark" Accent="#ff6B7280" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ff9CA3AF" BaseMedium="#ff6B7280" BaseMediumHigh="#ff9CA3AF" BaseMediumLow="#ff4B5563" ChromeAltLow="#ff9CA3AF" ChromeBlackHigh="Black" ChromeBlackLow="#ff9CA3AF" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ff4B5563" ChromeDisabledLow="#ff6B7280" ChromeGray="#ff9CA3AF" ChromeHigh="#ff9CA3AF" ChromeLow="#ff374151" ChromeMedium="#ff4B5563" ChromeMediumLow="#ff6B7280" ChromeWhite="White" ListLow="#ff4B5563" ListMedium="#ff6B7280" RegionColor="Black" />
 			</FluentTheme.Palettes>
 		</FluentTheme>
 
@@ -227,6 +227,10 @@
 			<Setter Property="FontSize" Value="12" />
 			<Setter Property="MinHeight" Value="20" />
 			<Setter Property="Padding" Value="3,0,0,0" />
+			<Setter Property="Background" Value="{DynamicResource TimingTableHeaderBackgroundBrush}"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextTableHeaderForegroundBrush}"/>
+			<Setter Property="SeparatorBrush" Value="{DynamicResource BorderPrimaryBrush}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource BorderPrimaryBrush}"/>
 		</Style>
 
 		<!-- Pit label style used in Live Timing rows -->
@@ -343,21 +347,21 @@
 		</Style>
 
 		<!-- Pressed/Clicked button style -->
-		<Style Selector="Button:pressed">
+	<!--	<Style Selector="Button:pressed">
 			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
 			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
 		</Style>
 		<Style Selector="Button:pressed /template/ ContentPresenter">
 			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
 			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
-		</Style>
+		</Style>-->
 
 		<!-- TextBox styles -->
-		<Style Selector="TextBox">
+	<!--	<Style Selector="TextBox">
 			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
 			<Setter Property="BorderThickness" Value="1"/>
-		</Style>
-		<Style Selector="TextBox:focus /template/ Border">
+		</Style>-->
+		<!--<Style Selector="TextBox:focus /template/ Border">
 			<Setter Property="BorderBrush" Value="#6B7280"/>
 			<Setter Property="BorderThickness" Value="2"/>
 		</Style>
@@ -372,51 +376,12 @@
 		</Style>
 		<Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark">
 			<Setter Property="Foreground" Value="#6B7280"/>
-		</Style>
+		</Style>-->
 
-		<!-- CheckBox styles -->
-		<Style Selector="CheckBox">
-			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
-		</Style>
-		<Style Selector="CheckBox /template/ Border">
-			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
-			<Setter Property="BorderThickness" Value="1"/>
-		</Style>
-		<Style Selector="CheckBox /template/ Border#NormalRectangle">
-			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
-			<Setter Property="BorderThickness" Value="1"/>
-			<Setter Property="Background" Value="Transparent"/>
-		</Style>
-		<Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
-			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
-		</Style>
-		<Style Selector="CheckBox:pointerover /template/ Border">
-			<Setter Property="BorderBrush" Value="#9CA3AF"/>
-		</Style>
-		<Style Selector="CheckBox:pointerover /template/ Border#NormalRectangle">
-			<Setter Property="BorderBrush" Value="#9CA3AF"/>
-		</Style>
-		<Style Selector="CheckBox:unchecked:pointerover /template/ Border#NormalRectangle">
-			<Setter Property="BorderBrush" Value="#9CA3AF"/>
-		</Style>
-		<Style Selector="CheckBox:focus /template/ Border#NormalRectangle">
-			<Setter Property="BorderBrush" Value="#6B7280"/>
-		</Style>
-		<Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
-			<Setter Property="Background" Value="#6B7280"/>
-			<Setter Property="BorderBrush" Value="#6B7280"/>
-		</Style>
-		<Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
-			<Setter Property="Background" Value="#4B5563"/>
-			<Setter Property="BorderBrush" Value="#4B5563"/>
-		</Style>
-		<Style Selector="CheckBox:checked:focus /template/ Border#NormalRectangle">
-			<Setter Property="Background" Value="#6B7280"/>
-			<Setter Property="BorderBrush" Value="#6B7280"/>
-		</Style>
+		
 
 		<!-- ComboBox styles -->
-		<Style Selector="ComboBox">
+		<!--<Style Selector="ComboBox">
 			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
 			<Setter Property="BorderThickness" Value="1"/>
 		</Style>
@@ -461,29 +426,8 @@
 		</Style>
 		<Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
 			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>
+		</Style>-->
 
-		<!-- Disabled button style -->
-		<Style Selector="Button:disabled">
-			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
-			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
-			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
-			<Setter Property="Opacity" Value="0.6"/>
-		</Style>
-		<Style Selector="Button:disabled /template/ ContentPresenter">
-			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
-			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
-			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
-		</Style>
-		<Style Selector="Button:disabled Path">
-			<Setter Property="Stroke" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
-			<Setter Property="Fill" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
-		</Style>
-		<Style Selector="Button:disabled TextBlock">
-			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
-		</Style>
-		<Style Selector="Button:disabled PathIcon">
-			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
-		</Style>
+		
 	</Application.Styles>
 </Application>

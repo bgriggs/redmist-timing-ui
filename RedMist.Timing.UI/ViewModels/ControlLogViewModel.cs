@@ -28,6 +28,7 @@ namespace RedMist.Timing.UI.ViewModels;
 public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlLogNotification>, IRecipient<AppResumeNotification>
 {
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
+    public bool HasNoControlLog => ControlLog.Count == 0;
     protected readonly SourceCache<ControlLogEntryViewModel, string> logCache = new(ToKey);
     private readonly Debouncer debouncer = new(TimeSpan.FromSeconds(1));
 
@@ -70,6 +71,9 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
             .SortAndBind(ControlLog, SortExpressionComparer<ControlLogEntryViewModel>.Descending(t => t.LogEntry.Timestamp))
             .DisposeMany()
             .Subscribe();
+
+        // Notify when collection changes
+        ControlLog.CollectionChanged += (_, __) => OnPropertyChanged(nameof(HasNoControlLog));
 
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
