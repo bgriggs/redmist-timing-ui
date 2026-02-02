@@ -23,6 +23,7 @@ namespace RedMist.Timing.UI.ViewModels;
 public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<AppResumeNotification>
 {
     public ObservableCollection<SessionViewModel> Sessions { get; } = [];
+    public bool HasNoSessions => Sessions.Count == 0;
     public Event EventModel { get; }
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
@@ -92,6 +93,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         {
             Sessions.Add(new SessionViewModel(session));
         }
+        OnPropertyChanged(nameof(HasNoSessions));
     }
 
     public void Back()
