@@ -346,88 +346,27 @@
 			</Setter>
 		</Style>
 
-		<!-- Pressed/Clicked button style -->
-	<!--	<Style Selector="Button:pressed">
+		<!-- Disabled button styles -->
+		<Style Selector="Button:disabled">
 			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
 			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
 		</Style>
-		<Style Selector="Button:pressed /template/ ContentPresenter">
+		<Style Selector="Button:disabled /template/ ContentPresenter">
 			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
 			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
-		</Style>-->
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+		</Style>
+		<Style Selector="Button:disabled Path">
+			<Setter Property="Stroke" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+			<Setter Property="Fill" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+		</Style>
+		<Style Selector="Button:disabled TextBlock">
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+		</Style>
+		<Style Selector="Button:disabled PathIcon">
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+		</Style>
 
-		<!-- TextBox styles -->
-	<!--	<Style Selector="TextBox">
-			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
-			<Setter Property="BorderThickness" Value="1"/>
-		</Style>-->
-		<!--<Style Selector="TextBox:focus /template/ Border">
-			<Setter Property="BorderBrush" Value="#6B7280"/>
-			<Setter Property="BorderThickness" Value="2"/>
-		</Style>
-		<Style Selector="TextBox:pointerover /template/ Border">
-			<Setter Property="BorderBrush" Value="#9CA3AF"/>
-		</Style>
-		<Style Selector="TextBox /template/ TextBlock#PART_Watermark">
-			<Setter Property="Foreground" Value="#9CA3AF"/>
-		</Style>
-		<Style Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark">
-			<Setter Property="Foreground" Value="#6B7280"/>
-		</Style>
-		<Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark">
-			<Setter Property="Foreground" Value="#6B7280"/>
-		</Style>-->
-
-		
-
-		<!-- ComboBox styles -->
-		<!--<Style Selector="ComboBox">
-			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
-			<Setter Property="BorderThickness" Value="1"/>
-		</Style>
-		<Style Selector="ComboBox:focus /template/ Border">
-			<Setter Property="BorderBrush" Value="#6B7280"/>
-			<Setter Property="BorderThickness" Value="2"/>
-		</Style>
-		<Style Selector="ComboBox:pointerover /template/ Border">
-			<Setter Property="BorderBrush" Value="#9CA3AF"/>
-		</Style>
-		<Style Selector="ComboBox:pressed /template/ Border">
-			<Setter Property="BorderBrush" Value="#6B7280"/>
-			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>
-		<Style Selector="ComboBox /template/ ToggleButton">
-			<Setter Property="Background" Value="Transparent"/>
-		</Style>
-		<Style Selector="ComboBox /template/ ToggleButton:pressed">
-			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>
-		<Style Selector="ComboBox /template/ ToggleButton:pressed /template/ ContentPresenter">
-			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>
-		<Style Selector="ComboBox /template/ Popup Border">
-			<Setter Property="Background" Value="{DynamicResource medAppBackground}"/>
-			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
-		</Style>
-		<Style Selector="ComboBox /template/ Popup ScrollViewer">
-			<Setter Property="Background" Value="{DynamicResource medAppBackground}"/>
-		</Style>
-		<Style Selector="ComboBoxItem">
-			<Setter Property="Background" Value="Transparent"/>
-		</Style>
-		<Style Selector="ComboBoxItem:selected">
-			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>
-		<Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
-			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>
-		<Style Selector="ComboBoxItem:pointerover">
-			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>
-		<Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
-		</Style>-->
-
-		
 	</Application.Styles>
 </Application>
