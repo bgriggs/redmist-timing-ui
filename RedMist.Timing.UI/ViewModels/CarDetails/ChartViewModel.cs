@@ -1,4 +1,6 @@
-﻿using Avalonia.Media.Immutable;
+﻿using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
@@ -136,10 +138,15 @@ public partial class ChartViewModel : ObservableObject
             }
             return string.Empty;
         };
+
+        // Apply theme-aware text colors
+        ApplyThemeColors();
     }
 
 
-    private void ChartViewModel_PointMeasured(LiveChartsCore.Kernel.ChartPoint<LapViewModel, LiveChartsCore.SkiaSharpView.Drawing.Geometries.RoundedRectangleGeometry, LiveChartsCore.SkiaSharpView.Drawing.Geometries.LabelGeometry> obj)
+    private void ChartViewModel_PointMeasured(LiveChartsCore.Kernel.ChartPoint<LapViewModel,
+        LiveChartsCore.SkiaSharpView.Drawing.Geometries.RoundedRectangleGeometry,
+        LiveChartsCore.SkiaSharpView.Drawing.Geometries.LabelGeometry> obj)
     {
         if (obj.Model != null && obj.Visual != null)
         {
@@ -147,6 +154,40 @@ public partial class ChartViewModel : ObservableObject
             var skColor = new SKColor(brush.Color.R, brush.Color.G, brush.Color.B, brush.Color.A);
             obj.Visual.Fill = new SolidColorPaint(skColor);
         }
+    }
+
+    private void ApplyThemeColors()
+    {
+        // Get theme-aware text color
+        var textColor = GetThemeForegroundColor();
+
+        // Apply to X axis
+        XAxes[0].LabelsPaint = new SolidColorPaint(textColor);
+
+        // Apply to Y axes
+        foreach (var axis in YAxes)
+        {
+            axis.LabelsPaint = new SolidColorPaint(textColor);
+        }
+
+        // Apply to series tooltips and data labels
+        ((ScatterSeries<LapViewModel>)Series[3]).DataLabelsPaint = new SolidColorPaint(textColor);
+    }
+
+    private static SKColor GetThemeForegroundColor()
+    {
+        // Try to get the theme-aware text color from Avalonia resources
+        if (Application.Current?.TryGetResource("TextMedForegroundBrush", Application.Current.ActualThemeVariant, out var resource) == true)
+        {
+            if (resource is IBrush brush && brush is ISolidColorBrush solidBrush)
+            {
+                var color = solidBrush.Color;
+                return new SKColor(color.R, color.G, color.B, color.A);
+            }
+        }
+
+        // Fallback to white if resource not found
+        return SKColors.White;
     }
 
     public void UpdateLaps(List<CarPosition> carPositions)
