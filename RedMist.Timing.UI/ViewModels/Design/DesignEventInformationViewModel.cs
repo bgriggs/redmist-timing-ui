@@ -14,7 +14,7 @@ public class DesignEventInformationViewModel : EventInformationViewModel
         TrackName = "Barber Motorsports Park",
         Distance = "2.38 miles",
         CourseConfiguration = "Full Course",
-        Schedule = new TimingCommon.Models.Configuration.EventSchedule
+        Schedule = new EventSchedule
         {
             Entries = 
             [ 

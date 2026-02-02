@@ -43,7 +43,7 @@
 				<TextBlock Text="{Binding Dates}"/>
 
 				<!-- Event Details with link -->
-				<StackPanel Orientation="Horizontal" Spacing="4">
+				<StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsEventDetailsVisible}">
 					<TextBlock Text="Event Details:" Classes="eventRowHeader" VerticalAlignment="Center"/>
 					<Button Classes="icon" Command="{Binding LaunchDetailsUrl}">
 						<PathIcon Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
@@ -55,17 +55,19 @@
 				</StackPanel>
 
 				<!-- Track section with sub-items -->
-				<StackPanel Orientation="Horizontal" Spacing="4">
-					<TextBlock Text="Track:" Classes="eventRowHeader"/>
-					<TextBlock Text="{Binding TrackName}"/>
-				</StackPanel>
-				<StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
-					<TextBlock Text="Configuration:" Classes="eventSubRow" Margin="0"/>
-					<TextBlock Text="{Binding CourseConfiguration}" Classes="eventSubRow" Margin="0"/>
-				</StackPanel>
-				<StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
-					<TextBlock Text="Distance:" Classes="eventSubRow" Margin="0"/>
-					<TextBlock Text="{Binding Distance}" Classes="eventSubRow" Margin="0"/>
+				<StackPanel Spacing="4" IsVisible="{Binding IsTrackVisible}">
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<TextBlock Text="Track:" Classes="eventRowHeader"/>
+						<TextBlock Text="{Binding TrackName}"/>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+						<TextBlock Text="Configuration:" Classes="eventSubRow" Margin="0"/>
+						<TextBlock Text="{Binding CourseConfiguration}" Classes="eventSubRow" Margin="0"/>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+						<TextBlock Text="Distance:" Classes="eventSubRow" Margin="0"/>
+						<TextBlock Text="{Binding Distance}" Classes="eventSubRow" Margin="0"/>
+					</StackPanel>
 				</StackPanel>
 
 				<!-- Broadcast section -->
