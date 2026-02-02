@@ -6,17 +6,13 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
-public class DesignEventClient : EventClient
+public class DesignEventClient(IConfiguration configuration) : EventClient(configuration, new DebugLoggerFactory())
 {
-    public DesignEventClient(IConfiguration configuration) : base(configuration, new DebugLoggerFactory())
-    {
-    }
-
     public override Task<List<EventListSummary>> LoadRecentEventsAsync()
     {
-        var e1 = new EventListSummary { Id = 1, EventName = "World Racing League - Eagles Canyon", EventDate = "2025-02-02" };
-        var e2 = new EventListSummary { Id = 2, EventName = "World Racing League - Barber", EventDate = "2025-02-02" };
-        var e3 = new EventListSummary { Id = 2, EventName = "World Racing League - Sim", EventDate = "2025-02-02", IsSimulation = true, IsLive = true };
+        var e1 = new EventListSummary { Id = 1, OrganizationId = 1, EventName = "World Racing League - Eagles Canyon", EventDate = "2025-02-02" };
+        var e2 = new EventListSummary { Id = 2, OrganizationId = 1, EventName = "World Racing League - Barber", EventDate = "2025-02-02" };
+        var e3 = new EventListSummary { Id = 2, OrganizationId = 1, EventName = "World Racing League - Sim", EventDate = "2025-02-02", IsSimulation = true, IsLive = true };
         return Task.FromResult<List<EventListSummary>>([e1, e2, e3]);
     }
 }

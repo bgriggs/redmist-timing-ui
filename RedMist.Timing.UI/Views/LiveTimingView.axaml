@@ -18,7 +18,6 @@
 	</Design.DataContext>
 
 	<UserControl.Resources>
-		<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
 		<StreamGeometry x:Key="downArrow">M998 352c0 -8 -4 -17 -10 -23l-50 -50c-6 -6 -14 -10 -23 -10c-8 0 -17 4 -23 10l-393 393l-393 -393c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-50 50c-6 6 -10 15 -10 23s4 17 10 23l466 466c6 6 15 10 23 10s17 -4 23 -10l466 -466c6 -6 10 -15 10 -23z</StreamGeometry>
 		<StreamGeometry x:Key="upArrow">M998 800c0 -8 -4 -17 -10 -23l-466 -466c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-466 466c-6 6 -10 15 -10 23s4 17 10 23l50 50c6 6 14 10 23 10c8 0 17 -4 23 -10l393 -393l393 393c6 6 15 10 23 10s17 -4 23 -10l50 -50c6 -6 10 -15 10 -23z</StreamGeometry>
 		<StreamGeometry x:Key="lightning">M 52.2573,19.0027L 38.0053,33.2546L 50.6737,33.2546L 25.3369,57.008L 35.4716,38.0053L 23.7533,38.0053L 36.4217,19.0027L 52.2573,19.0027 Z </StreamGeometry>
@@ -73,10 +72,10 @@
 									   HorizontalAlignment="Center"/>
 						</Border>
 
-						<PathIcon Grid.Column="3" Height="10" Width="10" 
-								  Foreground="Orange" Data="{StaticResource lightning}"
+							<PathIcon Grid.Column="3" Height="10" Width="10" 
+								  Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource lightning}"
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
-						<PathIcon Grid.Column="4" Height="12" Width="12" Foreground="Orange" Data="{StaticResource doubleLightning}"
+							<PathIcon Grid.Column="4" Height="12" Width="12" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource doubleLightning}"
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
 						<Button Grid.Column="5" Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video" Padding="0" Height="13" Margin="2,0,0,0">
 							<Image Source="{Binding CarStreamImage}" Cursor="Hand"/>
@@ -85,23 +84,23 @@
 						<ContentControl Content="{Binding PitState}" Grid.Column="6">
 							<ContentControl.DataTemplates>
 								<sel:PitIconTemplateSelector>
-									<DataTemplate x:Key="InPitTemplate">
-										<Border Width="45" Margin="1" CornerRadius="4" Background="#075aa1">
+										<DataTemplate x:Key="InPitTemplate">
+											<Border Width="45" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateInPitBrush}">
 											<TextBlock Text="PIT" Classes="pit"/>
 										</Border>
 									</DataTemplate>
-									<DataTemplate x:Key="EnteredPitTemplate">
-										<Border Width="68" Margin="1" CornerRadius="4" Background="#ff6743">
+										<DataTemplate x:Key="EnteredPitTemplate">
+											<Border Width="68" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateEnteredBrush}">
 											<TextBlock Text="ENTERED PIT" Classes="pit"/>
 										</Border>
 									</DataTemplate>
-									<DataTemplate x:Key="ExitedPitTemplate">
-										<Border Width="63" Margin="1" CornerRadius="4" Background="#9ad337">
+										<DataTemplate x:Key="ExitedPitTemplate">
+											<Border Width="63" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateExitedBrush}">
 											<TextBlock Text="EXITED PIT" Classes="pit"/>
 										</Border>
 									</DataTemplate>
-									<DataTemplate x:Key="PitSfTemplate">
-										<Border Width="50" Margin="1" CornerRadius="4" Background="#475e1e" ToolTip.Tip="Passed Pit Start / Finish">
+										<DataTemplate x:Key="PitSfTemplate">
+											<Border Width="50" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateSfBrush}" ToolTip.Tip="Passed Pit Start / Finish">
 											<TextBlock Text="PIT S/F" Classes="pit"/>
 										</Border>
 									</DataTemplate>
@@ -277,7 +276,7 @@
 			</DockPanel>
 		</ControlTemplate>
 
-		<x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
+		<!-- DataGridSortIconMinWidth provided globally in App.axaml -->
 	</UserControl.Resources>
 
 	<UserControl.Styles>
@@ -288,24 +287,6 @@
 			<Setter Property="Margin" Value="3,5"/>
 		</Style>
 
-		<Style Selector="DataGridCell">
-			<Setter Property="FontSize" Value="10" />
-			<Setter Property="MinHeight" Value="20" />
-		</Style>
-
-		<Style Selector="DataGridColumnHeader">
-			<Setter Property="FontSize" Value="12" />
-			<Setter Property="MinHeight" Value="20" />
-			<Setter Property="Padding" Value="3,0,0,0" />
-		</Style>
-
-		<Style Selector="TextBlock.pit">
-			<Setter Property="FontSize" Value="9"/>
-			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="Foreground" Value="{DynamicResource TextSmbForegroundBrush}"/>
-			<Setter Property="HorizontalAlignment" Value="Center"/>
-			<Setter Property="VerticalAlignment" Value="Center"/>
-		</Style>
 	</UserControl.Styles>
 
 	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">

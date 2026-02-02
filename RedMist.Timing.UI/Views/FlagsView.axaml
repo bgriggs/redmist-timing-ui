@@ -15,7 +15,7 @@
 	</Design.DataContext>
 
 	<UserControl.Resources>
-		<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
+		<!-- Uses global FlagToColorConverter from App.axaml -->
 	</UserControl.Resources>
 	
 	<Grid RowDefinitions="Auto,Auto,Auto,*">

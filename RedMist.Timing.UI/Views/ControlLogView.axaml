@@ -14,23 +14,11 @@
 	</Design.DataContext>
 
 	<UserControl.Resources>
-		<x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
 	</UserControl.Resources>
 
-	<UserControl.Styles>
-		<Style Selector="DataGridCell">
-			<Setter Property="FontSize" Value="10" />
-			<Setter Property="MinHeight" Value="20" />
-		</Style>
-
-		<Style Selector="DataGridColumnHeader">
-			<Setter Property="FontSize" Value="12" />
-			<Setter Property="MinHeight" Value="20" />
-			<Setter Property="Padding" Value="3,0,0,0" />
-		</Style>
-	</UserControl.Styles>
+	<!-- Uses global DataGrid styles from App.axaml -->
 	
-	<Grid RowDefinitions="Auto,*" Background="{StaticResource lightAppBackground}">
+	<Grid RowDefinitions="Auto,*" Background="{DynamicResource lightAppBackground}">
 		<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
 			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>

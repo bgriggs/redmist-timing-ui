@@ -1,11 +1,15 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
              x:Class="RedMist.Timing.UI.App"
              RequestedThemeVariant="Default">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Resources>
 		<ResourceDictionary>
+			<!-- Global converters -->
+			<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
+			<!-- Shared icon geometries -->
 			<StreamGeometry x:Key="flaggeom">M 14.4,6 14,4 H 5 v 17 h 2 v -7 h 5.6 l 0.4,2 h 7 V 6 Z</StreamGeometry>
 			<StreamGeometry x:Key="flagopngeom">M883.405 807.697c-5.875 6.127-14.128 9.934-23.27 9.934-0.087 0-0.174 0-0.261-0.001h0.013c-10.717-2.174-20.23-5.987-28.788-11.212l0.389 0.221c-14.438-7.305-29.764-15.428-45.909-24.508-16.258-9.045-35.248-17.346-55.058-23.84l-2.355-0.668c-18.25-6.596-39.315-10.59-61.258-10.988l-0.182-0.003c-0.638-0.014-1.391-0.023-2.145-0.023-15.913 0-30.968 3.674-44.362 10.219l0.598-0.264c-30.956 15.422-68.742 30.963-107.674 44.001l-6.57 1.908c-30.441 9.621-65.449 15.165-101.753 15.165-0.924 0-1.847-0.004-2.769-0.011l0.142 0.001c-81.211-3.786-156.347-26.548-222.098-63.916l2.45 1.282c-17.067-8.465-29.082-14.985-36.932-19.797l-7.817 57.207c17.669 15.374 28.774 37.897 28.774 63.015 0 46.054-37.334 83.388-83.388 83.388s-83.388-37.334-83.388-83.388c0-29.984 15.825-56.272 39.579-70.966l0.358-0.206 112.64-827.085c3.373-24.107 23.841-42.463 48.602-42.496h0.003c0.018 0 0.039 0 0.060 0 2.386 0 4.734 0.161 7.035 0.474l-0.268-0.030c24.275 3.254 42.799 23.834 42.799 48.74 0 2.312-0.16 4.587-0.468 6.814l0.029-0.258-45.329 332.425c61.542 34.707 134.36 56.935 211.942 61.379l1.323 0.061c0.11 0 0.239 0 0.369 0 26.424 0 51.867-4.195 75.701-11.956l-1.728 0.487c23.163-7.052 43.133-15.549 61.964-25.865l-1.684 0.845c15.959-9.019 34.649-17.47 54.114-24.266l2.479-0.754c19.155-7.15 41.286-11.354 64.379-11.503h0.065c71.725 4.693 137.471 26.591 194.309 61.567l-1.831-1.048c7.892 3.827 14.653 8.636 20.49 14.38l-0.010-0.010c4.094 4.896 6.581 11.259 6.581 18.203 0 0.657-0.022 1.309-0.066 1.954l0.005-0.087v397.995c0.001 0.093 0.002 0.202 0.002 0.312 0 9.092-3.766 17.305-9.823 23.163l-0.009 0.009z</StreamGeometry>
 			<StreamGeometry x:Key="trophygeom">M458 653c-42 92 -74 214 -74 371h-256v-96c0 -98 133 -234 330 -275zM1536 928v96h-256c0 -157 -32 -279 -74 -371c197 41 330 177 330 275zM1664 1056v-128c0 -190 -230 -400 -542 -415c-40 -51 -77 -81 -95 -95c-53 -48 -67 -98 -67 -162s32 -128 128 -128 s192 -64 192 -160v-64c0 -18 -14 -32 -32 -32h-832c-18 0 -32 14 -32 32v64c0 96 96 160 192 160s128 64 128 128s-14 114 -67 162c-18 14 -55 44 -95 95c-312 15 -542 225 -542 415v128c0 53 43 96 96 96h288v96c0 88 72 160 160 160h576c88 0 160 -72 160 -160v-96h288 c53 0 96 -43 96 -96z</StreamGeometry>
@@ -18,9 +22,14 @@
 			<StreamGeometry x:Key="uparrowgeom">M150 281.25A9.375 9.375 0 0 0 159.375 271.875V50.75625L218.3625 109.7625A9.375 9.375 0 0 0 231.6375 96.4875L156.6375 21.4875A9.375 9.375 0 0 0 143.3625 21.4875L68.3625 96.4875A9.375 9.375 0 0 0 81.6375 109.7625L140.625 50.75625V271.875A9.375 9.375 0 0 0 150 281.25</StreamGeometry>
 			<StreamGeometry x:Key="downarrowgeom">M150 18.75A9.375 9.375 0 0 1 159.375 28.125V249.24375L218.3625 190.2375A9.375 9.375 0 0 1 231.6375 203.5125L156.6375 278.5125000000001A9.375 9.375 0 0 1 143.3625 278.5125000000001L68.3625 203.5125A9.375 9.375 0 1 1 81.6375 190.2375L140.625 249.24375V28.125A9.375 9.375 0 0 1 150 18.75</StreamGeometry>
 			<StreamGeometry x:Key="racehelmet">M2.2,11.2C2,13.6 2.7,15.6 4.2,17.4C5.7,19.2 7.7,20 10.1,20H20.1C20.6,20 21.1,19.8 21.5,19.4C21.9,19 22.1,18.5 22.1,18V17.2C22.1,16.6 22,15.9 21.9,15H13.7C12.7,15 11.9,14.6 11.2,13.9C10.5,13.2 10.1,12.3 10.1,11.4C10.1,9.8 10.8,8.7 12.3,8.1L17.1,6C15.4,4.8 13.4,4.1 11.1,4C8.9,3.8 6.9,4.5 5.1,5.9C3.3,7.3 2.4,9 2.2,11.2M12.1,11.4C12.1,11.8 12.3,12.2 12.6,12.5C12.9,12.8 13.3,13 13.7,13H21.5C20.9,10.8 20,9 18.7,7.6L13.1,9.9C12.4,10.1 12.1,10.6 12.1,11.4Z</StreamGeometry>
+			<StreamGeometry x:Key="lightning">M 52.2573,19.0027L 38.0053,33.2546L 50.6737,33.2546L 25.3369,57.008L 35.4716,38.0053L 23.7533,38.0053L 36.4217,19.0027L 52.2573,19.0027 Z </StreamGeometry>
+			<StreamGeometry x:Key="doubleLightning">M7.96,24.51h0.39l6.88-10.18c0.09-0.18,0.04-0.27-0.15-0.27h-2.84l2.99-5.45c0.09-0.18,0.02-0.27-0.2-0.27h-3.81  c-0.11,0-0.2,0.06-0.29,0.18l-2.78,7.4c-0.02,0.18,0.04,0.27,0.19,0.27h2.75L7.96,24.51z M16.46,18.18h0.27l5.22-7.67  c0.05-0.08,0.06-0.15,0.04-0.2s-0.08-0.07-0.17-0.07h-2.1l2.18-4.03c0.12-0.2,0.06-0.3-0.18-0.3h-2.74c-0.13,0-0.23,0.06-0.3,0.19  l-2.08,5.48c-0.03,0.09-0.03,0.16,0.01,0.21c0.04,0.05,0.1,0.07,0.19,0.07h2.04L16.46,18.18z</StreamGeometry>
 
 			<SolidColorBrush x:Key="boldItemBorder">#D7412C</SolidColorBrush>
 			<SolidColorBrush x:Key="medItemBorder">#FFCDCD</SolidColorBrush>
+
+			<!-- Global DataGrid tweak: remove sort icon width spacing -->
+			<x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
 
 			<ResourceDictionary.ThemeDictionaries>
 				<ResourceDictionary x:Key="Light">
@@ -193,6 +202,27 @@
 				<ColorPaletteResources x:Key="Dark" Accent="#ffd7412c" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ffd7412c" BaseMedium="#fff49e92" BaseMediumHigh="#fffbb5ab" BaseMediumLow="#ffe56f5f" ChromeAltLow="#fffbb5ab" ChromeBlackHigh="Black" ChromeBlackLow="#fffbb5ab" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ffd7412c" ChromeDisabledLow="#fff49e92" ChromeGray="#ffed8778" ChromeHigh="#ffed8778" ChromeLow="#ff890d09" ChromeMedium="#ff9d1a12" ChromeMediumLow="#ffc43423" ChromeWhite="White" ListLow="#ff9d1a12" ListMedium="#ffd7412c" RegionColor="Black" />
 			</FluentTheme.Palettes>
 		</FluentTheme>
+
+		<!-- Global control styles -->
+		<Style Selector="DataGridCell">
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="MinHeight" Value="20" />
+		</Style>
+
+		<Style Selector="DataGridColumnHeader">
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="MinHeight" Value="20" />
+			<Setter Property="Padding" Value="3,0,0,0" />
+		</Style>
+
+		<!-- Pit label style used in Live Timing rows -->
+		<Style Selector="TextBlock.pit">
+			<Setter Property="FontSize" Value="9"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextSmbForegroundBrush}"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
 
 		<Style Selector="TextBlock.title">
 			<Setter Property="FontSize" Value="15"/>
