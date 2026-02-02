@@ -10,29 +10,59 @@
 	<Grid>
 		<!--Settings-->
 		<Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding !IsPositionsVisible}">
-			<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
-				<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}"/>
-				<TextBlock Text="In-Car Driver Settings" Classes="title" Grid.Column="2" VerticalAlignment="Center"/>
-			</Grid>
+			<!-- Header with background -->
+			<Border Background="{DynamicResource TimingTableHeaderBackgroundBrush}" 
+					Grid.Row="0" 
+					Padding="12,12,12,12"
+					BorderBrush="{DynamicResource boldItemBorder}"
+					BorderThickness="0,0,0,1">
+				<Grid ColumnDefinitions="Auto,*">
+					<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}"/>
+					<TextBlock Text="In-Car Driver Settings" Classes="title" Grid.Column="1" VerticalAlignment="Center"/>
+				</Grid>
+			</Border>
 
-			<Border Background="{DynamicResource lightAppBackground}" Margin="15,15,15,0" Padding="8" CornerRadius="4" Grid.Row="1">
-				<StackPanel>
+			<!-- Content panel with elevation -->
+			<Border Background="{DynamicResource lightAppBackground}" 
+					Margin="16,16,16,0" 
+					Padding="16" 
+					CornerRadius="6" 
+					Grid.Row="1"
+					BorderBrush="{DynamicResource boldItemBorder}"
+					BorderThickness="1"
+					BoxShadow="0 2 8 0 #10000000">
+				<StackPanel Spacing="12">
 					<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title"/>
-					<TextBox Text="{Binding CarNumber}" Watermark="Car Number" Margin="1" Width="120" HorizontalAlignment="Left"/>
-					<TextBlock Text="Select Event" Margin="1,7,0,0"/>
-					<ComboBox ItemsSource="{Binding Events}" SelectedItem="{Binding SelectedEvent}" HorizontalAlignment="Stretch">
-						<ComboBox.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding Name}"/>
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
+					<TextBox Text="{Binding CarNumber}" Watermark="Car Number" Width="140" HorizontalAlignment="Left"/>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Select Event" Classes="tableheader"/>
+						<ComboBox ItemsSource="{Binding Events}" SelectedItem="{Binding SelectedEvent}" HorizontalAlignment="Stretch">
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Name}"/>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</StackPanel>
 					<CheckBox Content="Show in-class cars only" IsChecked="{Binding IsInClassOnly}"/>
-					<TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}" Grid.Row="2" TextWrapping="Wrap" FontSize="9" Margin="2,20,2,0"/>
+					<TextBlock Text="{Binding Message}" 
+							   IsVisible="{Binding HasMessage}" 
+							   TextWrapping="Wrap" 
+							   FontSize="10" 
+							   Foreground="{DynamicResource TextTableHeaderForegroundBrush}"
+							   Margin="0,8,0,0"/>
 				</StackPanel>
 			</Border>
 
-			<Button Content="OK" Grid.Row="2" Command="{Binding Ok}" HorizontalAlignment="Right" Margin="0,4,15,4"/>
+			<!-- OK Button with better visibility -->
+			<Button Content="OK" 
+					Grid.Row="2" 
+					Command="{Binding Ok}" 
+					HorizontalAlignment="Right" 
+					HorizontalContentAlignment="Center"
+					Margin="0,12,16,16"
+					MinWidth="80"
+					Padding="12,6"/>
 		</Grid>
 
 		<!-- In-Car Positions View -->

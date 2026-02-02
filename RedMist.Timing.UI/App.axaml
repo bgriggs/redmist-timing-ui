@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
              x:Class="RedMist.Timing.UI.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Dark">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Resources>
@@ -25,34 +25,39 @@
 			<StreamGeometry x:Key="lightning">M 52.2573,19.0027L 38.0053,33.2546L 50.6737,33.2546L 25.3369,57.008L 35.4716,38.0053L 23.7533,38.0053L 36.4217,19.0027L 52.2573,19.0027 Z </StreamGeometry>
 			<StreamGeometry x:Key="doubleLightning">M7.96,24.51h0.39l6.88-10.18c0.09-0.18,0.04-0.27-0.15-0.27h-2.84l2.99-5.45c0.09-0.18,0.02-0.27-0.2-0.27h-3.81  c-0.11,0-0.2,0.06-0.29,0.18l-2.78,7.4c-0.02,0.18,0.04,0.27,0.19,0.27h2.75L7.96,24.51z M16.46,18.18h0.27l5.22-7.67  c0.05-0.08,0.06-0.15,0.04-0.2s-0.08-0.07-0.17-0.07h-2.1l2.18-4.03c0.12-0.2,0.06-0.3-0.18-0.3h-2.74c-0.13,0-0.23,0.06-0.3,0.19  l-2.08,5.48c-0.03,0.09-0.03,0.16,0.01,0.21c0.04,0.05,0.1,0.07,0.19,0.07h2.04L16.46,18.18z</StreamGeometry>
 
-			<SolidColorBrush x:Key="boldItemBorder">#D7412C</SolidColorBrush>
-			<SolidColorBrush x:Key="medItemBorder">#FFCDCD</SolidColorBrush>
+			<SolidColorBrush x:Key="boldItemBorder">#E5E7EB</SolidColorBrush>
+			<SolidColorBrush x:Key="medItemBorder">#F3F4F6</SolidColorBrush>
+
+			<!-- Disabled button colors -->
+			<SolidColorBrush x:Key="ButtonDisabledBackgroundBrush">#E5E7EB</SolidColorBrush>
+			<SolidColorBrush x:Key="ButtonDisabledForegroundBrush">#6B7280</SolidColorBrush>
 
 			<!-- Global DataGrid tweak: remove sort icon width spacing -->
 			<x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
 
 			<ResourceDictionary.ThemeDictionaries>
 				<ResourceDictionary x:Key="Light">
-					<SolidColorBrush x:Key="TextTitleForegroundBrush">Black</SolidColorBrush>
-					<SolidColorBrush x:Key="TextH1ForegroundBrush">Black</SolidColorBrush>
-					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">Gray</SolidColorBrush>
-					<SolidColorBrush x:Key="TextLGForegroundBrush">Black</SolidColorBrush>
-					<SolidColorBrush x:Key="TextMedForegroundBrush">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="TextTitleForegroundBrush">#111827</SolidColorBrush>
+					<SolidColorBrush x:Key="TextH1ForegroundBrush">#111827</SolidColorBrush>
+					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">#6B7280</SolidColorBrush>
+					<SolidColorBrush x:Key="TextLGForegroundBrush">#111827</SolidColorBrush>
+					<SolidColorBrush x:Key="TextMedForegroundBrush">#374151</SolidColorBrush>
 					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="TextCarNumForegroundBrush">Black</SolidColorBrush>
-					<SolidColorBrush x:Key="IconButtonForegroundBrush">Black</SolidColorBrush>
-					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">Green</SolidColorBrush>
-					<SolidColorBrush x:Key="PositionsLostForegroundBrush">Red</SolidColorBrush>
-					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">Gray</SolidColorBrush>
-					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">#e0e0e0</SolidColorBrush>
+					<SolidColorBrush x:Key="TextCarNumForegroundBrush">#111827</SolidColorBrush>
+					<SolidColorBrush x:Key="IconButtonForegroundBrush">#374151</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">#059669</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsLostForegroundBrush">#DC2626</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">#6B7280</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">#F3F4F6</SolidColorBrush>
 					<SolidColorBrush x:Key="TimingTableBackgroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="CarDetailsSeperatorBackgroundBrush">#4a4a4a</SolidColorBrush>
+					<SolidColorBrush x:Key="CarDetailsSeperatorBackgroundBrush">#E5E7EB</SolidColorBrush>
 
 					<SolidColorBrush x:Key="EventRowBackgroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="btnPointerOver">White</SolidColorBrush>
-					<SolidColorBrush x:Key="lightAppBackground">#FFEBEB</SolidColorBrush>
-					<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
-					<SolidColorBrush x:Key="strongAppBackground">#D7412C</SolidColorBrush>
+					<SolidColorBrush x:Key="EventRowHoverBackgroundBrush">#F9FAFB</SolidColorBrush>
+					<SolidColorBrush x:Key="btnPointerOver">#F9FAFB</SolidColorBrush>
+					<SolidColorBrush x:Key="lightAppBackground">#FFFFFF</SolidColorBrush>
+					<SolidColorBrush x:Key="medAppBackground">#FFFFFF</SolidColorBrush>
+					<SolidColorBrush x:Key="strongAppBackground">#111827</SolidColorBrush>
 
 					<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
 					<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>
@@ -75,8 +80,10 @@
 					<SolidColorBrush x:Key="timingFlagCheckeredBackground">White</SolidColorBrush>
 
 					<!--Event-->
-					<SolidColorBrush x:Key="eventLiveBackground">Yellow</SolidColorBrush>
-					<SolidColorBrush x:Key="eventLiveForeground">Black</SolidColorBrush>
+					<SolidColorBrush x:Key="eventLiveBackground">#10B981</SolidColorBrush>
+					<SolidColorBrush x:Key="eventLiveForeground">White</SolidColorBrush>
+					<SolidColorBrush x:Key="eventSimulationBackground">#6B7280</SolidColorBrush>
+					<SolidColorBrush x:Key="eventSimulationForeground">White</SolidColorBrush>
 
 					<!--In Car Driver Mode-->
 					<SolidColorBrush x:Key="carRowGainBackgroundBrush">#087800</SolidColorBrush>
@@ -112,26 +119,31 @@
 					<x:String x:Key="mrlImage">avares://RedMist.Timing.UI/Assets/MRL_Logo_light.png</x:String>
 				</ResourceDictionary>
 				<ResourceDictionary x:Key="Dark">
-					<SolidColorBrush x:Key="TextTitleForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="TextH1ForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="TextLGForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="TextMedForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="TextCarNumForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="IconButtonForegroundBrush">White</SolidColorBrush>
-					<SolidColorBrush x:Key="EventRowBackgroundBrush">Gray</SolidColorBrush>
-					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">#78d44b</SolidColorBrush>
-					<SolidColorBrush x:Key="PositionsLostForegroundBrush">Red</SolidColorBrush>
-					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">Gray</SolidColorBrush>
-					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">Gray</SolidColorBrush>
-					<SolidColorBrush x:Key="TimingTableBackgroundBrush">#272727</SolidColorBrush>
-					<SolidColorBrush x:Key="CarDetailsSeperatorBackgroundBrush">#e4e4e4</SolidColorBrush>
+					<!-- Disabled button colors -->
+					<SolidColorBrush x:Key="ButtonDisabledBackgroundBrush">#374151</SolidColorBrush>
+					<SolidColorBrush x:Key="ButtonDisabledForegroundBrush">#9CA3AF</SolidColorBrush>
 
-					<SolidColorBrush x:Key="btnPointerOver">Black</SolidColorBrush>
-					<SolidColorBrush x:Key="lightAppBackground">#D7412C</SolidColorBrush>
-					<SolidColorBrush x:Key="medAppBackground">#D77B66</SolidColorBrush>
-					<SolidColorBrush x:Key="strongAppBackground">#FFEBEB</SolidColorBrush>
+					<SolidColorBrush x:Key="TextTitleForegroundBrush">#F9FAFB</SolidColorBrush>
+					<SolidColorBrush x:Key="TextH1ForegroundBrush">#F9FAFB</SolidColorBrush>
+					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">#9CA3AF</SolidColorBrush>
+					<SolidColorBrush x:Key="TextLGForegroundBrush">#F9FAFB</SolidColorBrush>
+					<SolidColorBrush x:Key="TextMedForegroundBrush">#D1D5DB</SolidColorBrush>
+					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
+					<SolidColorBrush x:Key="TextCarNumForegroundBrush">#F9FAFB</SolidColorBrush>
+					<SolidColorBrush x:Key="IconButtonForegroundBrush">#D1D5DB</SolidColorBrush>
+					<SolidColorBrush x:Key="EventRowBackgroundBrush">#1F2937</SolidColorBrush>
+					<SolidColorBrush x:Key="EventRowHoverBackgroundBrush">#374151</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">#34D399</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsLostForegroundBrush">#F87171</SolidColorBrush>
+					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">#9CA3AF</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">#374151</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableBackgroundBrush">#1F2937</SolidColorBrush>
+					<SolidColorBrush x:Key="CarDetailsSeperatorBackgroundBrush">#4B5563</SolidColorBrush>
+
+					<SolidColorBrush x:Key="btnPointerOver">#374151</SolidColorBrush>
+					<SolidColorBrush x:Key="lightAppBackground">#1F2937</SolidColorBrush>
+					<SolidColorBrush x:Key="medAppBackground">#111827</SolidColorBrush>
+					<SolidColorBrush x:Key="strongAppBackground">#F9FAFB</SolidColorBrush>
 
 					<StaticResource x:Key="ButtonBackground" ResourceKey="medAppBackground"/>
 					<StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="btnPointerOver"/>
@@ -154,8 +166,10 @@
 					<SolidColorBrush x:Key="timingFlagCheckeredBackground">#616161</SolidColorBrush>
 
 					<!--Event-->
-					<SolidColorBrush x:Key="eventLiveBackground">#dbda10</SolidColorBrush>
-					<SolidColorBrush x:Key="eventLiveForeground">#878787</SolidColorBrush>
+					<SolidColorBrush x:Key="eventLiveBackground">#10B981</SolidColorBrush>
+					<SolidColorBrush x:Key="eventLiveForeground">White</SolidColorBrush>
+					<SolidColorBrush x:Key="eventSimulationBackground">#6B7280</SolidColorBrush>
+					<SolidColorBrush x:Key="eventSimulationForeground">White</SolidColorBrush>
 
 					<!--In Car Driver Mode-->
 					<SolidColorBrush x:Key="carRowGainBackgroundBrush">#087800</SolidColorBrush>
@@ -198,8 +212,8 @@
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
 		<FluentTheme>
 			<FluentTheme.Palettes>
-				<ColorPaletteResources x:Key="Light" Accent="#ffd7412c" AltHigh="White" AltLow="White" AltMedium="White" AltMediumHigh="White" AltMediumLow="White" BaseHigh="Black" BaseLow="#ffd7412c" BaseMedium="#ff9d1a12" BaseMediumHigh="#ff760000" BaseMediumLow="#ff890d09" ChromeAltLow="#ff760000" ChromeBlackHigh="Black" ChromeBlackLow="#ffd7412c" ChromeBlackMedium="#ff760000" ChromeBlackMediumLow="#ff9d1a12" ChromeDisabledHigh="#ffd7412c" ChromeDisabledLow="#ff9d1a12" ChromeGray="#ff890d09" ChromeHigh="#ffd7412c" ChromeLow="#fffbb5ab" ChromeMedium="#fff49e92" ChromeMediumLow="#fffbb5ab" ChromeWhite="White" ListLow="#fff49e92" ListMedium="#ffd7412c" RegionColor="#fff1f1f1" />
-				<ColorPaletteResources x:Key="Dark" Accent="#ffd7412c" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ffd7412c" BaseMedium="#fff49e92" BaseMediumHigh="#fffbb5ab" BaseMediumLow="#ffe56f5f" ChromeAltLow="#fffbb5ab" ChromeBlackHigh="Black" ChromeBlackLow="#fffbb5ab" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ffd7412c" ChromeDisabledLow="#fff49e92" ChromeGray="#ffed8778" ChromeHigh="#ffed8778" ChromeLow="#ff890d09" ChromeMedium="#ff9d1a12" ChromeMediumLow="#ffc43423" ChromeWhite="White" ListLow="#ff9d1a12" ListMedium="#ffd7412c" RegionColor="Black" />
+				<ColorPaletteResources x:Key="Light" Accent="#ffd7412c" AltHigh="White" AltLow="White" AltMedium="White" AltMediumHigh="White" AltMediumLow="White" BaseHigh="Black" BaseLow="#ffd7412c" BaseMedium="#ff9d1a12" BaseMediumHigh="#ff760000" BaseMediumLow="#ff890d09" ChromeAltLow="#ff760000" ChromeBlackHigh="Black" ChromeBlackLow="#ffd7412c" ChromeBlackMedium="#ff760000" ChromeBlackMediumLow="#ff9d1a12" ChromeDisabledHigh="#ffD1D5DB" ChromeDisabledLow="#ffE5E7EB" ChromeGray="#ff890d09" ChromeHigh="#ffd7412c" ChromeLow="#fffbb5ab" ChromeMedium="#fff49e92" ChromeMediumLow="#fffbb5ab" ChromeWhite="White" ListLow="#fff49e92" ListMedium="#ffd7412c" RegionColor="#fff1f1f1" />
+				<ColorPaletteResources x:Key="Dark" Accent="#ffd7412c" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ffd7412c" BaseMedium="#fff49e92" BaseMediumHigh="#fffbb5ab" BaseMediumLow="#ffe56f5f" ChromeAltLow="#fffbb5ab" ChromeBlackHigh="Black" ChromeBlackLow="#fffbb5ab" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ff4B5563" ChromeDisabledLow="#ff6B7280" ChromeGray="#ffed8778" ChromeHigh="#ffed8778" ChromeLow="#ff890d09" ChromeMedium="#ff9d1a12" ChromeMediumLow="#ffc43423" ChromeWhite="White" ListLow="#ff9d1a12" ListMedium="#ffd7412c" RegionColor="Black" />
 			</FluentTheme.Palettes>
 		</FluentTheme>
 
@@ -226,7 +240,7 @@
 
 		<Style Selector="TextBlock.title">
 			<Setter Property="FontSize" Value="15"/>
-			<Setter Property="FontWeight" Value="DemiBold"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
 			<Setter Property="Foreground" Value="{DynamicResource TextTitleForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.h1">
@@ -265,7 +279,8 @@
 			<Setter Property="Foreground" Value="{DynamicResource TextCarNumForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.sch">
-			<Setter Property="FontSize" Value="9"/>
+			<Setter Property="FontSize" Value="10"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextTableHeaderForegroundBrush}"/>
 		</Style>
 		<Style Selector="TextBlock.flagduration">
 			<Setter Property="FontSize" Value="11"/>
@@ -312,6 +327,150 @@
 					</ContentPresenter>
 				</ControlTemplate>
 			</Setter>
+		</Style>
+
+		<!-- Pressed/Clicked button style -->
+		<Style Selector="Button:pressed">
+			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+		</Style>
+		<Style Selector="Button:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+		</Style>
+
+		<!-- TextBox styles -->
+		<Style Selector="TextBox">
+			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
+			<Setter Property="BorderThickness" Value="1"/>
+		</Style>
+		<Style Selector="TextBox:focus /template/ Border">
+			<Setter Property="BorderBrush" Value="#6B7280"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+		<Style Selector="TextBox:pointerover /template/ Border">
+			<Setter Property="BorderBrush" Value="#9CA3AF"/>
+		</Style>
+		<Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+			<Setter Property="Foreground" Value="#9CA3AF"/>
+		</Style>
+		<Style Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark">
+			<Setter Property="Foreground" Value="#6B7280"/>
+		</Style>
+		<Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark">
+			<Setter Property="Foreground" Value="#6B7280"/>
+		</Style>
+
+		<!-- CheckBox styles -->
+		<Style Selector="CheckBox">
+			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
+		</Style>
+		<Style Selector="CheckBox /template/ Border">
+			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
+			<Setter Property="BorderThickness" Value="1"/>
+		</Style>
+		<Style Selector="CheckBox /template/ Border#NormalRectangle">
+			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+		<Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
+			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
+		</Style>
+		<Style Selector="CheckBox:pointerover /template/ Border">
+			<Setter Property="BorderBrush" Value="#9CA3AF"/>
+		</Style>
+		<Style Selector="CheckBox:pointerover /template/ Border#NormalRectangle">
+			<Setter Property="BorderBrush" Value="#9CA3AF"/>
+		</Style>
+		<Style Selector="CheckBox:unchecked:pointerover /template/ Border#NormalRectangle">
+			<Setter Property="BorderBrush" Value="#9CA3AF"/>
+		</Style>
+		<Style Selector="CheckBox:focus /template/ Border#NormalRectangle">
+			<Setter Property="BorderBrush" Value="#6B7280"/>
+		</Style>
+		<Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+			<Setter Property="Background" Value="#6B7280"/>
+			<Setter Property="BorderBrush" Value="#6B7280"/>
+		</Style>
+		<Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
+			<Setter Property="Background" Value="#4B5563"/>
+			<Setter Property="BorderBrush" Value="#4B5563"/>
+		</Style>
+		<Style Selector="CheckBox:checked:focus /template/ Border#NormalRectangle">
+			<Setter Property="Background" Value="#6B7280"/>
+			<Setter Property="BorderBrush" Value="#6B7280"/>
+		</Style>
+
+		<!-- ComboBox styles -->
+		<Style Selector="ComboBox">
+			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
+			<Setter Property="BorderThickness" Value="1"/>
+		</Style>
+		<Style Selector="ComboBox:focus /template/ Border">
+			<Setter Property="BorderBrush" Value="#6B7280"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+		<Style Selector="ComboBox:pointerover /template/ Border">
+			<Setter Property="BorderBrush" Value="#9CA3AF"/>
+		</Style>
+		<Style Selector="ComboBox:pressed /template/ Border">
+			<Setter Property="BorderBrush" Value="#6B7280"/>
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+		</Style>
+		<Style Selector="ComboBox /template/ ToggleButton">
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+		<Style Selector="ComboBox /template/ ToggleButton:pressed">
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+		</Style>
+		<Style Selector="ComboBox /template/ ToggleButton:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+		</Style>
+		<Style Selector="ComboBox /template/ Popup Border">
+			<Setter Property="Background" Value="{DynamicResource medAppBackground}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource boldItemBorder}"/>
+		</Style>
+		<Style Selector="ComboBox /template/ Popup ScrollViewer">
+			<Setter Property="Background" Value="{DynamicResource medAppBackground}"/>
+		</Style>
+		<Style Selector="ComboBoxItem">
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+		<Style Selector="ComboBoxItem:selected">
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+		</Style>
+		<Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+		</Style>
+		<Style Selector="ComboBoxItem:pointerover">
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+		</Style>
+		<Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+		</Style>
+
+		<!-- Disabled button style -->
+		<Style Selector="Button:disabled">
+			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+			<Setter Property="Opacity" Value="0.6"/>
+		</Style>
+		<Style Selector="Button:disabled /template/ ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource ButtonDisabledBackgroundBrush}"/>
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+		</Style>
+		<Style Selector="Button:disabled Path">
+			<Setter Property="Stroke" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+			<Setter Property="Fill" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+		</Style>
+		<Style Selector="Button:disabled TextBlock">
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
+		</Style>
+		<Style Selector="Button:disabled PathIcon">
+			<Setter Property="Foreground" Value="{DynamicResource ButtonDisabledForegroundBrush}"/>
 		</Style>
 	</Application.Styles>
 </Application>
