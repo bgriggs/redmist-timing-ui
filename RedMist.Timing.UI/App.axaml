@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
              x:Class="RedMist.Timing.UI.App"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Light">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Resources>
@@ -48,7 +48,7 @@
 					<SolidColorBrush x:Key="PositionsGainedForegroundBrush">#059669</SolidColorBrush>
 					<SolidColorBrush x:Key="PositionsLostForegroundBrush">#DC2626</SolidColorBrush>
 					<SolidColorBrush x:Key="PositionsNeutralForegroundBrush">#6B7280</SolidColorBrush>
-					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">#F3F4F6</SolidColorBrush>
+					<SolidColorBrush x:Key="TimingTableHeaderBackgroundBrush">#E5E7EB</SolidColorBrush>
 					<SolidColorBrush x:Key="TimingTableBackgroundBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="CarDetailsSeperatorBackgroundBrush">#E5E7EB</SolidColorBrush>
 
@@ -68,12 +68,12 @@
 					<Color x:Key="carRowStaleBackgroundBrush">#f7d2bb</Color>
 					<SolidColorBrush x:Key="carRowLapTextForegroundNormalBrush">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowLapTextForegroundBestBrush">#5da639</SolidColorBrush>
-					<SolidColorBrush x:Key="carRowLapTextForegroundOverallBestBrush">Purple</SolidColorBrush>
+					<SolidColorBrush x:Key="carRowLapTextForegroundOverallBestBrush">#7C3AED</SolidColorBrush>
 
 					<!--Flag Background-->
-					<SolidColorBrush x:Key="timingFlagGreenBackground">#8be08c</SolidColorBrush>
-					<SolidColorBrush x:Key="timingFlagYellowBackground">#fefda2</SolidColorBrush>
-					<SolidColorBrush x:Key="timingFlagRedBackground">#ff5252</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagGreenBackground">#A8E6CF</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagYellowBackground">#FFD966</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagRedBackground">#FFB3B3</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagBlackBackground">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagWhiteBackground">WhiteSmoke</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagPurpleBackground">#e685ff</SolidColorBrush>

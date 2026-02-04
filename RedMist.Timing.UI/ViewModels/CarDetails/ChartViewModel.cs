@@ -24,7 +24,7 @@ public partial class ChartViewModel : ObservableObject
     // Putting chart in here to be able to manage the cleanup and prevent exception when it has no axes.
     public CartesianChart Chart => new()
     {
-        Padding = new Avalonia.Thickness(0),
+        Padding = new Thickness(0),
         MinWidth = 90,
         Height = 240,
         ZoomMode = ZoomAndPanMode.X,
