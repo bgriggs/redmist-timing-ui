@@ -275,8 +275,17 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
 
                     IsTimingTabStripVisible = true;
-                    IsResultsTabSelected = !eventModel.IsLive;
                     IsLiveTimingTabVisible = eventModel.IsLive;
+
+                    // Ensure at least one tab is selected when tab strip becomes visible
+                    if (eventModel.IsLive)
+                    {
+                        IsLiveTimingTabSelected = true;
+                    }
+                    else
+                    {
+                        IsResultsTabSelected = true;
+                    }
                 }
             }
             else if (router.Path == "EventsList")

@@ -25,7 +25,7 @@ public class DesignResultsViewModel : ResultsViewModel
             ]
         },
         Broadcast = new BroadcasterConfig { CompanyName = "Driver's Eye", Url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
-        Sessions = 
+        Sessions =
         [
             new Session { Id = 1, Name = "Practice", StartTime = new DateTime(2025, 2, 28, 8, 0, 0), EndTime = new DateTime(2025, 2, 28, 8, 40, 0), IsLive = false },
             new Session { Id = 2, Name = "Race 1", StartTime = new DateTime(2025, 2, 28, 9, 0, 0), EndTime = new DateTime(2025, 2, 28, 17, 00, 0), IsLive = false },

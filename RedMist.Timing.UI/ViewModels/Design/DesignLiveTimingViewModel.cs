@@ -1,13 +1,9 @@
 ﻿using DynamicData;
-using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
-using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
@@ -23,7 +19,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         var configuration = new DesignConfiguration();
         var evt = new Event { EventId = 1 }; // Mock event for design time
         SessionName = "Design Event";
-        Flag = "Green";
+        Flag = "Checkered";
         TimeToGo = "03:45:00";
         RaceTime = "01:00:00";
         LocalTime = "9:14:33 am";

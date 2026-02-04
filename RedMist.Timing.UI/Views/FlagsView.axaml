@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="500"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
 			 xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
@@ -14,40 +14,53 @@
 		<design:DesignFlagsViewModel />
 	</Design.DataContext>
 
-	<UserControl.Resources>
-		<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
-	</UserControl.Resources>
-	
-	<Grid RowDefinitions="Auto,Auto,Auto,*">
-		<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
-			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
-			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
-			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
-		</Grid>
+	<Grid RowDefinitions="Auto,*">
+		<!-- Header with background -->
+		<Border Background="{DynamicResource TimingTableHeaderBackgroundBrush}"
+				Grid.Row="0"
+				Padding="12,12,12,12"
+				BorderBrush="{DynamicResource boldItemBorder}"
+				BorderThickness="0,0,0,1">
+			<Grid ColumnDefinitions="Auto,Auto,*">
+				<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+				<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,0,12,0"/>
+				<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
+			</Grid>
+		</Border>
 
-		<StackPanel Orientation="Horizontal" Grid.Row="1">
-			<TextBlock Text="Flags" FontSize="16" FontWeight="Bold" Margin="4,15,4,0" Width="82"/>
-			<TextBlock Text="Start" Classes="flagdurationheader" Width="62"/>
-			<TextBlock Text="End" Classes="flagdurationheader" Width="66"/>
-			<TextBlock Text="Duration" Classes="flagdurationheader" Width="50"/>
-		</StackPanel>
-		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title" Grid.Row="2"/>
-		<ScrollViewer IsVisible="{Binding !IsLoading}" Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
-			<ItemsControl ItemsSource="{Binding Flags}" Margin="4,2,4,4">
-				<ItemsControl.ItemTemplate>
-					<DataTemplate DataType="vm:FlagViewModel">
-						<Border BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Padding="5" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" CornerRadius="3" Margin="0,0,0,1">
-							<StackPanel Orientation="Horizontal">
-								<TextBlock Text="{Binding FlagStr}" Width="80" Classes="theme-text-heading size-xs"/>
-								<TextBlock Text="{Binding StartTime}" Width="52" Classes="flagduration"/>
-								<TextBlock Text="-" Margin="0,0,2,0"/>
-								<TextBlock Text="{Binding EndTime}" Width="52" Classes="flagduration"/>
-								<TextBlock Text="{Binding Duration}" Width="80" Margin="15,0,0,0" Classes="flagduration"/>
-							</StackPanel>
-						</Border>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
-		</ScrollViewer>
+			<Grid RowDefinitions="Auto,Auto,*" Grid.Row="1" Margin="5">
+				<!-- Column Headers -->
+				<StackPanel Orientation="Horizontal" Grid.Row="0" Margin="4,0,0,2">
+					<TextBlock Text="Flag" Classes="flagdurationheader" Width="82"/>
+					<TextBlock Text="Start" Classes="flagdurationheader" Width="62"/>
+					<TextBlock Text="End" Classes="flagdurationheader" Width="66"/>
+					<TextBlock Text="Duration" Classes="flagdurationheader" Width="65"/>
+				</StackPanel>
+
+				<!-- Loading indicator -->
+				<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title" Grid.Row="1"/>
+
+				<!-- No flags message -->
+				<TextBlock Text="No flags recorded for this session" IsVisible="{Binding HasNoFlags}" Classes="title" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
+
+				<!-- Flags list -->
+				<ScrollViewer IsVisible="{Binding !HasNoFlags}" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+					<ItemsControl ItemsSource="{Binding Flags}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="vm:FlagViewModel">
+								<Border BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Padding="5" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" CornerRadius="3" Margin="0,0,0,1">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="{Binding FlagStr}" Width="80" Classes="theme-text-heading size-xs"/>
+										<TextBlock Text="{Binding StartTime}" Width="52" Classes="flagduration"/>
+										<TextBlock Text="-" Margin="0,0,2,0"/>
+										<TextBlock Text="{Binding EndTime}" Width="52" Classes="flagduration"/>
+										<TextBlock Text="{Binding Duration}" Width="66" Margin="15,0,0,0" Classes="flagduration"/>
+									</StackPanel>
+								</Border>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</Grid>
 	</Grid>
 </UserControl>

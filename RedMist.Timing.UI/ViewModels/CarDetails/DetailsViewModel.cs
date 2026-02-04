@@ -1,7 +1,6 @@
 ﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using MessagePack;
 using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Extensions;
@@ -13,11 +12,8 @@ using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;

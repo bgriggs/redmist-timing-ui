@@ -29,11 +29,13 @@ public partial class EventInformationViewModel : ObservableObject
     public string TrackName => EventModel.TrackName;
     public string Distance => EventModel.Distance;
     public string CourseConfiguration => EventModel.CourseConfiguration;
+    public bool IsTrackVisible => !string.IsNullOrEmpty(EventModel.TrackName);
     public bool IsScheduleVisible => EventModel.Schedule?.Entries.Count > 0;
     public ObservableCollection<ScheduleDayViewModel> ScheduleDays { get; } = [];
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
     public string? BroadcastUrl => EventModel.Broadcast?.Url;
     public bool IsBroadcastVisible => EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url);
+    public bool IsEventDetailsVisible => !string.IsNullOrEmpty(EventModel.EventUrl);
     public Bitmap? OrganizationLogo
     {
         get

@@ -31,6 +31,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
 
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
     private List<FlagDuration> lastFlagDurations = [];
+    public bool HasNoFlags => Flags.Count == 0;
     public string Name => eventModel.EventName ?? string.Empty;
     public Bitmap? OrganizationLogo
     {
@@ -147,6 +148,8 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
         {
             Flags.RemoveAt(Flags.Count - 1);
         }
+
+        OnPropertyChanged(nameof(HasNoFlags));
 
         return fds;
     }
