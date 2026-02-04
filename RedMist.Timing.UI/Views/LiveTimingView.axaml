@@ -182,17 +182,41 @@
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
 				<Grid RowDefinitions="Auto,*" DataContext="{Binding CarDetailsViewModel}">
-					<Border Padding="3" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0" IsVisible="{Binding IsCarMetadataVisible}">
+					<Border Padding="5,4" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0" IsVisible="{Binding IsCarMetadataVisible}">
 						<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
-							<TextBlock Text="{Binding Name, StringFormat='Name: {0}'}" Classes="sm"/>
-							<TextBlock Text="{Binding NationState, StringFormat='Country/State: {0}'}" Classes="sm" Grid.Column="1" Margin="6,0,0,0"/>
-							<TextBlock Text="{Binding Sponsor, StringFormat='Sponsor: {0}'}" Classes="sm" Grid.Column="2" Margin="6,0,0,0"/>
+							<!-- Row 1: Personal Info -->
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="Name:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Name}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Column="1" Margin="12,0,0,0">
+								<TextBlock Text="Country/State:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding NationState}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Column="2" Margin="12,0,0,0">
+								<TextBlock Text="Sponsor:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Sponsor}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
 
-							<TextBlock Text="{Binding Make, StringFormat='Make: {0}'}" Classes="sm" Grid.Row="1"/>
-							<TextBlock Text="{Binding ModelEngine, StringFormat='Color/Model: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="1" Margin="6,0,0,0"/>
-							<TextBlock Text="{Binding Tires, StringFormat='Tires: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="3" Margin="6,0,0,0"/>
+							<!-- Row 2: Car Specs -->
+							<StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,2,0,0">
+								<TextBlock Text="Make:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Make}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" Margin="12,2,0,0">
+								<TextBlock Text="Color/Model:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding ModelEngine}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="2" Margin="12,2,0,0">
+								<TextBlock Text="Tires:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Tires}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
 
-							<TextBlock Text="{Binding Club, StringFormat='Club: {0}'}" Classes="sm" Grid.Row="2" Grid.ColumnSpan="3"/>
+							<!-- Row 3: Team Info -->
+							<StackPanel Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="3" Margin="0,2,0,0">
+								<TextBlock Text="Club:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Club}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
 						</Grid>
 					</Border>
 					<Grid Grid.Row="1">
