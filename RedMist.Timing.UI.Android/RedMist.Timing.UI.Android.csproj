@@ -29,6 +29,9 @@
 
 		<!-- AndroidX Activity for modern back press handling -->
 		<PackageReference Include="Xamarin.AndroidX.Activity" />
+
+		<!-- Exclude JVM variant of Compose Runtime Annotation to prevent duplicate types -->
+		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" ExcludeAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>

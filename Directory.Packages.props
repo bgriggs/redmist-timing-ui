@@ -20,6 +20,8 @@
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.10.0.1" />
     <!-- AndroidX Activity for modern back press handling -->
     <PackageVersion Include="Xamarin.AndroidX.Activity" Version="1.12.2.1" />
+    <!-- Exclude JVM variant of Compose Runtime Annotation to prevent duplicate types with Android variant -->
+    <PackageVersion Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.0.1" />
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="25.2.1" />
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia.Themes.DataGrid" Version="25.2.1" />
     <PackageVersion Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250319-build.2093" />
