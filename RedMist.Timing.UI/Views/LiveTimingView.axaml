@@ -379,6 +379,7 @@
 				<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
 				<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}" Classes="h1"/>
 				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}" Classes="h1"/>
+				<TextBlock Text="{Binding Flag, StringFormat='Flag: {0}'}" Classes="h1"/>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock Text="Watch Along: " Classes="h1" IsVisible="{Binding IsBroadcastVisible}"/>
 					<Button IsVisible="{Binding IsBroadcastVisible}" Classes="link" Command="{Binding LaunchBroadcast}">
