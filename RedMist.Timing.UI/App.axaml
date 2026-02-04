@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:RedMist.Timing.UI.Converters"
              x:Class="RedMist.Timing.UI.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Dark">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Resources>
@@ -40,6 +40,7 @@
 					<SolidColorBrush x:Key="TextTitleForegroundBrush">#111827</SolidColorBrush>
 					<SolidColorBrush x:Key="TextH1ForegroundBrush">#111827</SolidColorBrush>
 					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">#6B7280</SolidColorBrush>
+					<SolidColorBrush x:Key="FlagOverlayBackgroundBrush">#F5FFFFFF</SolidColorBrush>
 					<SolidColorBrush x:Key="TextLGForegroundBrush">#111827</SolidColorBrush>
 					<SolidColorBrush x:Key="TextMedForegroundBrush">#374151</SolidColorBrush>
 					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
@@ -77,7 +78,36 @@
 					<SolidColorBrush x:Key="timingFlagBlackBackground">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagWhiteBackground">WhiteSmoke</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagPurpleBackground">#e685ff</SolidColorBrush>
-					<SolidColorBrush x:Key="timingFlagCheckeredBackground">White</SolidColorBrush>
+
+					<!--Checkered Flag Pattern-->
+					<DrawingBrush x:Key="timingFlagCheckeredBackground" 
+								  TileMode="Tile" 
+								  Stretch="None"
+								  DestinationRect="0,0,80,80">
+						<DrawingBrush.Drawing>
+							<DrawingGroup>
+								<!--Define checkered pattern: 2x2 grid with 40px squares-->
+								<!--White squares-->
+								<GeometryDrawing Brush="White">
+									<GeometryDrawing.Geometry>
+										<GeometryGroup>
+											<RectangleGeometry Rect="0,0,40,40"/>
+											<RectangleGeometry Rect="40,40,40,40"/>
+										</GeometryGroup>
+									</GeometryDrawing.Geometry>
+								</GeometryDrawing>
+								<!--Black squares-->
+								<GeometryDrawing Brush="Black">
+									<GeometryDrawing.Geometry>
+										<GeometryGroup>
+											<RectangleGeometry Rect="40,0,40,40"/>
+											<RectangleGeometry Rect="0,40,40,40"/>
+										</GeometryGroup>
+									</GeometryDrawing.Geometry>
+								</GeometryDrawing>
+							</DrawingGroup>
+						</DrawingBrush.Drawing>
+					</DrawingBrush>
 
 					<!--Event-->
 					<SolidColorBrush x:Key="eventLiveBackground">#10B981</SolidColorBrush>
@@ -130,6 +160,7 @@
 					<SolidColorBrush x:Key="TextTitleForegroundBrush">#F9FAFB</SolidColorBrush>
 					<SolidColorBrush x:Key="TextH1ForegroundBrush">#F9FAFB</SolidColorBrush>
 					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">#B4BCC8</SolidColorBrush>
+					<SolidColorBrush x:Key="FlagOverlayBackgroundBrush">#D9000000</SolidColorBrush>
 					<SolidColorBrush x:Key="TextLGForegroundBrush">#F9FAFB</SolidColorBrush>
 					<SolidColorBrush x:Key="TextMedForegroundBrush">#D1D5DB</SolidColorBrush>
 					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
@@ -167,7 +198,36 @@
 					<SolidColorBrush x:Key="timingFlagBlackBackground">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagWhiteBackground">#b7b7b7</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagPurpleBackground">Purple</SolidColorBrush>
-					<SolidColorBrush x:Key="timingFlagCheckeredBackground">#616161</SolidColorBrush>
+
+					<!--Checkered Flag Pattern (Dark Theme)-->
+					<DrawingBrush x:Key="timingFlagCheckeredBackground" 
+								  TileMode="Tile" 
+								  Stretch="None"
+								  DestinationRect="0,0,80,80">
+						<DrawingBrush.Drawing>
+							<DrawingGroup>
+								<!--Define checkered pattern: 2x2 grid with 40px squares-->
+								<!--White/Light gray squares for dark theme-->
+								<GeometryDrawing Brush="#D1D5DB">
+									<GeometryDrawing.Geometry>
+										<GeometryGroup>
+											<RectangleGeometry Rect="0,0,40,40"/>
+											<RectangleGeometry Rect="40,40,40,40"/>
+										</GeometryGroup>
+									</GeometryDrawing.Geometry>
+								</GeometryDrawing>
+								<!--Dark gray squares for dark theme-->
+								<GeometryDrawing Brush="#374151">
+									<GeometryDrawing.Geometry>
+										<GeometryGroup>
+											<RectangleGeometry Rect="40,0,40,40"/>
+											<RectangleGeometry Rect="0,40,40,40"/>
+										</GeometryGroup>
+									</GeometryDrawing.Geometry>
+								</GeometryDrawing>
+							</DrawingGroup>
+						</DrawingBrush.Drawing>
+					</DrawingBrush>
 
 					<!--Event-->
 					<SolidColorBrush x:Key="eventLiveBackground">#10B981</SolidColorBrush>
