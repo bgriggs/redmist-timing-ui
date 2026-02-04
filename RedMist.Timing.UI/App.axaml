@@ -104,6 +104,10 @@
 					<SolidColorBrush x:Key="ContrastForegroundBrush">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="ContrastForegroundInverseBrush">White</SolidColorBrush>
 
+					<!-- Chart Colors -->
+					<SolidColorBrush x:Key="ChartOverallPositionBrush">#FF9966</SolidColorBrush>
+					<SolidColorBrush x:Key="ChartClassPositionBrush">#4A9DFF</SolidColorBrush>
+
 					<!--Update Notifications-->
 					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#FFF4CE</SolidColorBrush>
 					<SolidColorBrush x:Key="OptionalUpdateBorderBrush">#F0AD4E</SolidColorBrush>
@@ -189,6 +193,10 @@
 					<SolidColorBrush x:Key="ExpanderBackgroundBrush">#3a3a3a</SolidColorBrush>
 					<SolidColorBrush x:Key="ContrastForegroundBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="ContrastForegroundInverseBrush">Black</SolidColorBrush>
+
+					<!-- Chart Colors -->
+					<SolidColorBrush x:Key="ChartOverallPositionBrush">#FF9966</SolidColorBrush>
+					<SolidColorBrush x:Key="ChartClassPositionBrush">#4A9DFF</SolidColorBrush>
 
 					<!--Update Notifications-->
 					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#3d3418</SolidColorBrush>

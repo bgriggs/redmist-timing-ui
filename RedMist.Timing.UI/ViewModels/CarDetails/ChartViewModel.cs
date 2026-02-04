@@ -58,7 +58,7 @@ public partial class ChartViewModel : ObservableObject
             Name = "Position Overall",
             Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.OverallPosition),
             ScalesYAt = 1,
-            Stroke = new SolidColorPaint(SKColors.Coral, 2),
+            Stroke = new SolidColorPaint(GetThemeChartColor("ChartOverallPositionBrush"), 2),
             GeometrySize = 0,
             GeometryFill = null,
             GeometryStroke = null,
@@ -70,7 +70,7 @@ public partial class ChartViewModel : ObservableObject
             Name = "Position Class",
             Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.ClassPosition),
             ScalesYAt = 1,
-            Stroke = new SolidColorPaint(SKColors.Cyan, 2),
+            Stroke = new SolidColorPaint(GetThemeChartColor("ChartClassPositionBrush"), 2),
             GeometrySize = 0,
             GeometryFill = null,
             GeometryStroke = null,
@@ -188,6 +188,27 @@ public partial class ChartViewModel : ObservableObject
 
         // Fallback to white if resource not found
         return SKColors.White;
+    }
+
+    private static SKColor GetThemeChartColor(string resourceKey)
+    {
+        // Try to get the theme-aware chart color from Avalonia resources
+        if (Application.Current?.TryGetResource(resourceKey, Application.Current.ActualThemeVariant, out var resource) == true)
+        {
+            if (resource is IBrush brush && brush is ISolidColorBrush solidBrush)
+            {
+                var color = solidBrush.Color;
+                return new SKColor(color.R, color.G, color.B, color.A);
+            }
+        }
+
+        // Fallback colors
+        return resourceKey switch
+        {
+            "ChartOverallPositionBrush" => new SKColor(255, 153, 102), // #FF9966
+            "ChartClassPositionBrush" => new SKColor(74, 157, 255),    // #4A9DFF
+            _ => SKColors.White
+        };
     }
 
     public void UpdateLaps(List<CarPosition> carPositions)
