@@ -125,7 +125,7 @@
 
 					<SolidColorBrush x:Key="TextTitleForegroundBrush">#F9FAFB</SolidColorBrush>
 					<SolidColorBrush x:Key="TextH1ForegroundBrush">#F9FAFB</SolidColorBrush>
-					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">#9CA3AF</SolidColorBrush>
+					<SolidColorBrush x:Key="TextTableHeaderForegroundBrush">#B4BCC8</SolidColorBrush>
 					<SolidColorBrush x:Key="TextLGForegroundBrush">#F9FAFB</SolidColorBrush>
 					<SolidColorBrush x:Key="TextMedForegroundBrush">#D1D5DB</SolidColorBrush>
 					<SolidColorBrush x:Key="TextSmbForegroundBrush">White</SolidColorBrush>
@@ -151,15 +151,15 @@
 					<!--Timing - Car Row-->
 					<Color x:Key="carRowNormalBackgroundBrush">Transparent</Color>
 					<Color x:Key="carRowUpdatedBackgroundBrush">#1E4A4A</Color>
-					<Color x:Key="carRowStaleBackgroundBrush">#f7d2bb</Color>
+					<Color x:Key="carRowStaleBackgroundBrush">#3A3530</Color>
 					<SolidColorBrush x:Key="carRowLapTextForegroundNormalBrush">White</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowLapTextForegroundBestBrush">#78d44b</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowLapTextForegroundOverallBestBrush">#d3a2ff</SolidColorBrush>
 
 					<!--Flag Background-->
-					<SolidColorBrush x:Key="timingFlagGreenBackground">#27951b</SolidColorBrush>
-					<SolidColorBrush x:Key="timingFlagYellowBackground">#dbda10</SolidColorBrush>
-					<SolidColorBrush x:Key="timingFlagRedBackground">#db4949</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagGreenBackground">#2D6B2D</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagYellowBackground">#B89A2C</SolidColorBrush>
+					<SolidColorBrush x:Key="timingFlagRedBackground">#8B2C2C</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagBlackBackground">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagWhiteBackground">#b7b7b7</SolidColorBrush>
 					<SolidColorBrush x:Key="timingFlagPurpleBackground">Purple</SolidColorBrush>
