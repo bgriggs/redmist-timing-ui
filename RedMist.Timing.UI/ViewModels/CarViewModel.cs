@@ -517,8 +517,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         // Flash the row background if the lap has changed
         if (prevLap != LastLap && RowBackgroundKey != CARROW_UPDATED_BACKGROUNDBRUSH)
         {
-            Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_UPDATED_BACKGROUNDBRUSH));
-            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.Post(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH));
+            Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_UPDATED_BACKGROUNDBRUSH));
+            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH));
         }
 
         if (LastLap > 0)
@@ -549,7 +549,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         // Force update of the position as these are getting dropped at times such as 
         // changing from overall to class mode. Simply firing a property changed does not work.
         ForcePropertyChange();
-        Observable.Timer(TimeSpan.FromMilliseconds(500)).Subscribe(_ => Dispatcher.UIThread.Post(() => ForcePropertyChange()));
+        Observable.Timer(TimeSpan.FromMilliseconds(500)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => ForcePropertyChange()));
 
         if (LastCarPosition != null)
         {
