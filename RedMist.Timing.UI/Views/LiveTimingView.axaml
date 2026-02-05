@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="450"
 			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -371,40 +371,40 @@
 	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
 		<Border Grid.Row="0" Background="{DynamicResource FlagOverlayBackgroundBrush}" Margin="4,5,4,0" CornerRadius="4" Padding="6,4">
-			<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+			<Grid ColumnDefinitions="Auto,*,Auto,Auto">
 				<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 
 				<StackPanel Grid.Column="1">
-					<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold"/>
+					<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
 					<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
 					<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
 					<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}" Classes="h1"/>
 					<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}" Classes="h1"/>
 					<TextBlock Text="{Binding Flag, StringFormat='Flag: {0}'}" Classes="h1"/>
-					<StackPanel Orientation="Horizontal">
-						<TextBlock Text="Watch Along: " Classes="h1" IsVisible="{Binding IsBroadcastVisible}"/>
-						<Button IsVisible="{Binding IsBroadcastVisible}" Classes="link" Command="{Binding LaunchBroadcast}">
-							<TextBlock Text="{Binding BroadcastCompanyName}" FontSize="12"/>
+					<Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsBroadcastVisible}">
+						<TextBlock Text="Watch Along: " Classes="h1"/>
+						<Button Grid.Column="1" Classes="link" Command="{Binding LaunchBroadcast}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+							<TextBlock Text="{Binding BroadcastCompanyName}" FontSize="12" TextTrimming="CharacterEllipsis"/>
 						</Button>
-					</StackPanel>
+					</Grid>
 				</StackPanel>
 
 				<!--Test Buttons-->
 				<!--<StackPanel Grid.Column="2">
-			<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
-			<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
-			</StackPanel>-->
+				<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
+				<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
+				</StackPanel>-->
 
-				<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
+				<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
 
-				<StackPanel Grid.Column="4" Orientation="Vertical">
+				<StackPanel Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
 					<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
 						<StackPanel Orientation="Vertical">
 							<TextBlock Text="Sorting" FontStyle="Italic" FontSize="11"/>
 							<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
 						</StackPanel>
 					</Button>
-					<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,6,0,0" Padding="3" Width="55">
+					<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,8,0,0" Padding="3" Width="55">
 						<StackPanel Orientation="Vertical">
 							<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
 							<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>

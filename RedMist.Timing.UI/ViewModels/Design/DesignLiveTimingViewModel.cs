@@ -18,8 +18,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         var httpClientFactory = new DesignHttpClientFactory();
         var configuration = new DesignConfiguration();
         var evt = new Event { EventId = 1 }; // Mock event for design time
-        SessionName = "Design Event";
-        Flag = "Checkered";
+        SessionName = "Design Event 1231231231 123 1 312312";
+        Flag = "Green";
         TimeToGo = "03:45:00";
         RaceTime = "01:00:00";
         LocalTime = "9:14:33 am";
