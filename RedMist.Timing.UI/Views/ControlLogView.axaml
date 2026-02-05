@@ -39,7 +39,7 @@
 			<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
 
 			<!-- No control log message -->
-			<TextBlock Text="Control log is empty" IsVisible="{Binding HasNoControlLog}" Classes="title" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
+			<TextBlock Text="Control log is empty" IsVisible="{Binding ShowNoControlLogMessage}" Classes="title" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
 
 			<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0" IsVisible="{Binding !HasNoControlLog}"
 					  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">

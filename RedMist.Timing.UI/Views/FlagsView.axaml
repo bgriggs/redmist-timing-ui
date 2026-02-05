@@ -41,7 +41,7 @@
 				<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title" Grid.Row="1"/>
 
 				<!-- No flags message -->
-				<TextBlock Text="No flags recorded for this session" IsVisible="{Binding HasNoFlags}" Classes="title" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
+				<TextBlock Text="No flags recorded for this session" IsVisible="{Binding ShowNoFlagsMessage}" Classes="title" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
 
 				<!-- Flags list -->
 				<ScrollViewer IsVisible="{Binding !HasNoFlags}" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">

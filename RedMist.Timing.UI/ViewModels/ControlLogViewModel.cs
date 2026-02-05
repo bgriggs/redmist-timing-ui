@@ -24,6 +24,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
 {
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];
     public bool HasNoControlLog => ControlLog.Count == 0;
+    public bool ShowNoControlLogMessage => !IsLoading && HasNoControlLog;
     protected readonly SourceCache<ControlLogEntryViewModel, string> logCache = new(ToKey);
     private readonly Debouncer debouncer = new(TimeSpan.FromSeconds(1));
 
@@ -53,6 +54,11 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     [ObservableProperty]
     private bool isLoading = false;
 
+    partial void OnIsLoadingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowNoControlLogMessage));
+    }
+
 
     public ControlLogViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, EventContext eventContext)
     {
@@ -68,7 +74,11 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
             .Subscribe();
 
         // Notify when collection changes
-        ControlLog.CollectionChanged += (_, __) => OnPropertyChanged(nameof(HasNoControlLog));
+        ControlLog.CollectionChanged += (_, __) =>
+        {
+            OnPropertyChanged(nameof(HasNoControlLog));
+            OnPropertyChanged(nameof(ShowNoControlLogMessage));
+        };
 
         WeakReferenceMessenger.Default.RegisterAll(this);
     }

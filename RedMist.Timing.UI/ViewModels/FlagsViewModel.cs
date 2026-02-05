@@ -32,6 +32,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
     private List<FlagDuration> lastFlagDurations = [];
     public bool HasNoFlags => Flags.Count == 0;
+    public bool ShowNoFlagsMessage => !IsLoading && HasNoFlags;
     public string Name => eventModel.EventName ?? string.Empty;
     public Bitmap? OrganizationLogo
     {
@@ -51,8 +52,13 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     [ObservableProperty]
     private bool isLoading = false;
 
+    partial void OnIsLoadingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowNoFlagsMessage));
+    }
 
-    public FlagsViewModel(TimingCommon.Models.Event eventModel, EventClient eventClient, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+
+    public FlagsViewModel(Event eventModel, EventClient eventClient, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         this.eventModel = eventModel;
         this.eventClient = eventClient;
@@ -74,6 +80,8 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
         if (sessionId == 0)
         {
             Flags.Clear();
+            OnPropertyChanged(nameof(HasNoFlags));
+            OnPropertyChanged(nameof(ShowNoFlagsMessage));
             return;
         }
 
@@ -150,6 +158,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
         }
 
         OnPropertyChanged(nameof(HasNoFlags));
+        OnPropertyChanged(nameof(ShowNoFlagsMessage));
 
         return fds;
     }
