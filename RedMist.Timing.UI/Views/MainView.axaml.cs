@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Controls.Platform;
 using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Models;

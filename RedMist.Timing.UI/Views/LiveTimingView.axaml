@@ -62,9 +62,17 @@
 					</StackPanel>
 				</Grid>
 				<Grid RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,1" Grid.Column="1">
-					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+					<c:AdaptiveCarInfoPanel ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+							 PageSize="{Binding PageSize}"
+							 NumberIndex="0"
+							 NameIndex="1"
+							 ClassIndex="2"
+							 InClassPosGainedIndex="3"
+							 OverallPosGainedIndex="4"
+							 InCarVideoIndex="5"
+							 PitStateIndex="6">
 						<TextBlock Text="{Binding Number, StringFormat='#{0}'}" Classes="carnum" VerticalAlignment="Center"/>
-						<TextBlock Text="{Binding Name}" Grid.Column="1" Margin="2,0,1,0" Classes="lg"/>
+						<TextBlock Text="{Binding Name}" Grid.Column="1" Margin="2,0,1,0" Classes="lg" TextTrimming="CharacterEllipsis"/>
 						<Border Grid.Column="2" Margin="1" CornerRadius="4" Background="{Binding ClassColor}">
 							<TextBlock Text="{Binding Class}"
 									   Classes="smb"
@@ -110,7 +118,7 @@
 								</sel:PitIconTemplateSelector>
 							</ContentControl.DataTemplates>
 						</ContentControl>
-					</Grid>
+					</c:AdaptiveCarInfoPanel>
 
 					<!--Driver Name-->
 					<TextBlock Text="{Binding DriverName, StringFormat='Driver: {0}'}" Grid.Row="1" IsVisible="{Binding HasDriverName}" Classes="sm" Margin="0"/>

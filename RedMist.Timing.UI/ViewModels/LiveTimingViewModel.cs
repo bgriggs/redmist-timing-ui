@@ -222,8 +222,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             }))
             .DisposeMany()
             .Subscribe();
-
-        Receive(new SizeChangedNotification(Avalonia.Size.Infinity));
     }
 
 

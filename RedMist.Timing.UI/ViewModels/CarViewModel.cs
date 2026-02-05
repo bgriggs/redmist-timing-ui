@@ -54,19 +54,19 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         get
         {
             var upper = OriginalName.ToUpperInvariant();
-            var size = viewSizeService.CurrentSize;
-            if (size.Width < 400)
-            {
-                return upper[..Math.Min(upper.Length, 25)];
-            }
-            else if (size.Width < 525)
-            {
-                return upper[..Math.Min(upper.Length, 30)];
-            }
-            else if (size.Width < 600)
-            {
-                return upper[..Math.Min(upper.Length, 35)];
-            }
+            //var size = viewSizeService.CurrentSize;
+            //if (size.Width < 400)
+            //{
+            //    return upper[..Math.Min(upper.Length, 25)];
+            //}
+            //else if (size.Width < 525)
+            //{
+            //    return upper[..Math.Min(upper.Length, 30)];
+            //}
+            //else if (size.Width < 600)
+            //{
+            //    return upper[..Math.Min(upper.Length, 35)];
+            //}
             return upper;
         }
     }
@@ -181,6 +181,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private bool isStale;
     [ObservableProperty]
     private PitStates pitState;
+    [ObservableProperty]
+    private Avalonia.Size pageSize;
 
     #endregion
 
@@ -392,7 +394,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private string driverName = string.Empty;
 
 
-    public CarViewModel(Event evt, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public CarViewModel(Event evt, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService, 
+        IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         this.evt = evt;
         this.serverClient = serverClient;
@@ -402,7 +405,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         this.httpClientFactory = httpClientFactory;
         this.configuration = configuration;
         WeakReferenceMessenger.Default.RegisterAll(this);
-        Receive(new SizeChangedNotification(Size.Infinity));
+        //Receive(new SizeChangedNotification(Size.Infinity));
     }
 
 
@@ -591,6 +594,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
         // Force reset once loaded - prevents color from getting stuck on update color
         Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH, DispatcherPriority.Send));
+        // Initialize the car row width
+        Receive(new SizeChangedNotification(viewSizeService.CurrentSize));
     }
 
     private void UpdateCarDetails(bool isEnabled)
@@ -629,18 +634,19 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     /// </summary>
     public void Receive(SizeChangedNotification message)
     {
+        PageSize = message.Size;
         ShowPenaltyColumn = viewSizeService.CurrentSize.Width > LiveTimingViewModel.PenaltyColumnWidth;
-        FireNamePropertyChangedDebounced();
+        //FireNamePropertyChangedDebounced();
     }
 
-    private void FireNamePropertyChangedDebounced()
-    {
-        _ = viewSizeDebouncer.ExecuteAsync(() =>
-        {
-            Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(Name)), DispatcherPriority.Background);
-            return Task.CompletedTask;
-        });
-    }
+    //private void FireNamePropertyChangedDebounced()
+    //{
+    //    _ = viewSizeDebouncer.ExecuteAsync(() =>
+    //    {
+    //        Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(Name)), DispatcherPriority.Background);
+    //        return Task.CompletedTask;
+    //    });
+    //}
 
     private static IImage GetCarSourceImage(VideoSystemType type)
     {
