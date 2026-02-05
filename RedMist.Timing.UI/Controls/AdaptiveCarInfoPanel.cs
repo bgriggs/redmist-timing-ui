@@ -132,6 +132,18 @@ public class AdaptiveCarInfoPanel : Grid
         if (originalNameWidth == null && Children[NameIndex].DesiredSize.Width > 0)
             originalNameWidth = Children[NameIndex].DesiredSize.Width;
 
+        if (InClassPosGainedIndex >= 0 && InClassPosGainedIndex < Children.Count)
+            Children[InClassPosGainedIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+
+        if (OverallPosGainedIndex >= 0 && OverallPosGainedIndex < Children.Count)
+            Children[OverallPosGainedIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+
+        if (InCarVideoIndex >= 0 && InCarVideoIndex < Children.Count)
+            Children[InCarVideoIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+
+        if (PitStateIndex >= 0 && PitStateIndex < Children.Count)
+            Children[PitStateIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+
         Observable.Timer(TimeSpan.FromMilliseconds(50)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => OnPageSizeChanged(null!)));
     }
 }
