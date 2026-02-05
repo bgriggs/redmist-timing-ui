@@ -49,13 +49,29 @@
 						<ItemsControl.ItemTemplate>
 							<DataTemplate DataType="vm:FlagViewModel">
 								<Border BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Padding="5" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" CornerRadius="3" Margin="0,0,0,1">
-									<StackPanel Orientation="Horizontal">
-										<TextBlock Text="{Binding FlagStr}" Width="80" Classes="theme-text-heading size-xs"/>
-										<TextBlock Text="{Binding StartTime}" Width="52" Classes="flagduration"/>
-										<TextBlock Text="-" Margin="0,0,2,0"/>
-										<TextBlock Text="{Binding EndTime}" Width="52" Classes="flagduration"/>
-										<TextBlock Text="{Binding Duration}" Width="66" Margin="15,0,0,0" Classes="flagduration"/>
-									</StackPanel>
+									<Grid>
+										<!-- Semi-transparent overlay for checkered flags to ensure text readability -->
+										<Border Background="{DynamicResource FlagOverlayBackgroundBrush}" 
+												CornerRadius="2"
+												Padding="3,2"
+												IsVisible="{Binding Flag, Converter={StaticResource FlagIsCheckeredConverter}}">
+											<StackPanel Orientation="Horizontal">
+												<TextBlock Text="{Binding FlagStr}" Width="80" Classes="theme-text-heading size-xs"/>
+												<TextBlock Text="{Binding StartTime}" Width="52" Classes="flagduration"/>
+												<TextBlock Text="-" Margin="0,0,2,0"/>
+												<TextBlock Text="{Binding EndTime}" Width="52" Classes="flagduration"/>
+												<TextBlock Text="{Binding Duration}" Width="66" Margin="15,0,0,0" Classes="flagduration"/>
+											</StackPanel>
+										</Border>
+										<!-- Normal text for non-checkered flags -->
+										<StackPanel Orientation="Horizontal" IsVisible="{Binding Flag, Converter={StaticResource FlagIsNotCheckeredConverter}}">
+											<TextBlock Text="{Binding FlagStr}" Width="80" Classes="theme-text-heading size-xs"/>
+											<TextBlock Text="{Binding StartTime}" Width="52" Classes="flagduration"/>
+											<TextBlock Text="-" Margin="0,0,2,0"/>
+											<TextBlock Text="{Binding EndTime}" Width="52" Classes="flagduration"/>
+											<TextBlock Text="{Binding Duration}" Width="66" Margin="15,0,0,0" Classes="flagduration"/>
+										</StackPanel>
+									</Grid>
 								</Border>
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>

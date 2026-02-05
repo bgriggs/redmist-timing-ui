@@ -11,7 +11,7 @@ public class DesignFlagsViewModel : FlagsViewModel
     {
         var fg1 = new FlagDuration 
         { 
-            Flag = TimingCommon.Models.Flags.Green, 
+            Flag = TimingCommon.Models.Flags.Checkered, 
             StartTime = new DateTime(2025, 3, 30, 9, 0, 0),
             EndTime = new DateTime(2025, 3, 30, 9, 30, 0)
         };
