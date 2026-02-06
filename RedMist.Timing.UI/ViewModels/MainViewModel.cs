@@ -48,6 +48,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly IVersionCheckService versionCheckService;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly IConfiguration configuration;
+    private readonly OrganizationIconCacheService iconCacheService;
     private readonly ILogger Logger;
     [ObservableProperty]
     private bool isContentVisible = false;
@@ -151,7 +152,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
         EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext,
-        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -164,6 +165,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.versionCheckService = versionCheckService;
         this.httpClientFactory = httpClientFactory;
         this.configuration = configuration;
+        this.iconCacheService = iconCacheService;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -268,10 +270,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                         });
                     }
 
-                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration);
-                    EventInformationViewModel = new EventInformationViewModel(eventModel);
-                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext);
-                    FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration);
+                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService);
+                    EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService);
+                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService);
+                    FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService);
                     IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
 
                     IsTimingTabStripVisible = true;
@@ -294,7 +296,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 {
                     try
                     {
-                        await EventsListViewModel.Initialize();
+                        await EventsListViewModel.InitializeAsync();
                     }
                     catch (Exception ex)
                     {

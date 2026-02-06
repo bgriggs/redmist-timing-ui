@@ -10,6 +10,7 @@ using DynamicData;
 using DynamicData.Binding;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.ObjectModel;
@@ -32,6 +33,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
     private readonly EventContext eventContext;
+    private readonly OrganizationIconCacheService iconCacheService;
 
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
@@ -39,6 +41,17 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     {
         get
         {
+            if (EventModel.OrganizationId > 0)
+            {
+                // Try to get from cache first
+                var cached = iconCacheService.GetCachedIcon(EventModel.OrganizationId);
+                if (cached != null)
+                {
+                    return cached;
+                }
+            }
+
+            // Fallback to decoding byte array if not in cache
             if (EventModel.OrganizationLogo is not null && EventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(EventModel.OrganizationLogo);
@@ -60,12 +73,13 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     }
 
 
-    public ControlLogViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, EventContext eventContext)
+    public ControlLogViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, EventContext eventContext, OrganizationIconCacheService iconCacheService)
     {
         EventModel = eventModel;
         this.hubClient = hubClient;
         this.eventClient = eventClient;
         this.eventContext = eventContext;
+        this.iconCacheService = iconCacheService;
 
         logCache.Connect()
             .AutoRefresh(t => t.Timestamp)
@@ -81,6 +95,24 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         };
 
         WeakReferenceMessenger.Default.RegisterAll(this);
+
+        // Load organization icon from cache or CDN
+        if (EventModel.OrganizationId > 0)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await iconCacheService.GetOrganizationIconAsync(EventModel.OrganizationId);
+                    // Notify that the logo may have changed
+                    Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
+                }
+                catch (Exception)
+                {
+                    // Ignore errors loading icon
+                }
+            });
+        }
     }
 
 

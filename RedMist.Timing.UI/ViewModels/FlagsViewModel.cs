@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.Utilities;
 using RedMist.TimingCommon.Models;
 using System;
@@ -27,6 +28,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     private readonly EventContext eventContext;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly EventClient eventClient;
+    private readonly OrganizationIconCacheService iconCacheService;
     private readonly string archiveBaseUrl;
 
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
@@ -38,6 +40,17 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     {
         get
         {
+            if (eventModel.OrganizationId > 0)
+            {
+                // Try to get from cache first
+                var cached = iconCacheService.GetCachedIcon(eventModel.OrganizationId);
+                if (cached != null)
+                {
+                    return cached;
+                }
+            }
+
+            // Fallback to decoding byte array if not in cache
             if (eventModel.OrganizationLogo is not null && eventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(eventModel.OrganizationLogo);
@@ -58,14 +71,33 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     }
 
 
-    public FlagsViewModel(Event eventModel, EventClient eventClient, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public FlagsViewModel(Event eventModel, EventClient eventClient, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService)
     {
         this.eventModel = eventModel;
         this.eventClient = eventClient;
         this.eventContext = eventContext;
         this.httpClientFactory = httpClientFactory;
+        this.iconCacheService = iconCacheService;
         archiveBaseUrl = configuration["Cdn:ArchiveUrl"] ?? throw new ArgumentException("Cdn:ArchiveUrl is not configured.");
         WeakReferenceMessenger.Default.RegisterAll(this);
+
+        // Load organization icon from cache or CDN
+        if (eventModel.OrganizationId > 0)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await iconCacheService.GetOrganizationIconAsync(eventModel.OrganizationId);
+                    // Notify that the logo may have changed
+                    Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
+                }
+                catch (Exception)
+                {
+                    // Ignore errors loading icon
+                }
+            });
+        }
     }
 
 

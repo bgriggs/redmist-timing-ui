@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
 {
     private readonly EventClient eventClient;
     private readonly OrganizationClient organizationClient;
+    private readonly OrganizationIconCacheService iconCacheService;
 
     private ILogger Logger { get; }
 
@@ -66,16 +68,17 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     private const int PageSize = 25;
 
 
-    public EventsListViewModel(EventClient eventClient, OrganizationClient organizationClient, ILoggerFactory loggerFactory)
+    public EventsListViewModel(EventClient eventClient, OrganizationClient organizationClient, OrganizationIconCacheService iconCacheService, ILoggerFactory loggerFactory)
     {
         this.eventClient = eventClient;
         this.organizationClient = organizationClient;
+        this.iconCacheService = iconCacheService;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
 
-    public async Task Initialize()
+    public async Task InitializeAsync()
     {
         Message = string.Empty;
         IsLoading = true;
@@ -142,12 +145,9 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
                     // Display events immediately
                     Dispatcher.UIThread.InvokeOnUIThread(() => Events.SetRange(vms));
 
-                    // Load icons asynchronously in the background
-                    var orgIds = events.Select(e => e.OrganizationId).Distinct();
-                    foreach (var orgId in orgIds)
-                    {
-                        _ = LoadOrganizationIconAsync(orgId, vms);
-                    }
+                    // Load icons asynchronously in the background using the cache service
+                    var orgIds = events.Select(e => e.OrganizationId).Distinct().ToArray();
+                    _ = LoadOrganizationIconsAsync(orgIds, vms);
                 }
             }
             else
@@ -167,24 +167,26 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         }
     }
 
-    private async Task LoadOrganizationIconAsync(int organizationId, List<EventViewModel> eventViewModels)
+    private async Task LoadOrganizationIconsAsync(int[] organizationIds, List<EventViewModel> eventViewModels)
     {
         try
         {
-            var icon = await organizationClient.GetOrganizationIconCdnAsync(organizationId);
-            if (icon != null && icon.Length > 0)
+            // Preload all icons in parallel using the cache service
+            await iconCacheService.PreloadIconsAsync(organizationIds);
+
+            // Update all event view models with their cached icons
+            foreach (var vm in eventViewModels)
             {
-                // Update all events with this organization's icon
-                var eventsToUpdate = eventViewModels.Where(vm => vm.OrganizationId == organizationId);
-                foreach (var eventVm in eventsToUpdate)
+                var icon = iconCacheService.GetCachedIcon(vm.OrganizationId);
+                if (icon != null)
                 {
-                    Dispatcher.UIThread.InvokeOnUIThread(() => eventVm.UpdateIcon(icon));
+                    Dispatcher.UIThread.InvokeOnUIThread(() => vm.UpdateIcon(icon));
                 }
             }
         }
         catch (Exception ex)
         {
-            Logger.LogWarning(ex, "Failed to load icon for organization {OrganizationId}", organizationId);
+            Logger.LogWarning(ex, "Failed to load organization icons");
         }
     }
 
@@ -195,7 +197,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         {
             try
             {
-                await Initialize();
+                await InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -211,7 +213,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
     {
         try
         {
-            await Initialize();
+            await InitializeAsync();
         }
         catch (Exception ex)
         {
@@ -235,7 +237,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         {
             try
             {
-                await Initialize();
+                await InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -255,7 +257,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         {
             try
             {
-                await Initialize();
+                await InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -275,7 +277,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         {
             try
             {
-                await Initialize();
+                await InitializeAsync();
             }
             catch (Exception ex)
             {

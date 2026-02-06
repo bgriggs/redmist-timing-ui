@@ -27,7 +27,7 @@
 				BorderThickness="0,0,0,1">
 			<Grid ColumnDefinitions="Auto,Auto,*">
 				<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
-				<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,0,12,0"/>
+				<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="0,0,12,0"/>
 				<StackPanel Orientation="Vertical" Grid.Column="2">
 					<TextBlock Text="Control Log" Classes="title"/>
 					<TextBlock Text="{Binding Name}" Classes="title"  TextWrapping="Wrap" VerticalAlignment="Center"/>

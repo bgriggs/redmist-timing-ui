@@ -9,7 +9,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignLiveTimingViewModel : LiveTimingViewModel
 {
-    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration())
+    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService())
     {
         var pitTracking = new PitTracking();
         var viewSizeService = new ViewSizeService();

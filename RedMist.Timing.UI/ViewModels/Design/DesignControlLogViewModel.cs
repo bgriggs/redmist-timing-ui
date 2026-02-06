@@ -31,7 +31,7 @@ public class DesignControlLogViewModel : ControlLogViewModel
             new Session { Id = 1, Name = "Practice", StartTime = new DateTime(2025, 2, 28, 8, 0, 0), EndTime = new DateTime(2025, 2, 28, 8, 40, 0), IsLive = false },
             new Session { Id = 2, Name = "Race 1", StartTime = new DateTime(2025, 2, 28, 9, 0, 0), EndTime = new DateTime(2025, 2, 28, 17, 00, 0), IsLive = false },
         ]
-        }, new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), new EventContext())
+        }, new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), new EventContext(), new DesignOrganizationIconCacheService())
     {
         Receive(new Models.ControlLogNotification(new CarControlLogs
         {

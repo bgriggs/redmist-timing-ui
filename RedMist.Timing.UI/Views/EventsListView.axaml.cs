@@ -16,7 +16,7 @@ public partial class EventsListView : UserControl
         base.OnLoaded(e);
         if (DataContext is EventsListViewModel vm)
         {
-            await vm.Initialize();
+            await vm.InitializeAsync();
         }
     }
 
@@ -27,7 +27,7 @@ public partial class EventsListView : UserControl
         // Refresh List Box Items
         if (DataContext is EventsListViewModel vm)
         {
-            await vm.Initialize();
+            await vm.InitializeAsync();
         }
 
         // Notify the Refresh Container that the refresh is complete.

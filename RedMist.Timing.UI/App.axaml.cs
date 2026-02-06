@@ -260,6 +260,7 @@ public partial class App : Application
     [Transient(typeof(OrganizationClient))]
     [Singleton(typeof(ViewSizeService))]
     [Singleton(typeof(EventContext))]
+    [Singleton(typeof(OrganizationIconCacheService))]
     internal static partial void ConfigureServices(IServiceCollection services);
 
     [Singleton(typeof(MainViewModel))]

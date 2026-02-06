@@ -54,6 +54,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private Dictionary<string, string> classColors = [];
     private Dictionary<string, string> classOrder = [];
     private readonly InMemoryLogProvider? logProvider;
+    private readonly OrganizationIconCacheService iconCacheService;
 
     private ILogger Logger { get; }
 
@@ -127,6 +128,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         get
         {
+            if (EventModel.OrganizationId > 0)
+            {
+                // Try to get from cache first
+                var cached = iconCacheService.GetCachedIcon(EventModel.OrganizationId);
+                if (cached != null)
+                {
+                    return cached;
+                }
+            }
+
+            // Fallback to decoding byte array if not in cache
             if (EventModel.OrganizationLogo is not null && EventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(EventModel.OrganizationLogo);
@@ -165,7 +177,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private DateTime lastLogoClickTime = DateTime.MinValue;
 
 
-    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, InMemoryLogProvider? logProvider = null)
+    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, InMemoryLogProvider? logProvider = null)
     {
         this.hubClient = hubClient;
         this.serverClient = serverClient;
@@ -174,6 +186,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         this.httpClientFactory = httpClientFactory;
         this.configuration = configuration;
         this.logProvider = logProvider;
+        this.iconCacheService = iconCacheService;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -235,6 +248,25 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             pitTracking.Clear();
             Logger.LogInformation("ResetEvent...");
             ResetEvent();
+
+            // Load organization icon from cache or CDN
+            if (EventModel.OrganizationId > 0)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await iconCacheService.GetOrganizationIconAsync(EventModel.OrganizationId);
+                        // Notify that the logo may have changed
+                        Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogWarning(ex, "Failed to load organization icon");
+                    }
+                });
+            }
+
             try
             {
                 Logger.LogInformation("ResetState...");

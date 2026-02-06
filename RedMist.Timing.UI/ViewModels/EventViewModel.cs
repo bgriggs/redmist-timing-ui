@@ -69,6 +69,11 @@ public partial class EventViewModel : ObservableObject
         }
     }
 
+    public void UpdateIcon(Bitmap bitmap)
+    {
+        OrganizationLogo = bitmap;
+    }
+
 
     public void SelectEvent(object eventViewModel)
     {

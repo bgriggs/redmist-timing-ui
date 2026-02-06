@@ -24,6 +24,6 @@ public class DesignEventInformationViewModel : EventInformationViewModel
             ]
         },
         Broadcast = new BroadcasterConfig { CompanyName = "Driver's Eye", Url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
-    })
+    }, new DesignOrganizationIconCacheService())
     { }
 }
