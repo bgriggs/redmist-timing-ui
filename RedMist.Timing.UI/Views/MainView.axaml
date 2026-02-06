@@ -77,6 +77,15 @@
 				</TabItem.Header>
 				<v:FlagsView DataContext="{Binding FlagsViewModel}"/>
 			</TabItem>
+			<TabItem IsSelected="{Binding IsSettingsTabSelected}">
+				<TabItem.Header>
+					<StackPanel Width="60">
+						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource geargeom}"/>
+						<TextBlock Text="Settings" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+					</StackPanel>
+				</TabItem.Header>
+				<v:SettingsView DataContext="{Binding SettingsViewModel}"/>
+			</TabItem>
 		</TabControl>
 
 		<!--Driver Mode-->

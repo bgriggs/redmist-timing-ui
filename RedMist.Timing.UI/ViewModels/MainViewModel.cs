@@ -37,6 +37,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private FlagsViewModel? flagsViewModel;
     [ObservableProperty]
+    private SettingsViewModel? settingsViewModel;
+    [ObservableProperty]
     private InCarSettingsViewModel? inCarSettingsViewModel;
 
     private readonly HubClient hubClient;
@@ -130,6 +132,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             }
         }
     }
+
+    [ObservableProperty]
+    private bool isSettingsTabSelected;
+
     private const int FlagShowWidth = 500;
     private const int VersionCheckTimeoutSeconds = 5;
 
@@ -268,10 +274,11 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                         });
                     }
 
-                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration);
-                    EventInformationViewModel = new EventInformationViewModel(eventModel);
-                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext);
-                    FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration);
+                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService);
+                    EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService);
+                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService);
+                    FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService);
+                    SettingsViewModel = new SettingsViewModel();
                     IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
 
                     IsTimingTabStripVisible = true;
@@ -380,6 +387,11 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             else if (IsFlagsTabSelected) // Flags Tab
             {
                 FlagsViewModel?.Back();
+            }
+            else if (IsSettingsTabSelected) // Settings Tab
+            {
+                // Settings doesn't need a back action, so just return to events list
+                WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(new RouterEvent { Path = "EventsList" }));
             }
             else
             {
