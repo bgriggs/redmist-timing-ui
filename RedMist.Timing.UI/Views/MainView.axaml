@@ -32,7 +32,7 @@
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
-						<TextBlock Text="Live" HorizontalAlignment="Center"/>
+						<TextBlock Text="Live" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
 				<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"></v:LiveTimingView>
@@ -45,7 +45,7 @@
 								<RotateTransform Angle="180"/>
 							</PathIcon.RenderTransform>
 						</PathIcon>
-						<TextBlock Text="Results" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+						<TextBlock Text="Results" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
 				<v:ResultsView DataContext="{Binding ResultsViewModel}"/>
@@ -54,7 +54,7 @@
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
-						<TextBlock Text="Info" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+						<TextBlock Text="Info" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
 				<v:EventInformationView DataContext="{Binding EventInformationViewModel}"/>
@@ -63,7 +63,7 @@
 				<TabItem.Header>
 					<StackPanel Width="70">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warninggeom}"/>
-						<TextBlock Text="Control Log" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+						<TextBlock Text="Control Log" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
 				<v:ControlLogView DataContext="{Binding ControlLogViewModel}"/>
@@ -72,7 +72,7 @@
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
-						<TextBlock Text="Flags" Margin="0,1,0,0" HorizontalAlignment="Center"/>
+						<TextBlock Text="Flags" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
 				<v:FlagsView DataContext="{Binding FlagsViewModel}"/>

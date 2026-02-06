@@ -50,6 +50,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly IVersionCheckService versionCheckService;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly IConfiguration configuration;
+    private readonly OrganizationIconCacheService iconCacheService;
     private readonly ILogger Logger;
     [ObservableProperty]
     private bool isContentVisible = false;
@@ -157,7 +158,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
         EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext,
-        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -170,6 +171,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.versionCheckService = versionCheckService;
         this.httpClientFactory = httpClientFactory;
         this.configuration = configuration;
+        this.iconCacheService = iconCacheService;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -282,8 +284,17 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
 
                     IsTimingTabStripVisible = true;
-                    IsResultsTabSelected = !eventModel.IsLive;
                     IsLiveTimingTabVisible = eventModel.IsLive;
+
+                    // Ensure at least one tab is selected when tab strip becomes visible
+                    if (eventModel.IsLive)
+                    {
+                        IsLiveTimingTabSelected = true;
+                    }
+                    else
+                    {
+                        IsResultsTabSelected = true;
+                    }
                 }
             }
             else if (router.Path == "EventsList")
@@ -292,7 +303,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 {
                     try
                     {
-                        await EventsListViewModel.Initialize();
+                        await EventsListViewModel.InitializeAsync();
                     }
                     catch (Exception ex)
                     {

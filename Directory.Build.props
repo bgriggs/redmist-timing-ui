@@ -1,7 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<SharedVersion>1.0.69</SharedVersion>
+		<SharedVersion>1.0.70</SharedVersion>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<PropertyGroup>

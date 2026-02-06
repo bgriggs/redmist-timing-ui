@@ -1,4 +1,6 @@
-﻿using Avalonia.Media.Immutable;
+﻿using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
@@ -22,7 +24,7 @@ public partial class ChartViewModel : ObservableObject
     // Putting chart in here to be able to manage the cleanup and prevent exception when it has no axes.
     public CartesianChart Chart => new()
     {
-        Padding = new Avalonia.Thickness(0),
+        Padding = new Thickness(0),
         MinWidth = 90,
         Height = 240,
         ZoomMode = ZoomAndPanMode.X,
@@ -56,7 +58,7 @@ public partial class ChartViewModel : ObservableObject
             Name = "Position Overall",
             Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.OverallPosition),
             ScalesYAt = 1,
-            Stroke = new SolidColorPaint(SKColors.Coral, 2),
+            Stroke = new SolidColorPaint(GetThemeChartColor("ChartOverallPositionBrush"), 2),
             GeometrySize = 0,
             GeometryFill = null,
             GeometryStroke = null,
@@ -68,7 +70,7 @@ public partial class ChartViewModel : ObservableObject
             Name = "Position Class",
             Mapping = (vm, lap) => new LiveChartsCore.Kernel.Coordinate(vm.LapNumber, vm.ClassPosition),
             ScalesYAt = 1,
-            Stroke = new SolidColorPaint(SKColors.Cyan, 2),
+            Stroke = new SolidColorPaint(GetThemeChartColor("ChartClassPositionBrush"), 2),
             GeometrySize = 0,
             GeometryFill = null,
             GeometryStroke = null,
@@ -136,10 +138,15 @@ public partial class ChartViewModel : ObservableObject
             }
             return string.Empty;
         };
+
+        // Apply theme-aware text colors
+        ApplyThemeColors();
     }
 
 
-    private void ChartViewModel_PointMeasured(LiveChartsCore.Kernel.ChartPoint<LapViewModel, LiveChartsCore.SkiaSharpView.Drawing.Geometries.RoundedRectangleGeometry, LiveChartsCore.SkiaSharpView.Drawing.Geometries.LabelGeometry> obj)
+    private void ChartViewModel_PointMeasured(LiveChartsCore.Kernel.ChartPoint<LapViewModel,
+        LiveChartsCore.SkiaSharpView.Drawing.Geometries.RoundedRectangleGeometry,
+        LiveChartsCore.SkiaSharpView.Drawing.Geometries.LabelGeometry> obj)
     {
         if (obj.Model != null && obj.Visual != null)
         {
@@ -147,6 +154,61 @@ public partial class ChartViewModel : ObservableObject
             var skColor = new SKColor(brush.Color.R, brush.Color.G, brush.Color.B, brush.Color.A);
             obj.Visual.Fill = new SolidColorPaint(skColor);
         }
+    }
+
+    private void ApplyThemeColors()
+    {
+        // Get theme-aware text color
+        var textColor = GetThemeForegroundColor();
+
+        // Apply to X axis
+        XAxes[0].LabelsPaint = new SolidColorPaint(textColor);
+
+        // Apply to Y axes
+        foreach (var axis in YAxes)
+        {
+            axis.LabelsPaint = new SolidColorPaint(textColor);
+        }
+
+        // Apply to series tooltips and data labels
+        ((ScatterSeries<LapViewModel>)Series[3]).DataLabelsPaint = new SolidColorPaint(textColor);
+    }
+
+    private static SKColor GetThemeForegroundColor()
+    {
+        // Try to get the theme-aware text color from Avalonia resources
+        if (Application.Current?.TryGetResource("TextMedForegroundBrush", Application.Current.ActualThemeVariant, out var resource) == true)
+        {
+            if (resource is IBrush brush && brush is ISolidColorBrush solidBrush)
+            {
+                var color = solidBrush.Color;
+                return new SKColor(color.R, color.G, color.B, color.A);
+            }
+        }
+
+        // Fallback to white if resource not found
+        return SKColors.White;
+    }
+
+    private static SKColor GetThemeChartColor(string resourceKey)
+    {
+        // Try to get the theme-aware chart color from Avalonia resources
+        if (Application.Current?.TryGetResource(resourceKey, Application.Current.ActualThemeVariant, out var resource) == true)
+        {
+            if (resource is IBrush brush && brush is ISolidColorBrush solidBrush)
+            {
+                var color = solidBrush.Color;
+                return new SKColor(color.R, color.G, color.B, color.A);
+            }
+        }
+
+        // Fallback colors
+        return resourceKey switch
+        {
+            "ChartOverallPositionBrush" => new SKColor(255, 153, 102), // #FF9966
+            "ChartClassPositionBrush" => new SKColor(74, 157, 255),    // #4A9DFF
+            _ => SKColors.White
+        };
     }
 
     public void UpdateLaps(List<CarPosition> carPositions)

@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="450"
 			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -18,11 +18,11 @@
 	</Design.DataContext>
 
 	<UserControl.Resources>
-		<conv:FlagToBrushConverter x:Key="FlagToColorConverter"/>
 		<StreamGeometry x:Key="downArrow">M998 352c0 -8 -4 -17 -10 -23l-50 -50c-6 -6 -14 -10 -23 -10c-8 0 -17 4 -23 10l-393 393l-393 -393c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-50 50c-6 6 -10 15 -10 23s4 17 10 23l466 466c6 6 15 10 23 10s17 -4 23 -10l466 -466c6 -6 10 -15 10 -23z</StreamGeometry>
 		<StreamGeometry x:Key="upArrow">M998 800c0 -8 -4 -17 -10 -23l-466 -466c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-466 466c-6 6 -10 15 -10 23s4 17 10 23l50 50c6 6 14 10 23 10c8 0 17 -4 23 -10l393 -393l393 393c6 6 15 10 23 10s17 -4 23 -10l50 -50c6 -6 10 -15 10 -23z</StreamGeometry>
 		<StreamGeometry x:Key="lightning">M 52.2573,19.0027L 38.0053,33.2546L 50.6737,33.2546L 25.3369,57.008L 35.4716,38.0053L 23.7533,38.0053L 36.4217,19.0027L 52.2573,19.0027 Z </StreamGeometry>
 		<StreamGeometry x:Key="doubleLightning">M7.96,24.51h0.39l6.88-10.18c0.09-0.18,0.04-0.27-0.15-0.27h-2.84l2.99-5.45c0.09-0.18,0.02-0.27-0.2-0.27h-3.81  c-0.11,0-0.2,0.06-0.29,0.18l-2.78,7.4c-0.02,0.18,0.04,0.27,0.19,0.27h2.75L7.96,24.51z M16.46,18.18h0.27l5.22-7.67  c0.05-0.08,0.06-0.15,0.04-0.2s-0.08-0.07-0.17-0.07h-2.1l2.18-4.03c0.12-0.2,0.06-0.3-0.18-0.3h-2.74c-0.13,0-0.23,0.06-0.3,0.19  l-2.08,5.48c-0.03,0.09-0.03,0.16,0.01,0.21c0.04,0.05,0.1,0.07,0.19,0.07h2.04L16.46,18.18z</StreamGeometry>
+		<StreamGeometry x:Key="tableIcon">M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h18v2H3v-2zm0 4h18v2H3v-2zm0 4h18v2H3v-2z</StreamGeometry>
 
 		<!--Car Row Template-->
 		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
@@ -62,21 +62,29 @@
 					</StackPanel>
 				</Grid>
 				<Grid RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,1" Grid.Column="1">
-					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+					<c:AdaptiveCarInfoPanel ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+							 PageSize="{Binding PageSize}"
+							 NumberIndex="0"
+							 NameIndex="1"
+							 ClassIndex="2"
+							 InClassPosGainedIndex="3"
+							 OverallPosGainedIndex="4"
+							 InCarVideoIndex="5"
+							 PitStateIndex="6">
 						<TextBlock Text="{Binding Number, StringFormat='#{0}'}" Classes="carnum" VerticalAlignment="Center"/>
-						<TextBlock Text="{Binding Name}" Grid.Column="1" Margin="2,0,1,0" Classes="lg"/>
+						<TextBlock Text="{Binding Name}" Grid.Column="1" Margin="2,0,1,0" Classes="lg" TextTrimming="CharacterEllipsis"/>
 						<Border Grid.Column="2" Margin="1" CornerRadius="4" Background="{Binding ClassColor}">
-							<TextBlock Text="{Binding Class}" 
-									   Classes="smb" 
+							<TextBlock Text="{Binding Class}"
+									   Classes="smb"
 									   Padding="8,2"
-									   VerticalAlignment="Bottom" 
+									   VerticalAlignment="Bottom"
 									   HorizontalAlignment="Center"/>
 						</Border>
 
-						<PathIcon Grid.Column="3" Height="10" Width="10" 
-								  Foreground="Orange" Data="{StaticResource lightning}"
+						<PathIcon Grid.Column="3" Height="10" Width="10"
+								  Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource lightning}"
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
-						<PathIcon Grid.Column="4" Height="12" Width="12" Foreground="Orange" Data="{StaticResource doubleLightning}"
+						<PathIcon Grid.Column="4" Height="12" Width="12" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource doubleLightning}"
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
 						<Button Grid.Column="5" Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video" Padding="0" Height="13" Margin="2,0,0,0">
 							<Image Source="{Binding CarStreamImage}" Cursor="Hand"/>
@@ -86,22 +94,22 @@
 							<ContentControl.DataTemplates>
 								<sel:PitIconTemplateSelector>
 									<DataTemplate x:Key="InPitTemplate">
-										<Border Width="45" Margin="1" CornerRadius="4" Background="#075aa1">
+										<Border Width="45" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateInPitBrush}">
 											<TextBlock Text="PIT" Classes="pit"/>
 										</Border>
 									</DataTemplate>
 									<DataTemplate x:Key="EnteredPitTemplate">
-										<Border Width="68" Margin="1" CornerRadius="4" Background="#ff6743">
+										<Border Width="68" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateEnteredBrush}">
 											<TextBlock Text="ENTERED PIT" Classes="pit"/>
 										</Border>
 									</DataTemplate>
 									<DataTemplate x:Key="ExitedPitTemplate">
-										<Border Width="63" Margin="1" CornerRadius="4" Background="#9ad337">
+										<Border Width="63" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateExitedBrush}">
 											<TextBlock Text="EXITED PIT" Classes="pit"/>
 										</Border>
 									</DataTemplate>
 									<DataTemplate x:Key="PitSfTemplate">
-										<Border Width="50" Margin="1" CornerRadius="4" Background="#475e1e" ToolTip.Tip="Passed Pit Start / Finish">
+										<Border Width="50" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateSfBrush}" ToolTip.Tip="Passed Pit Start / Finish">
 											<TextBlock Text="PIT S/F" Classes="pit"/>
 										</Border>
 									</DataTemplate>
@@ -110,7 +118,7 @@
 								</sel:PitIconTemplateSelector>
 							</ContentControl.DataTemplates>
 						</ContentControl>
-					</Grid>
+					</c:AdaptiveCarInfoPanel>
 
 					<!--Driver Name-->
 					<TextBlock Text="{Binding DriverName, StringFormat='Driver: {0}'}" Grid.Row="1" IsVisible="{Binding HasDriverName}" Classes="sm" Margin="0"/>
@@ -182,78 +190,133 @@
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
 				<Grid RowDefinitions="Auto,*" DataContext="{Binding CarDetailsViewModel}">
-					<Border Padding="3" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0" IsVisible="{Binding IsCarMetadataVisible}">
+					<Border Padding="5,4" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0" IsVisible="{Binding IsCarMetadataVisible}">
 						<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
-							<TextBlock Text="{Binding Name, StringFormat='Name: {0}'}" Classes="sm"/>
-							<TextBlock Text="{Binding NationState, StringFormat='Country/State: {0}'}" Classes="sm" Grid.Column="1" Margin="6,0,0,0"/>
-							<TextBlock Text="{Binding Sponsor, StringFormat='Sponsor: {0}'}" Classes="sm" Grid.Column="2" Margin="6,0,0,0"/>
+							<!-- Row 1: Personal Info -->
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="Name:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Name}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Column="1" Margin="12,0,0,0">
+								<TextBlock Text="Country/State:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding NationState}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Column="2" Margin="12,0,0,0">
+								<TextBlock Text="Sponsor:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Sponsor}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
 
-							<TextBlock Text="{Binding Make, StringFormat='Make: {0}'}" Classes="sm" Grid.Row="1"/>
-							<TextBlock Text="{Binding ModelEngine, StringFormat='Color/Model: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="1" Margin="6,0,0,0"/>
-							<TextBlock Text="{Binding Tires, StringFormat='Tires: {0}'}" Classes="sm" Grid.Row="1" Grid.Column="3" Margin="6,0,0,0"/>
+							<!-- Row 2: Car Specs -->
+							<StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,2,0,0">
+								<TextBlock Text="Make:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Make}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" Margin="12,2,0,0">
+								<TextBlock Text="Color/Model:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding ModelEngine}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
+							<StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="2" Margin="12,2,0,0">
+								<TextBlock Text="Tires:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Tires}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
 
-							<TextBlock Text="{Binding Club, StringFormat='Club: {0}'}" Classes="sm" Grid.Row="2" Grid.ColumnSpan="3"/>
+							<!-- Row 3: Team Info -->
+							<StackPanel Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="3" Margin="0,2,0,0">
+								<TextBlock Text="Club:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+								<TextBlock Text="{Binding Club}" Classes="sm" Margin="4,0,0,0"/>
+							</StackPanel>
 						</Grid>
 					</Border>
 					<Grid Grid.Row="1">
 						<TextBlock Text="Loading..." Classes="sm" IsVisible="{Binding IsLoading}"/>
 						<TabControl Padding="0" IsVisible="{Binding !IsLoading}">
 							<!--Laps-->
-							<TabItem Header="Laps" IsSelected="{Binding IsTableTabSelected}">
-								<Grid RowDefinitions="Auto,*" Margin="10,3">
-									<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME    DRIVER"/>
-									<ScrollViewer MaxHeight="250" Grid.Row="1">
-										<ItemsControl ItemsSource="{Binding LapList.Laps}">
-											<ItemsControl.ItemTemplate>
-												<DataTemplate>
-													<StackPanel Orientation="Horizontal">
-														<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
-														<StackPanel Orientation="Horizontal" Width="49">
-															<TextBlock Text="{Binding OverallPosition}" Classes="sm"/>
-															<PathIcon Height="10" Width="6" IsVisible="{Binding GainedOverallPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
-															<PathIcon Height="10" Width="6" IsVisible="{Binding LostOverallPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+							<TabItem IsSelected="{Binding IsTableTabSelected}">
+								<TabItem.Header>
+									<StackPanel Orientation="Horizontal" Spacing="4">
+										<TextBlock Text="Laps" VerticalAlignment="Center"/>
+										<PathIcon Height="10" Width="10" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource tableIcon}" VerticalAlignment="Center"/>
+									</StackPanel>
+								</TabItem.Header>
+								<Grid>
+									<Grid RowDefinitions="Auto,*" Margin="10,3" IsVisible="{Binding LapList.Laps.Count}">
+										<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME    DRIVER"/>
+										<ScrollViewer MaxHeight="250" Grid.Row="1">
+											<ItemsControl ItemsSource="{Binding LapList.Laps}">
+												<ItemsControl.ItemTemplate>
+													<DataTemplate>
+														<StackPanel Orientation="Horizontal">
+															<TextBlock Text="{Binding LapNumber}" Classes="sm" Margin="1,0,0,0" Width="30"/>
+															<StackPanel Orientation="Horizontal" Width="49">
+																<TextBlock Text="{Binding OverallPosition}" Classes="sm"/>
+																<PathIcon Height="10" Width="6" IsVisible="{Binding GainedOverallPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
+																<PathIcon Height="10" Width="6" IsVisible="{Binding LostOverallPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+															</StackPanel>
+															<StackPanel Orientation="Horizontal" Width="42">
+																<TextBlock Text="{Binding ClassPosition}" Classes="sm"/>
+																<PathIcon Height="10" Width="6" IsVisible="{Binding GainedClassPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
+																<PathIcon Height="10" Width="6" IsVisible="{Binding LostClassPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
+															</StackPanel>
+															<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
+															<TextBlock Text="{Binding InPit}" Classes="sm" Width="21"/>
+															<PathIcon Height="11" Width="70" Foreground="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" Data="{StaticResource flaggeom}" ToolTip.Tip="{Binding FlagStr}"/>
+															<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0" Width="67"/>
+															<TextBlock Text="{Binding DriverName}" Classes="sm" Margin="1,0,0,0"/>
 														</StackPanel>
-														<StackPanel Orientation="Horizontal" Width="42">
-															<TextBlock Text="{Binding ClassPosition}" Classes="sm"/>
-															<PathIcon Height="10" Width="6" IsVisible="{Binding GainedClassPosition}" Foreground="{DynamicResource PositionsGainedForegroundBrush}" Data="{StaticResource uparrowgeom}"/>
-															<PathIcon Height="10" Width="6" IsVisible="{Binding LostClassPosition}" Foreground="{DynamicResource PositionsLostForegroundBrush}" Data="{StaticResource downarrowgeom}"/>
-														</StackPanel>
-														<TextBlock Text="{Binding LapTime}" Classes="sm" Width="61" Foreground="{Binding TimeColor}" FontWeight="{Binding TimeFontWeight}"/>
-														<TextBlock Text="{Binding InPit}" Classes="sm" Width="21"/>
-														<PathIcon Height="11" Width="70" Foreground="{Binding Flag, Converter={StaticResource FlagToColorConverter}}" Data="{StaticResource flaggeom}" ToolTip.Tip="{Binding FlagStr}"/>
-														<TextBlock Text="{Binding RaceTime}" Classes="sm" Margin="1,0,0,0" Width="67"/>
-														<TextBlock Text="{Binding DriverName}" Classes="sm" Margin="1,0,0,0"/>
-													</StackPanel>
-												</DataTemplate>
-											</ItemsControl.ItemTemplate>
-										</ItemsControl>
-									</ScrollViewer>
+													</DataTemplate>
+												</ItemsControl.ItemTemplate>
+											</ItemsControl>
+										</ScrollViewer>
+									</Grid>
+									<TextBlock Text="No laps found" Classes="sm" Margin="10,3" IsVisible="{Binding !LapList.Laps.Count}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 								</Grid>
 							</TabItem>
 
 							<!--Positions Chart-->
-							<TabItem Header="Positions" IsSelected="{Binding IsChartTabSelected}">
-								<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
-								Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
-								ZoomMode="X" Padding="0"/>-->
-								<ContentControl Content="{Binding Chart.Chart}"/>
+							<TabItem IsSelected="{Binding IsChartTabSelected}">
+								<TabItem.Header>
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="Positions" VerticalAlignment="Center"/>
+										<StackPanel Orientation="Vertical" Margin="4,0,0,0">
+											<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource upArrow}"/>
+											<PathIcon Height="8" Width="8" Foreground="{DynamicResource PositionsNeutralForegroundBrush}" Data="{StaticResource downArrow}" Margin="0,-2,0,0"/>
+										</StackPanel>
+									</StackPanel>
+								</TabItem.Header>
+								<Grid>
+									<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
+									Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
+									ZoomMode="X" Padding="0"/>-->
+									<ContentControl Content="{Binding Chart.Chart}" IsVisible="{Binding LapList.Laps.Count}"/>
+									<TextBlock Text="No laps found" Classes="sm" Margin="10,3" IsVisible="{Binding !LapList.Laps.Count}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								</Grid>
 							</TabItem>
 
 							<!--Penalties-->
-							<TabItem Header="Penalties" IsSelected="{Binding IsPenaltiesTabSelected}">
-								<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
-										  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
-									<DataGrid.Columns>
-										<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
-										<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
-										<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
-										<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
-										<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
-										<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-										<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenaltyAction}"/>
-										<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
-									</DataGrid.Columns>
-								</DataGrid>
+							<TabItem IsSelected="{Binding IsPenaltiesTabSelected}">
+								<TabItem.Header>
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="Penalties" VerticalAlignment="Center"/>
+										<PathIcon Height="10" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warningopengeom}" VerticalAlignment="Center"/>
+									</StackPanel>
+								</TabItem.Header>
+								<Grid>
+									<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0"
+											  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch"
+											  IsVisible="{Binding ControlLog.Count}">
+										<DataGrid.Columns>
+											<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
+											<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
+											<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
+											<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
+											<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
+											<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+											<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenaltyAction}"/>
+											<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
+										</DataGrid.Columns>
+									</DataGrid>
+									<TextBlock Text="No control log entries found for this entry" Classes="sm" Margin="10,3" IsVisible="{Binding !ControlLog.Count}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								</Grid>
 							</TabItem>
 						</TabControl>
 					</Grid>
@@ -277,79 +340,87 @@
 			</DockPanel>
 		</ControlTemplate>
 
-		<x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
+		<!-- DataGridSortIconMinWidth provided globally in App.axaml -->
 	</UserControl.Resources>
 
 	<UserControl.Styles>
 		<Style Selector="TabItem">
-			<Setter Property="FontSize" Value="16"/>
-			<Setter Property="MinHeight" Value="20"/>
-			<Setter Property="Height" Value="20"/>
-			<Setter Property="Margin" Value="3,5"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="MinHeight" Value="28"/>
+			<Setter Property="Height" Value="28"/>
+			<Setter Property="Margin" Value="4,4,4,0"/>
+			<Setter Property="Padding" Value="12,4"/>
+			<Setter Property="CornerRadius" Value="4,4,0,0"/>
+			<Setter Property="Background" Value="{DynamicResource EventRowBackgroundBrush}"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextMedForegroundBrush}"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource BorderPrimaryBrush}"/>
+			<Setter Property="BorderThickness" Value="1"/>
 		</Style>
 
-		<Style Selector="DataGridCell">
-			<Setter Property="FontSize" Value="10" />
-			<Setter Property="MinHeight" Value="20" />
+		<Style Selector="TabItem:pointerover /template/ Border#PART_LayoutRoot">
+			<Setter Property="Background" Value="{DynamicResource EventRowHoverBackgroundBrush}"/>
+			<Setter Property="Cursor" Value="Hand"/>
 		</Style>
 
-		<Style Selector="DataGridColumnHeader">
-			<Setter Property="FontSize" Value="12" />
-			<Setter Property="MinHeight" Value="20" />
-			<Setter Property="Padding" Value="3,0,0,0" />
+		<Style Selector="TabItem:selected">
+			<Setter Property="Background" Value="{DynamicResource TimingTableBackgroundBrush}"/>
+			<Setter Property="Foreground" Value="{DynamicResource TextLGForegroundBrush}"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="BorderThickness" Value="1,1,1,0"/>
 		</Style>
 
-		<Style Selector="TextBlock.pit">
-			<Setter Property="FontSize" Value="9"/>
-			<Setter Property="FontWeight" Value="Bold"/>
-			<Setter Property="Foreground" Value="{DynamicResource TextSmbForegroundBrush}"/>
-			<Setter Property="HorizontalAlignment" Value="Center"/>
-			<Setter Property="VerticalAlignment" Value="Center"/>
+		<Style Selector="TabItem:selected /template/ Border#PART_LayoutRoot">
+			<Setter Property="BorderBrush" Value="{DynamicResource BorderPrimaryBrush}"/>
+			<Setter Property="BorderThickness" Value="1,1,1,0"/>
 		</Style>
+
 	</UserControl.Styles>
 
 	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
-		<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="4,5,4,0">
-			<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+		<Border Grid.Row="0" Background="{DynamicResource FlagOverlayBackgroundBrush}" Margin="4,5,4,0" CornerRadius="4" Padding="6,4">
+			<Grid ColumnDefinitions="Auto,*,Auto,Auto">
+				<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 
-			<StackPanel Grid.Column="1">
-				<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold"/>
-				<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
-				<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
-				<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}" Classes="h1"/>
-				<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}" Classes="h1"/>
-				<StackPanel Orientation="Horizontal">
-					<TextBlock Text="Watch Along: " Classes="h1" IsVisible="{Binding IsBroadcastVisible}"/>
-					<Button IsVisible="{Binding IsBroadcastVisible}" Classes="link" Command="{Binding LaunchBroadcast}">
-						<TextBlock Text="{Binding BroadcastCompanyName}" FontSize="12"/>
+				<StackPanel Grid.Column="1">
+					<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+					<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
+					<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
+					<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}" Classes="h1"/>
+					<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}" Classes="h1"/>
+					<TextBlock Text="{Binding Flag, StringFormat='Flag: {0}'}" Classes="h1"/>
+					<Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsBroadcastVisible}">
+						<TextBlock Text="Watch Along: " Classes="h1"/>
+						<Button Grid.Column="1" Classes="link" Command="{Binding LaunchBroadcast}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+							<TextBlock Text="{Binding BroadcastCompanyName}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+						</Button>
+					</Grid>
+				</StackPanel>
+
+				<!--Test Buttons-->
+				<!--<StackPanel Grid.Column="2">
+				<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
+				<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
+				</StackPanel>-->
+
+				<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="1,1,10,1"/>
+
+				<StackPanel Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
+					<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
+						<StackPanel Orientation="Vertical">
+							<TextBlock Text="Sorting" FontStyle="Italic" FontSize="11"/>
+							<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
+						</StackPanel>
+					</Button>
+					<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,8,0,0" Padding="3" Width="55">
+						<StackPanel Orientation="Vertical">
+							<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
+							<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
+						</StackPanel>
 					</Button>
 				</StackPanel>
-			</StackPanel>
-
-			<!--Test Buttons-->
-			<!--<StackPanel Grid.Column="2">
-			<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
-			<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
-			</StackPanel>-->
-
-			<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="3" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,10,1"/>
-
-			<StackPanel Grid.Column="4" Orientation="Vertical">
-				<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
-					<StackPanel Orientation="Vertical">
-						<TextBlock Text="Sorting" FontStyle="Italic" FontSize="11"/>
-						<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
-					</StackPanel>
-				</Button>
-				<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,6,0,0" Padding="3" Width="55">
-					<StackPanel Orientation="Vertical">
-						<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
-						<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
-					</StackPanel>
-				</Button>
-			</StackPanel>
-		</Grid>
+			</Grid>
+		</Border>
 
 		<!--Table Header-->
 		<Border x:Name="tableHeader" Grid.Row="1" Background="{DynamicResource TimingTableHeaderBackgroundBrush}" Margin="3,6,3,0" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}">

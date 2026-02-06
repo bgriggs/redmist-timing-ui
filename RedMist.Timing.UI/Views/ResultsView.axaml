@@ -18,41 +18,52 @@
 		<ContentControl IsVisible="{Binding IsLiveTimingVisible}">
 			<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"/>
 		</ContentControl>
-		<Grid RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding !IsLiveTimingVisible}">
+		<Grid RowDefinitions="Auto,*" IsVisible="{Binding !IsLiveTimingVisible}">
+			<!-- Header with background -->
+			<Border Background="{DynamicResource TimingTableHeaderBackgroundBrush}"
+					Grid.Row="0"
+					Padding="12,12,12,12"
+					BorderBrush="{DynamicResource boldItemBorder}"
+					BorderThickness="0,0,0,1">
+				<Grid ColumnDefinitions="Auto,Auto,*,Auto">
+					<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+					<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="0,0,12,0"/>
+					<StackPanel Grid.Column="2" VerticalAlignment="Center">
+						<TextBlock Text="{Binding Name, StringFormat='Provisional Results for {0}'}" Classes="title" TextWrapping="Wrap"/>
+						<!--<TextBlock Text="{Binding OrganizationName}" Classes="theme-text-heading size-xs" Margin="0,8,0,0"/>-->
+						<TextBlock Text="{Binding Dates}"/>
+						<!--<TextBlock Text="{Binding TrackName}"/>-->
+					</StackPanel>
+				</Grid>
+			</Border>
 
-			<Button Classes="back" Margin="4,12,10,0" Command="{Binding Back}" VerticalAlignment="Top" IsVisible="{Binding AllowEventList}"/>
-			
-			<StackPanel Grid.Column="1">
-				<TextBlock Text="{Binding Name, StringFormat='Provisional Results for {0}'}" Classes="theme-text-heading" TextWrapping="Wrap" Margin="0,15,10,0"/>
+			<Grid RowDefinitions="Auto,*" Grid.Row="1" Margin="5">
+				<!-- Sessions Header -->
+				<TextBlock Text="Sessions" Classes="title" Grid.Row="0" Margin="4,8,4,4"/>
 
-				<TextBlock Text="{Binding OrganizationName}" Classes="theme-text-heading size-xs" Margin="0,17,0,0" />
-				<TextBlock Text="{Binding Dates}"/>
-				<TextBlock Text="{Binding TrackName}"/>
-			</StackPanel>
-			
-			<Image Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="55" MaxWidth="55" VerticalAlignment="Top" Margin="5,17,10,1"/>
+				<!-- No sessions message -->
+				<TextBlock Text="No Sessions Found" IsVisible="{Binding HasNoSessions}" Classes="title" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
 
-			<TextBlock Text="Sessions" FontSize="16" FontWeight="Bold" Grid.Row="2" Grid.ColumnSpan="2" Margin="4,15,4,0"/>
-			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" Grid.Row="3" Grid.ColumnSpan="3">
-				<ItemsControl ItemsSource="{Binding Sessions}" Margin="4,2,4,4">
-					<ItemsControl.ItemTemplate>
-						<DataTemplate DataType="model:SessionViewModel">
-					<Button Padding="0" HorizontalAlignment="Stretch" Command="{Binding SelectSession}" CommandParameter="{Binding .}">
-						<Border BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Padding="5">
-							<StackPanel>
-								<TextBlock Text="{Binding Name}" Classes="theme-text-heading size-xs"/>
-								<TextBlock Text="{Binding StartTime}" FontSize="10"/>
-								<StackPanel Orientation="Horizontal">
-									<PathIcon Height="12" Foreground="{DynamicResource ContrastForegroundBrush}" Data="{StaticResource flaggeom}"/>
+				<!-- Sessions list -->
+				<ScrollViewer IsVisible="{Binding !HasNoSessions}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" Grid.Row="1">
+					<ItemsControl ItemsSource="{Binding Sessions}" Margin="4,2,4,4">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="model:SessionViewModel">
+								<Button Padding="5" HorizontalAlignment="Stretch" Command="{Binding SelectSession}" CommandParameter="{Binding .}" Margin="0,0,0,2">
+									<StackPanel>
+										<TextBlock Text="{Binding Name}" Classes="theme-text-heading size-xs"/>
+										<TextBlock Text="{Binding StartTime}" FontSize="10"/>
+										<StackPanel Orientation="Horizontal">
+											<PathIcon Height="12" Foreground="{DynamicResource ContrastForegroundBrush}" Data="{StaticResource flaggeom}" Margin="0,0,4,0"/>
 											<TextBlock Text="Provisional Results" FontStyle="Italic" FontSize="10"/>
 										</StackPanel>
 									</StackPanel>
-								</Border>
-							</Button>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
-			</ScrollViewer>
+								</Button>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</Grid>
 		</Grid>
 	</Grid>
 </UserControl>

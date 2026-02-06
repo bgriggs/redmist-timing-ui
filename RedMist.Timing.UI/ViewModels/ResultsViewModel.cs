@@ -23,6 +23,7 @@ namespace RedMist.Timing.UI.ViewModels;
 public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<AppResumeNotification>
 {
     public ObservableCollection<SessionViewModel> Sessions { get; } = [];
+    public bool HasNoSessions => Sessions.Count == 0;
     public Event EventModel { get; }
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
@@ -51,11 +52,23 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private readonly EventContext eventContext;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly IConfiguration configuration;
+    private readonly OrganizationIconCacheService iconCacheService;
 
     public Bitmap? OrganizationLogo
     {
         get
         {
+            if (EventModel.OrganizationId > 0)
+            {
+                // Try to get from cache first
+                var cached = iconCacheService.GetCachedIcon(EventModel.OrganizationId);
+                if (cached != null)
+                {
+                    return cached;
+                }
+            }
+
+            // Fallback to decoding byte array if not in cache
             if (EventModel.OrganizationLogo is not null && EventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(EventModel.OrganizationLogo);
@@ -69,7 +82,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private bool allowEventList = true;
 
 
-    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService)
     {
         EventModel = eventModel;
         this.hubClient = hubClient;
@@ -79,9 +92,28 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         this.eventContext = eventContext;
         this.httpClientFactory = httpClientFactory;
         this.configuration = configuration;
+        this.iconCacheService = iconCacheService;
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         InitializeSessions(eventModel.Sessions);
+
+        // Load organization icon from cache or CDN
+        if (EventModel.OrganizationId > 0)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await iconCacheService.GetOrganizationIconAsync(EventModel.OrganizationId);
+                    // Notify that the logo may have changed
+                    Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
+                }
+                catch (Exception)
+                {
+                    // Ignore errors loading icon
+                }
+            });
+        }
     }
 
 
@@ -92,6 +124,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         {
             Sessions.Add(new SessionViewModel(session));
         }
+        OnPropertyChanged(nameof(HasNoSessions));
     }
 
     public void Back()
@@ -118,7 +151,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                     //logger.LogError(ex, "Error loading session results");
                 }
 
-                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration) 
+                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService) 
                 { 
                     BackRouterPath = "SessionResultsList",
                     EventModel = EventModel,

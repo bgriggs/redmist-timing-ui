@@ -1,32 +1,51 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
-             x:Class="RedMist.Timing.UI.Views.EventInformationView"
+			 mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
+			 x:Class="RedMist.Timing.UI.Views.EventInformationView"
 			 x:DataType="model:EventInformationViewModel">
 
 	<Design.DataContext>
 		<!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<design:DesignEventInformationViewModel />
 	</Design.DataContext>
 
-	<StackPanel>
-		<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
-			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
-			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
-			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
-		</Grid>
-		<Border Background="{DynamicResource lightAppBackground}" Margin="15,15,15,0" Padding="8" CornerRadius="4">
-			<StackPanel>
+	<Grid RowDefinitions="Auto,*">
+		<!-- Header with background -->
+		<Border Background="{DynamicResource TimingTableHeaderBackgroundBrush}"
+				Grid.Row="0"
+				Padding="12,12,12,12"
+				BorderBrush="{DynamicResource boldItemBorder}"
+				BorderThickness="0,0,0,1">
+			<Grid ColumnDefinitions="Auto,Auto,*">
+				<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+				<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="0,0,12,0"/>
+				<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
+			</Grid>
+		</Border>
+
+		<!-- Content panel with elevation -->
+		<Border Background="{DynamicResource lightAppBackground}"
+				Margin="16,16,16,16"
+				Padding="16"
+				CornerRadius="6"
+				Grid.Row="1"
+				BorderBrush="{DynamicResource boldItemBorder}"
+				BorderThickness="1"
+				BoxShadow="0 2 8 0 #10000000"
+				VerticalAlignment="Top">
+			<StackPanel Spacing="4">
+				<TextBlock Text="{Binding OrganizationName}" Classes="title"/>
 				<TextBlock Text="{Binding Dates}"/>
-				<TextBlock Text="{Binding OrganizationName}"/>
-				<StackPanel Orientation="Horizontal">
-					<TextBlock Text="Details:" VerticalAlignment="Center"/>
-					<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchDetailsUrl}">
+
+				<!-- Event Details with link -->
+				<StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsEventDetailsVisible}">
+					<TextBlock Text="Event Details:" Classes="eventRowHeader" VerticalAlignment="Center"/>
+					<Button Classes="icon" Command="{Binding LaunchDetailsUrl}">
 						<PathIcon Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
 							<PathIcon.RenderTransform>
 								<RotateTransform Angle="-90"/>
@@ -34,23 +53,38 @@
 						</PathIcon>
 					</Button>
 				</StackPanel>
-				<TextBlock Text="{Binding TrackName, StringFormat='Track: {0}'}"/>
-				<TextBlock Text="{Binding CourseConfiguration, StringFormat='Configuration: {0}'}"/>
-				<TextBlock Text="{Binding Distance, StringFormat='Distance: {0}'}"/>
 
-				<WrapPanel Orientation="Horizontal" IsVisible="{Binding IsBroadcastVisible}">
-					<TextBlock Text="{Binding BroadcastCompanyName, StringFormat='Broadcast by: {0}'}" VerticalAlignment="Center"/>
-					<Button Classes="icon" Margin="3,0,0,0" Command="{Binding LaunchBroadcastUrl}">
+				<!-- Track section with sub-items -->
+				<StackPanel Spacing="4" IsVisible="{Binding IsTrackVisible}">
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<TextBlock Text="Track:" Classes="eventRowHeader"/>
+						<TextBlock Text="{Binding TrackName}"/>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+						<TextBlock Text="Configuration:" Classes="eventSubRow" Margin="0"/>
+						<TextBlock Text="{Binding CourseConfiguration}" Classes="eventSubRow" Margin="0"/>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+						<TextBlock Text="Distance:" Classes="eventSubRow" Margin="0"/>
+						<TextBlock Text="{Binding Distance}" Classes="eventSubRow" Margin="0"/>
+					</StackPanel>
+				</StackPanel>
+
+				<!-- Broadcast section -->
+				<StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsBroadcastVisible}">
+					<TextBlock Text="Broadcast by:" Classes="eventRowHeader" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding BroadcastCompanyName}" VerticalAlignment="Center"/>
+					<Button Classes="icon" Command="{Binding LaunchBroadcastUrl}">
 						<PathIcon Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource extlinkgeom}" VerticalAlignment="Center">
 							<PathIcon.RenderTransform>
 								<RotateTransform Angle="-90"/>
 							</PathIcon.RenderTransform>
 						</PathIcon>
 					</Button>
-				</WrapPanel>
+				</StackPanel>
 
 				<StackPanel IsVisible="{Binding IsScheduleVisible}" Margin="0,12,0,5">
-					<TextBlock Classes="theme-text-heading size-xs" Text="Schedule" FontWeight="Bold"/>
+					<TextBlock Classes="theme-text-heading size-xs" Text="Schedule" FontWeight="SemiBold"/>
 					<ItemsControl ItemsSource="{Binding ScheduleDays}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate DataType="model:ScheduleDayViewModel">
@@ -63,7 +97,7 @@
 													<TextBlock Text="{Binding StartTime}"/>
 													<TextBlock Text="-"/>
 													<TextBlock Text="{Binding EndTime}"/>
-													<TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="6,0,0,0"/>
+													<TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="6,0,0,0"/>
 												</StackPanel>
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>
@@ -75,5 +109,5 @@
 				</StackPanel>
 			</StackPanel>
 		</Border>
-	</StackPanel>
+	</Grid>
 </UserControl>

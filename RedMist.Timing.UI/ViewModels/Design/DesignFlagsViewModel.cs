@@ -7,11 +7,11 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 public class DesignFlagsViewModel : FlagsViewModel
 {
     public DesignFlagsViewModel() : base(new Event { EventName = "World Racing League - Barber 2025" }, 
-        new DesignEventClient(new DesignConfiguration()), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration())
+        new DesignEventClient(new DesignConfiguration()), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService())
     {
         var fg1 = new FlagDuration 
         { 
-            Flag = TimingCommon.Models.Flags.Green, 
+            Flag = TimingCommon.Models.Flags.Checkered, 
             StartTime = new DateTime(2025, 3, 30, 9, 0, 0),
             EndTime = new DateTime(2025, 3, 30, 9, 30, 0)
         };
@@ -33,12 +33,12 @@ public class DesignFlagsViewModel : FlagsViewModel
         {
             Flag = TimingCommon.Models.Flags.Yellow,
             StartTime = new DateTime(2025, 3, 30, 10, 0, 1),
-            EndTime = new DateTime(2025, 3, 30, 10, 30, 0)
+            EndTime = new DateTime(2025, 3, 30, 21, 30, 0)
         };
         var fg5 = new FlagDuration
         {
             Flag = TimingCommon.Models.Flags.Green,
-            StartTime = new DateTime(2025, 3, 30, 10, 30, 1),
+            StartTime = new DateTime(2025, 3, 30, 21, 30, 1),
             //EndTime = new DateTime(2025, 3, 30, 11, 30, 33)
         };
 

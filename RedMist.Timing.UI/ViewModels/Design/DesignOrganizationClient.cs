@@ -10,10 +10,10 @@ public class DesignOrganizationClient : OrganizationClient
     {
     }
 
-    public override Task<byte[]> GetOrganizationIconAsync(int organizationId)
-    {
-        return Task.FromResult(System.Array.Empty<byte>());
-    }
+    //public override Task<byte[]> GetOrganizationIconAsync(int organizationId)
+    //{
+    //    return Task.FromResult(System.Array.Empty<byte>());
+    //}
 
     private class DesignHttpClientFactory : IHttpClientFactory
     {

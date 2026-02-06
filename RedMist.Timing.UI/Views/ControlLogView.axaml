@@ -1,54 +1,59 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
-             x:Class="RedMist.Timing.UI.Views.ControlLogView"
+			 x:Class="RedMist.Timing.UI.Views.ControlLogView"
 			 x:DataType="vm:ControlLogViewModel">
 	<Design.DataContext>
 		<!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<design:DesignControlLogViewModel />
 	</Design.DataContext>
 
 	<UserControl.Resources>
-		<x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
 	</UserControl.Resources>
 
-	<UserControl.Styles>
-		<Style Selector="DataGridCell">
-			<Setter Property="FontSize" Value="10" />
-			<Setter Property="MinHeight" Value="20" />
-		</Style>
+	<!-- Uses global DataGrid styles from App.axaml -->
 
-		<Style Selector="DataGridColumnHeader">
-			<Setter Property="FontSize" Value="12" />
-			<Setter Property="MinHeight" Value="20" />
-			<Setter Property="Padding" Value="3,0,0,0" />
-		</Style>
-	</UserControl.Styles>
-	
-	<Grid RowDefinitions="Auto,*" Background="{StaticResource lightAppBackground}">
-		<Grid ColumnDefinitions="Auto,Auto,*" Margin="4,12,4,4">
-			<Button Classes="back" Grid.RowSpan="3" Margin="0,0,10,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
-			<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="0,1,10,1"/>
-			<TextBlock Text="{Binding Name}" Classes="title" Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center"/>
+	<Grid RowDefinitions="Auto,*" Background="{DynamicResource lightAppBackground}">
+		<!-- Header with background -->
+		<Border Background="{DynamicResource TimingTableHeaderBackgroundBrush}"
+				Grid.Row="0"
+				Padding="12,12,12,12"
+				BorderBrush="{DynamicResource boldItemBorder}"
+				BorderThickness="0,0,0,1">
+			<Grid ColumnDefinitions="Auto,Auto,*">
+				<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+				<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="0,0,12,0"/>
+				<StackPanel Orientation="Vertical" Grid.Column="2">
+					<TextBlock Text="Control Log" Classes="title"/>
+					<TextBlock Text="{Binding Name}" Classes="title"  TextWrapping="Wrap" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Grid>
+		</Border>
+
+		<Grid RowDefinitions="*" Grid.Row="1" Margin="5">
+			<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
+
+			<!-- No control log message -->
+			<TextBlock Text="Control log is empty" IsVisible="{Binding ShowNoControlLogMessage}" Classes="title" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
+
+			<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0" IsVisible="{Binding !HasNoControlLog}"
+					  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
+					<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
+					<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
+					<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
+					<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
+					<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+					<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenaltyAction}"/>
+					<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
+				</DataGrid.Columns>
+			</DataGrid>
 		</Grid>
-		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="1" Classes="title"/>
-		<DataGrid ItemsSource="{Binding ControlLog}" IsReadOnly="True" Padding="0" Grid.Row="1" IsVisible="{Binding !IsLoading}"
-				  FontSize="10" ScrollViewer.HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Stretch">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="70"/>
-				<DataGridTextColumn Header="Corner" Binding="{Binding Corner}"/>
-				<DataGridTextColumn Header="Car 1" Binding="{Binding Car1}"/>
-				<DataGridTextColumn Header="Car 2" Binding="{Binding Car2}"/>
-				<DataGridTextColumn Header="Note" Binding="{Binding Note}"/>
-				<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-				<DataGridTextColumn Header="Penalty Action" Binding="{Binding PenaltyAction}"/>
-				<DataGridTextColumn Header="Other Notes" Binding="{Binding OtherNotes}"/>
-			</DataGrid.Columns>
-		</DataGrid>
 	</Grid>
 </UserControl>

@@ -1,19 +1,25 @@
 ﻿using Avalonia.Media.Imaging;
+using Avalonia.Threading;
+using BigMission.Avalonia.Utilities.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
 public partial class EventInformationViewModel : ObservableObject
 {
     public Event EventModel { get; }
+    private readonly OrganizationIconCacheService iconCacheService;
+
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
     public string Dates
@@ -29,15 +35,28 @@ public partial class EventInformationViewModel : ObservableObject
     public string TrackName => EventModel.TrackName;
     public string Distance => EventModel.Distance;
     public string CourseConfiguration => EventModel.CourseConfiguration;
+    public bool IsTrackVisible => !string.IsNullOrEmpty(EventModel.TrackName);
     public bool IsScheduleVisible => EventModel.Schedule?.Entries.Count > 0;
     public ObservableCollection<ScheduleDayViewModel> ScheduleDays { get; } = [];
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
     public string? BroadcastUrl => EventModel.Broadcast?.Url;
     public bool IsBroadcastVisible => EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url);
+    public bool IsEventDetailsVisible => !string.IsNullOrEmpty(EventModel.EventUrl);
     public Bitmap? OrganizationLogo
     {
         get
         {
+            if (EventModel.OrganizationId > 0)
+            {
+                // Try to get from cache first
+                var cached = iconCacheService.GetCachedIcon(EventModel.OrganizationId);
+                if (cached != null)
+                {
+                    return cached;
+                }
+            }
+
+            // Fallback to decoding byte array if not in cache
             if (EventModel.OrganizationLogo is not null && EventModel.OrganizationLogo.Length > 0)
             {
                 using MemoryStream ms = new(EventModel.OrganizationLogo);
@@ -50,9 +69,10 @@ public partial class EventInformationViewModel : ObservableObject
     [ObservableProperty]
     private bool allowEventList = true;
 
-    public EventInformationViewModel(Event eventModel)
+    public EventInformationViewModel(Event eventModel, OrganizationIconCacheService iconCacheService)
     {
         EventModel = eventModel;
+        this.iconCacheService = iconCacheService;
 
         if (EventModel.Schedule != null)
         {
@@ -60,6 +80,24 @@ public partial class EventInformationViewModel : ObservableObject
             {
                 ScheduleDays.Add(new ScheduleDayViewModel(day.Key, [.. day]));
             }
+        }
+
+        // Load organization icon from cache or CDN
+        if (EventModel.OrganizationId > 0)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await iconCacheService.GetOrganizationIconAsync(EventModel.OrganizationId);
+                    // Notify that the logo may have changed
+                    Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
+                }
+                catch (Exception)
+                {
+                    // Ignore errors loading icon
+                }
+            });
         }
     }
 

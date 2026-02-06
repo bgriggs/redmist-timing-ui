@@ -1,19 +1,15 @@
 ﻿using DynamicData;
-using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
-using RedMist.TimingCommon.Models.InCarVideo;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignLiveTimingViewModel : LiveTimingViewModel
 {
-    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration())
+    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService())
     {
         var pitTracking = new PitTracking();
         var viewSizeService = new ViewSizeService();
@@ -22,7 +18,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         var httpClientFactory = new DesignHttpClientFactory();
         var configuration = new DesignConfiguration();
         var evt = new Event { EventId = 1 }; // Mock event for design time
-        SessionName = "Design Event";
+        SessionName = "Design Event 1231231231 123 1 312312";
         Flag = "Green";
         TimeToGo = "03:45:00";
         RaceTime = "01:00:00";
