@@ -315,24 +315,31 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public async Task RefreshStatusAsync()
     {
-        var sw = Stopwatch.StartNew();
-
-        sessionStatus = await serverClient.ExecuteWithRetryAsync(
-            () => serverClient.LoadEventStatusAsync(EventModel.EventId),
-            nameof(serverClient.LoadEventStatusAsync));
-
-        if (sessionStatus == null)
+        try
         {
-            Logger.LogWarning("No session status returned for event {EventId}", EventModel.EventId);
-            return;
+            var sw = Stopwatch.StartNew();
+
+            sessionStatus = await serverClient.ExecuteWithRetryAsync(
+                () => serverClient.LoadEventStatusAsync(EventModel.EventId),
+                nameof(serverClient.LoadEventStatusAsync));
+
+            if (sessionStatus == null)
+            {
+                Logger.LogWarning("No session status returned for event {EventId}", EventModel.EventId);
+                return;
+            }
+
+            var patch = SessionStateMapper.CreatePatch(new SessionState(), sessionStatus);
+            Receive(new SessionStatusNotification(patch));
+
+            var carPatches = sessionStatus.CarPositions.Select(c => CarPositionMapper.CreatePatch(new CarPosition(), c)).ToArray();
+            Receive(new CarStatusNotification(carPatches));
+            Logger.LogInformation("Full update in {t}ms", sw.ElapsedMilliseconds);
         }
-
-        var patch = SessionStateMapper.CreatePatch(new SessionState(), sessionStatus);
-        Receive(new SessionStatusNotification(patch));
-
-        var carPatches = sessionStatus.CarPositions.Select(c => CarPositionMapper.CreatePatch(new CarPosition(), c)).ToArray();
-        Receive(new CarStatusNotification(carPatches));
-        Logger.LogInformation("Full update in {t}ms", sw.ElapsedMilliseconds);
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error refreshing status: {ex.Message}");
+        }
     }
 
     public async Task UnsubscribeLiveAsync()
@@ -388,57 +395,64 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public void ApplySessionUpdate(SessionStatusNotification message)
     {
-        if (message.Value.SessionName != null)
-            SessionName = message.Value.SessionName;
-        if (message.Value.CurrentFlag != null)
-            Flag = message.Value.CurrentFlag.ToString() ?? string.Empty;
-        if (message.Value.TimeToGo != null)
-            TimeToGo = message.Value.TimeToGo;
-        if (message.Value.RunningRaceTime != null)
-            RaceTime = message.Value.RunningRaceTime;
-
-        if (message.Value.LocalTimeOfDay != null &&
-            DateTime.TryParseExact(message.Value.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var tod))
+        try
         {
-            LocalTime = tod.ToString("h:mm:ss tt");
-        }
+            if (message.Value.SessionName != null)
+                SessionName = message.Value.SessionName;
+            if (message.Value.CurrentFlag != null)
+                Flag = message.Value.CurrentFlag.ToString() ?? string.Empty;
+            if (message.Value.TimeToGo != null)
+                TimeToGo = message.Value.TimeToGo;
+            if (message.Value.RunningRaceTime != null)
+                RaceTime = message.Value.RunningRaceTime;
 
-        if (message.Value.IsPracticeQualifying != null)
-        {
-            if (lastIsQualifying == null || lastIsQualifying != message.Value.IsPracticeQualifying)
+            if (message.Value.LocalTimeOfDay != null &&
+                DateTime.TryParseExact(message.Value.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var tod))
             {
-                // Only update the sort if it has changed to avoid overriding the user
-                if (message.Value.IsPracticeQualifying.Value && CurrentSortMode != SortMode.Fastest)
-                {
-                    ToggleSortMode();
-                }
-                else if (!message.Value.IsPracticeQualifying.Value && CurrentSortMode != SortMode.Position)
-                {
-                    ToggleSortMode();
-                }
-                lastIsQualifying = message.Value.IsPracticeQualifying;
+                LocalTime = tod.ToString("h:mm:ss tt");
             }
-        }
-        // Update event entries
-        if (message.Value.EventEntries != null)
-        {
-            classColors = message.Value.ClassColors ?? lastSessionState.ClassColors;
-            classOrder = message.Value.ClassOrder ?? lastSessionState.ClassOrder;
-            ApplyEntries(message.Value.EventEntries, isDeltaUpdate: false);
-        }
 
-        // Update car status
-        if (message.Value.CarPositions != null)
-        {
-            var patches = message.Value.CarPositions
-                .Where(c => c.Number != null)
-                .Select(CarPositionMapper.ToPatch)
-                .ToArray();
-            ApplyCarUpdate(new CarStatusNotification(patches));
-        }
+            if (message.Value.IsPracticeQualifying != null)
+            {
+                if (lastIsQualifying == null || lastIsQualifying != message.Value.IsPracticeQualifying)
+                {
+                    // Only update the sort if it has changed to avoid overriding the user
+                    if (message.Value.IsPracticeQualifying.Value && CurrentSortMode != SortMode.Fastest)
+                    {
+                        ToggleSortMode();
+                    }
+                    else if (!message.Value.IsPracticeQualifying.Value && CurrentSortMode != SortMode.Position)
+                    {
+                        ToggleSortMode();
+                    }
+                    lastIsQualifying = message.Value.IsPracticeQualifying;
+                }
+            }
+            // Update event entries
+            if (message.Value.EventEntries != null)
+            {
+                classColors = message.Value.ClassColors ?? lastSessionState.ClassColors;
+                classOrder = message.Value.ClassOrder ?? lastSessionState.ClassOrder;
+                ApplyEntries(message.Value.EventEntries, isDeltaUpdate: false);
+            }
 
-        SessionStateMapper.ApplyPatch(message.Value, lastSessionState);
-        eventContext.SetContext(lastSessionState.EventId, lastSessionState.SessionId);
+            // Update car status
+            if (message.Value.CarPositions != null)
+            {
+                var patches = message.Value.CarPositions
+                    .Where(c => c.Number != null)
+                    .Select(CarPositionMapper.ToPatch)
+                    .ToArray();
+                ApplyCarUpdate(new CarStatusNotification(patches));
+            }
+
+            SessionStateMapper.ApplyPatch(message.Value, lastSessionState);
+            eventContext.SetContext(lastSessionState.EventId, lastSessionState.SessionId);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error applying session update: {Message}", e.Message);
+        }
     }
 
     public void Receive(CarStatusNotification message)

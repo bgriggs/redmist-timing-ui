@@ -108,17 +108,17 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
 
     private async Task Refresh()
     {
-        int sessionId = eventContext.SessionId;
-        if (sessionId == 0)
-        {
-            Flags.Clear();
-            OnPropertyChanged(nameof(HasNoFlags));
-            OnPropertyChanged(nameof(ShowNoFlagsMessage));
-            return;
-        }
-
         try
         {
+            int sessionId = eventContext.SessionId;
+            if (sessionId == 0)
+            {
+                Flags.Clear();
+                OnPropertyChanged(nameof(HasNoFlags));
+                OnPropertyChanged(nameof(ShowNoFlagsMessage));
+                return;
+            }
+
             IsLoading = true;
             List<FlagDuration> flags;
             if (eventModel.IsArchived)
