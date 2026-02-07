@@ -89,6 +89,9 @@ public partial class App : Application
 
         ConfigureServices(services);
 
+        // Register preferences service
+        services.AddSingleton<IPreferencesService, PreferencesService>();
+
         // Register version check services
         services.AddSingleton<IPlatformDetectionService, PlatformDetectionService>();
         services.AddSingleton<IUpdateMessageService, UpdateMessageService>();
@@ -233,7 +236,7 @@ public partial class App : Application
         }
     }
 
-    private void ShowErrorToUser(string message, Exception exception)
+    private static void ShowErrorToUser(string message, Exception exception)
     {
         try
         {
