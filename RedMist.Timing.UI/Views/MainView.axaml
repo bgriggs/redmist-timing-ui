@@ -64,7 +64,7 @@
 				</TabItem.Header>
 				<v:EventInformationView DataContext="{Binding EventInformationViewModel}"/>
 			</TabItem>
-			<TabItem Name="ControlLogTab" Padding="4,0">
+			<TabItem Name="ControlLogTab" IsSelected="{Binding IsControlLogTabSelected}" Padding="4,0">
 				<TabItem.Header>
 					<StackPanel Width="70">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warninggeom}"/>
