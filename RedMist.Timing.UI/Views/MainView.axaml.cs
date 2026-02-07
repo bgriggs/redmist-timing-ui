@@ -1,13 +1,21 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using BigMission.Avalonia.Utilities.Extensions;
+using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.Messaging;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.ViewModels;
+using System;
+using System.Reactive.Linq;
 
 namespace RedMist.Timing.UI.Views;
 
 public partial class MainView : UserControl, IRecipient<LauncherEvent>
 {
+    private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(25));
+
     public MainView()
     {
         InitializeComponent();
@@ -42,6 +50,7 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
         if (DataContext is MainViewModel vm)
         {
             await vm.Initialize();
+            vm.IsTimingTabStripVisibleChanged += isVisible => Observable.Timer(TimeSpan.FromMilliseconds(100)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => UpdateTabBarVisibility(Bounds.Size)));
         }
     }
 
@@ -65,5 +74,41 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
     {
         base.OnSizeChanged(e);
         WeakReferenceMessenger.Default.Send(new SizeChangedNotification(e.NewSize));
+        debouncer.ExecuteAsync(async () => Dispatcher.UIThread.InvokeOnUIThread(() => UpdateTabBarVisibility(e.NewSize)));
+        //UpdateTabBarVisibility(e.NewSize);
+    }
+
+    private void UpdateTabBarVisibility(Size size)
+    {
+        const double WidthMargin = 20;
+
+        if (double.IsNaN(size.Width) || double.IsInfinity(size.Width))
+            return;
+
+        var liveTimingWidth = LiveTimingTab.IsVisible ? LiveTimingTab.DesiredSize.Width : 0;
+        var resultsWidth = ResultsTab.IsVisible ? ResultsTab.DesiredSize.Width : 0;
+        var informationWidth = InformationTab.IsVisible ? InformationTab.DesiredSize.Width : 0;
+        var settingsWidth = SettingsTab.IsVisible ? SettingsTab.DesiredSize.Width : 0;
+
+        double fixedWith = liveTimingWidth + resultsWidth + informationWidth + settingsWidth + WidthMargin;
+
+        if (DataContext is MainViewModel vm && vm.IsControlLogAvailable)
+        {
+            if (fixedWith + ControlLogTab.DesiredSize.Width < size.Width)
+            {
+                fixedWith += ControlLogTab.DesiredSize.Width;
+                ControlLogTab.IsVisible = true;
+            }
+            else
+            {
+                ControlLogTab.IsVisible = false;
+            }
+        }
+        else
+        {
+            ControlLogTab.IsVisible = false;
+        }
+
+        FlagsTab.IsVisible = fixedWith + FlagsTab.DesiredSize.Width < size.Width;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -13,6 +14,7 @@ using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels.InCarDriverMode;
 using RedMist.TimingCommon.Models;
 using System;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -23,6 +25,7 @@ public enum TabTypes { LiveTiming, Results, ControlLog, EventInformation }
 public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, 
     IRecipient<SizeChangedNotification>
 {
+    public event Action<bool>? IsTimingTabStripVisibleChanged;
     public EventsListViewModel EventsListViewModel { get; }
     public LiveTimingViewModel LiveTimingViewModel { get; }
 
@@ -117,9 +120,15 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
     }
     [ObservableProperty]
-    private bool isControlLogTabVisible;
-    [ObservableProperty]
-    private bool isFlagsTabVisible;
+    //[NotifyPropertyChangedFor(nameof(ShowControlLogTab))]
+    private bool isControlLogAvailable;
+    //[ObservableProperty]
+    //[NotifyPropertyChangedFor(nameof(ShowControlLogTab))]
+    //private bool isControlLogTabVisible;
+    //public bool ShowControlLogTab => IsControlLogAvailable && IsControlLogTabVisible;
+
+    //[ObservableProperty]
+    //private bool isFlagsTabVisible;
     
     private bool isFlagsTabSelected;
     public bool IsFlagsTabSelected
@@ -137,7 +146,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private bool isSettingsTabSelected;
 
-    private const int FlagShowWidth = 500;
+    //private const int FlagShowWidth = 500;
+    //private const int ControlLogShowWidth = 450;
     private const int VersionCheckTimeoutSeconds = 5;
 
     [ObservableProperty]
@@ -231,6 +241,15 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         IsContentVisible = true;
     }
 
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (e.PropertyName == nameof(IsTimingTabStripVisible))
+        {
+            IsTimingTabStripVisibleChanged?.Invoke(IsTimingTabStripVisible);
+        }
+    }
+
     public async void Receive(ValueChangedMessage<RouterEvent> message)
     {
         try
@@ -281,7 +300,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService);
                     FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService);
                     SettingsViewModel = new SettingsViewModel();
-                    IsControlLogTabVisible = eventModel.HasControlLog && eventModel.IsLive;
+                    IsControlLogAvailable = eventModel.HasControlLog;
 
                     IsTimingTabStripVisible = true;
                     IsLiveTimingTabVisible = eventModel.IsLive;
@@ -570,6 +589,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     /// </summary>
     public void Receive(SizeChangedNotification message)
     {
-        IsFlagsTabVisible = viewSizeService.CurrentSize.Width > FlagShowWidth;
+        //IsFlagsTabVisible = viewSizeService.CurrentSize.Width > FlagShowWidth;
+        //IsControlLogTabVisible = viewSizeService.CurrentSize.Width > ControlLogShowWidth;
     }
 }

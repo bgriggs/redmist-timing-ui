@@ -6,7 +6,7 @@
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:v="clr-namespace:RedMist.Timing.UI.Views"
 			 xmlns:vd="clr-namespace:RedMist.Timing.UI.Views.InCarDriverMode"
-             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="370" d:DesignHeight="450"
              x:Class="RedMist.Timing.UI.Views.MainView"
              x:DataType="vm:MainViewModel">
 	<Design.DataContext>
@@ -28,7 +28,12 @@
 
 		<!--Timing tabs-->
 		<TabControl Padding="0" TabStripPlacement="Bottom" IsVisible="{Binding IsTimingTabStripVisible}">
-			<TabItem IsVisible="{Binding IsLiveTimingTabVisible}" IsSelected="{Binding IsLiveTimingTabSelected}">
+			<TabControl.ItemsPanel>
+				<ItemsPanelTemplate>
+					<StackPanel Orientation="Horizontal" />
+				</ItemsPanelTemplate>
+			</TabControl.ItemsPanel>
+			<TabItem Name="LiveTimingTab" IsVisible="{Binding IsLiveTimingTabVisible}" IsSelected="{Binding IsLiveTimingTabSelected}" Padding="4,0">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
@@ -37,7 +42,7 @@
 				</TabItem.Header>
 				<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"></v:LiveTimingView>
 			</TabItem>
-			<TabItem IsSelected="{Binding IsResultsTabSelected}">
+			<TabItem Name="ResultsTab" IsSelected="{Binding IsResultsTabSelected}" Padding="4,0">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource trophygeom}">
@@ -50,7 +55,7 @@
 				</TabItem.Header>
 				<v:ResultsView DataContext="{Binding ResultsViewModel}"/>
 			</TabItem>
-			<TabItem IsSelected="{Binding IsInformationTabSelected}">
+			<TabItem Name="InformationTab" IsSelected="{Binding IsInformationTabSelected}" Padding="4,0">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
@@ -59,7 +64,7 @@
 				</TabItem.Header>
 				<v:EventInformationView DataContext="{Binding EventInformationViewModel}"/>
 			</TabItem>
-			<TabItem IsSelected="{Binding IsControlLogTabSelected}" IsVisible="{Binding IsControlLogTabVisible}">
+			<TabItem Name="ControlLogTab" Padding="4,0">
 				<TabItem.Header>
 					<StackPanel Width="70">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warninggeom}"/>
@@ -68,7 +73,7 @@
 				</TabItem.Header>
 				<v:ControlLogView DataContext="{Binding ControlLogViewModel}"/>
 			</TabItem>
-			<TabItem IsVisible="{Binding IsFlagsTabVisible}" IsSelected="{Binding IsFlagsTabSelected}">
+			<TabItem Name="FlagsTab" IsSelected="{Binding IsFlagsTabSelected}" Padding="4,0">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
@@ -77,7 +82,7 @@
 				</TabItem.Header>
 				<v:FlagsView DataContext="{Binding FlagsViewModel}"/>
 			</TabItem>
-			<TabItem IsSelected="{Binding IsSettingsTabSelected}">
+			<TabItem Name="SettingsTab" IsSelected="{Binding IsSettingsTabSelected}" Padding="4,0">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource geargeom}"/>
