@@ -420,7 +420,7 @@
 		<Border x:Name="tableHeader" Grid.Row="1" Background="{DynamicResource TimingTableHeaderBackgroundBrush}" Margin="3,6,3,0" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}">
 			<Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="0,2,0,0">
 				<TextBlock Text="" Grid.Column="0" Width="34"/>
-				<TextBlock Text="LAST LAP             GAP             TO P1" Width="253" Grid.Column="1" Classes="tableheader"/>
+				<TextBlock Text="LAST LAP             GAP             TO P1" Width="244" Grid.Column="1" Classes="tableheader"/>
 				<StackPanel Orientation="Horizontal" Grid.Column="2" IsVisible="{Binding ShowPenaltyColumn}">
 					<TextBlock Text="PENALTY" Classes="tableheader"/>
 					<PathIcon Height="10" Margin="0,0,0,1" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warningopengeom}" VerticalAlignment="Center"/>

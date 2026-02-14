@@ -24,6 +24,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         TimeToGo = "03:45:00";
         RaceTime = "01:00:00";
         LocalTime = "9:14:33 am";
+        ShowPenaltyColumn = true;
 
         carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
@@ -71,6 +72,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallDifference = "00:12.872",
             PenaltyWarnings = 1,
             PenaltyLaps = 2,
+            ShowPenaltyColumn = true,
             Class = "GP3",
             DriverName = "Alex Johnson",
         });
