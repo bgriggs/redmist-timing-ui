@@ -58,6 +58,8 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     [ObservableProperty]
     private bool isPenaltiesTabSelected = false;
 
+    public bool IsControlLogAvailable => evt.HasControlLog;
+
     public ChartViewModel Chart { get; } = new ChartViewModel();
     public LapsListViewModel LapList { get; } = new LapsListViewModel();
     public ObservableCollection<ControlLogEntryViewModel> ControlLog { get; } = [];

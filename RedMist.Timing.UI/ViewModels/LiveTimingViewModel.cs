@@ -66,6 +66,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     [NotifyPropertyChangedFor(nameof(OrganizationLogo))]
     [NotifyPropertyChangedFor(nameof(IsBroadcastVisible))]
     [NotifyPropertyChangedFor(nameof(BroadcastCompanyName))]
+    [NotifyPropertyChangedFor(nameof(IsControlLogAvailable))]
     private Event eventModel = new();
 
     [ObservableProperty]
@@ -151,10 +152,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsBroadcastVisible))]
+    [NotifyPropertyChangedFor(nameof(IsControlLogAvailable))]
     private bool isLive = false;
 
     public bool IsBroadcastVisible => IsLive && EventModel.Broadcast != null && !string.IsNullOrEmpty(EventModel.Broadcast.Url);
     public string? BroadcastCompanyName => EventModel.Broadcast?.CompanyName;
+    public bool IsControlLogAvailable => EventModel.HasControlLog;
 
     //private int consistencyCheckFailures;
     //private DateTime? lastConsistencyCheckReset;
@@ -248,6 +251,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             EventModel = eventModel;
             Flag = string.Empty;
             pitTracking.Clear();
+
+            // Initialize ShowPenaltyColumn based on event control log availability and current viewport size
+            ShowPenaltyColumn = IsControlLogAvailable && viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
+
             Logger.LogInformation("ResetEvent...");
             ResetEvent();
 
@@ -361,7 +368,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// </summary>
     public void Receive(SizeChangedNotification message)
     {
-        ShowPenaltyColumn = viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
+        ShowPenaltyColumn = IsControlLogAvailable && viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
         Logger.LogInformation("Size changed: {Width}x{Height}", message.Size.Width, message.Size.Height);
     }
 

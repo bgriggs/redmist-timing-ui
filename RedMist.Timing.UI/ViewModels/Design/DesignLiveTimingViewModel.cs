@@ -18,7 +18,8 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         var httpClientFactory = new DesignHttpClientFactory();
         var configuration = new DesignConfiguration();
         var loggerFactory = new DebugLoggerFactory();
-        var evt = new Event { EventId = 1 }; // Mock event for design time
+        var evt = new Event { EventId = 1, HasControlLog = true }; // Mock event for design time
+        EventModel = evt;
         SessionName = "Design Event 1231231231 123 1 312312";
         Flag = "Green";
         TimeToGo = "03:45:00";

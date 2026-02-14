@@ -643,7 +643,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     public void Receive(SizeChangedNotification message)
     {
         PageSize = message.Size;
-        ShowPenaltyColumn = viewSizeService.CurrentSize.Width > LiveTimingViewModel.PenaltyColumnWidth;
+        ShowPenaltyColumn = evt.HasControlLog && viewSizeService.CurrentSize.Width > LiveTimingViewModel.PenaltyColumnWidth;
         //FireNamePropertyChangedDebounced();
     }
 
