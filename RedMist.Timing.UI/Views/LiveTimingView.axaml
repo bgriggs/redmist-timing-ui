@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
 			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -18,12 +18,6 @@
 	</Design.DataContext>
 
 	<UserControl.Resources>
-		<StreamGeometry x:Key="downArrow">M998 352c0 -8 -4 -17 -10 -23l-50 -50c-6 -6 -14 -10 -23 -10c-8 0 -17 4 -23 10l-393 393l-393 -393c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-50 50c-6 6 -10 15 -10 23s4 17 10 23l466 466c6 6 15 10 23 10s17 -4 23 -10l466 -466c6 -6 10 -15 10 -23z</StreamGeometry>
-		<StreamGeometry x:Key="upArrow">M998 800c0 -8 -4 -17 -10 -23l-466 -466c-6 -6 -15 -10 -23 -10s-17 4 -23 10l-466 466c-6 6 -10 15 -10 23s4 17 10 23l50 50c6 6 14 10 23 10c8 0 17 -4 23 -10l393 -393l393 393c6 6 15 10 23 10s17 -4 23 -10l50 -50c6 -6 10 -15 10 -23z</StreamGeometry>
-		<StreamGeometry x:Key="lightning">M 52.2573,19.0027L 38.0053,33.2546L 50.6737,33.2546L 25.3369,57.008L 35.4716,38.0053L 23.7533,38.0053L 36.4217,19.0027L 52.2573,19.0027 Z </StreamGeometry>
-		<StreamGeometry x:Key="doubleLightning">M7.96,24.51h0.39l6.88-10.18c0.09-0.18,0.04-0.27-0.15-0.27h-2.84l2.99-5.45c0.09-0.18,0.02-0.27-0.2-0.27h-3.81  c-0.11,0-0.2,0.06-0.29,0.18l-2.78,7.4c-0.02,0.18,0.04,0.27,0.19,0.27h2.75L7.96,24.51z M16.46,18.18h0.27l5.22-7.67  c0.05-0.08,0.06-0.15,0.04-0.2s-0.08-0.07-0.17-0.07h-2.1l2.18-4.03c0.12-0.2,0.06-0.3-0.18-0.3h-2.74c-0.13,0-0.23,0.06-0.3,0.19  l-2.08,5.48c-0.03,0.09-0.03,0.16,0.01,0.21c0.04,0.05,0.1,0.07,0.19,0.07h2.04L16.46,18.18z</StreamGeometry>
-		<StreamGeometry x:Key="tableIcon">M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h18v2H3v-2zm0 4h18v2H3v-2zm0 4h18v2H3v-2z</StreamGeometry>
-
 		<!--Car Row Template-->
 		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
 			<Grid ColumnDefinitions="Auto,*">
@@ -62,23 +56,21 @@
 					</StackPanel>
 				</Grid>
 				<Grid RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,1" Grid.Column="1">
-					<c:AdaptiveCarInfoPanel ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+					<c:AdaptiveCarInfoPanel ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
 							 PageSize="{Binding PageSize}"
 							 NumberIndex="0"
 							 NameIndex="1"
 							 ClassIndex="2"
 							 InClassPosGainedIndex="3"
 							 OverallPosGainedIndex="4"
-							 InCarVideoIndex="5"
-							 PitStateIndex="6">
+							 InClassFastestAveragePaceIndex="5"
+							 InCarVideoIndex="6"
+							 PitStateIndex="7">
 						<TextBlock Text="{Binding Number, StringFormat='#{0}'}" Classes="carnum" VerticalAlignment="Center"/>
 						<TextBlock Text="{Binding Name}" Grid.Column="1" Margin="2,0,1,0" Classes="lg" TextTrimming="CharacterEllipsis"/>
 						<Border Grid.Column="2" Margin="1" CornerRadius="4" Background="{Binding ClassColor}">
-							<TextBlock Text="{Binding Class}"
-									   Classes="smb"
-									   Padding="8,2"
-									   VerticalAlignment="Bottom"
-									   HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding Class}" Classes="smb"
+									   Padding="8,2" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
 						</Border>
 
 						<PathIcon Grid.Column="3" Height="10" Width="10"
@@ -86,11 +78,13 @@
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
 						<PathIcon Grid.Column="4" Height="12" Width="12" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource doubleLightning}"
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
-						<Button Grid.Column="5" Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video" Padding="0" Height="13" Margin="2,0,0,0">
+						<PathIcon Grid.Column="5" Height="14" Width="14" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource fastpace}"
+								  IsVisible="{Binding InClassFastestAveragePace}" ToolTip.Tip="Fastest pace in-class"/>
+						<Button Grid.Column="6" Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video" Padding="0" Height="13" Margin="2,0,0,0">
 							<Image Source="{Binding CarStreamImage}" Cursor="Hand"/>
 						</Button>
 
-						<ContentControl Content="{Binding PitState}" Grid.Column="6">
+						<ContentControl Content="{Binding PitState}" Grid.Column="7">
 							<ContentControl.DataTemplates>
 								<sel:PitIconTemplateSelector>
 									<DataTemplate x:Key="InPitTemplate">

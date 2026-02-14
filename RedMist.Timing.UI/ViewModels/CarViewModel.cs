@@ -168,6 +168,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [NotifyPropertyChangedFor(nameof(IsMostPositionsGained))]
     private bool isClassMostPositionsGained;
     [ObservableProperty]
+    private bool inClassFastestAveragePace;
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPenaltyLaps))]
     [NotifyPropertyChangedFor(nameof(PenaltyLapTerm))]
     private int penaltyLaps;
@@ -184,7 +186,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [ObservableProperty]
     private PitStates pitState;
     [ObservableProperty]
-    private Avalonia.Size pageSize;
+    private Size pageSize;
 
     #endregion
 
@@ -451,6 +453,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             IsOverallMostPositionsGained = p.IsOverallMostPositionsGained.Value;
         if (p.IsClassMostPositionsGained != null)
             IsClassMostPositionsGained = p.IsClassMostPositionsGained.Value;
+        if (p.InClassFastestAveragePace != null)
+            InClassFastestAveragePace = p.InClassFastestAveragePace.Value;
         if (p.PenalityLaps != null)
             PenaltyLaps = p.PenalityLaps.Value;
         if (p.PenalityWarnings != null)

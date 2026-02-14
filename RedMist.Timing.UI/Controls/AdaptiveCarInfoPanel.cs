@@ -61,6 +61,15 @@ public class AdaptiveCarInfoPanel : Grid
         set => SetValue(OverallPosGainedIndexProperty, value);
     }
 
+    public static readonly StyledProperty<int> InClassFastestAveragePaceIndexProperty =
+       AvaloniaProperty.Register<AdaptiveCarInfoPanel, int>(nameof(InClassFastestAveragePaceIndex));
+
+    public int InClassFastestAveragePaceIndex
+    {
+        get => GetValue(InClassFastestAveragePaceIndexProperty);
+        set => SetValue(InClassFastestAveragePaceIndexProperty, value);
+    }
+
     public static readonly StyledProperty<int> InCarVideoIndexProperty =
         AvaloniaProperty.Register<AdaptiveCarInfoPanel, int>(nameof(InCarVideoIndex));
 
@@ -96,6 +105,7 @@ public class AdaptiveCarInfoPanel : Grid
         PageSizeProperty.Changed.AddClassHandler<AdaptiveCarInfoPanel>((panel, e) => panel.OnPageSizeChanged(e));
     }
 
+
     protected virtual void OnPageSizeChanged(AvaloniaPropertyChangedEventArgs e)
     {
         if (double.IsNaN(PageSize.Width) || double.IsInfinity(PageSize.Width))
@@ -111,10 +121,11 @@ public class AdaptiveCarInfoPanel : Grid
         var classWidth = Children[ClassIndex].IsVisible ? Children[ClassIndex].DesiredSize.Width : 0;
         var inClassPosGainedWidth = Children[InClassPosGainedIndex].IsVisible ? Children[InClassPosGainedIndex].DesiredSize.Width : 0;
         var overallPosGainedWidth = Children[OverallPosGainedIndex].IsVisible ? Children[OverallPosGainedIndex].DesiredSize.Width : 0;
+        var inClassFastestAveragePaceWidth = Children[InClassFastestAveragePaceIndex].IsVisible ? Children[InClassFastestAveragePaceIndex].DesiredSize.Width : 0;
         var inCarVideoWidth = Children[InCarVideoIndex].IsVisible ? Children[InCarVideoIndex].DesiredSize.Width : 0;
         var pitStateWidth = Children[PitStateIndex].IsVisible ? Children[PitStateIndex].DesiredSize.Width : 0;
 
-        double fixedWith = numberWidth + classWidth + inClassPosGainedWidth + overallPosGainedWidth + inCarVideoWidth + pitStateWidth;
+        double fixedWith = numberWidth + classWidth + inClassPosGainedWidth + overallPosGainedWidth + inClassFastestAveragePaceWidth + inCarVideoWidth + pitStateWidth;
         double availableWidth = PageSize.Width - fixedWith - WidthOffset;
         if (availableWidth < 0)
             availableWidth = 0;
@@ -137,6 +148,9 @@ public class AdaptiveCarInfoPanel : Grid
 
         if (OverallPosGainedIndex >= 0 && OverallPosGainedIndex < Children.Count)
             Children[OverallPosGainedIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+
+        if (InClassFastestAveragePaceIndex >= 0 && InClassFastestAveragePaceIndex < Children.Count)
+            Children[InClassFastestAveragePaceIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
 
         if (InCarVideoIndex >= 0 && InCarVideoIndex < Children.Count)
             Children[InCarVideoIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));

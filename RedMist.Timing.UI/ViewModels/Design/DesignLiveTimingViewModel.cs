@@ -39,6 +39,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP3",
             PitState = PitStates.ExitedPit,
             DriverName = "Jane Smith",
+            InClassFastestAveragePace = true,
         });
 
         carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
