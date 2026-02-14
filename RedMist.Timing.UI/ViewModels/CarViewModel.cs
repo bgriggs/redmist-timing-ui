@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -21,7 +22,6 @@ using System;
 using System.Globalization;
 using System.Net.Http;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -41,6 +41,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     public const string MRL_IMAGE = "mrlImage";
 
     #endregion
+
+    private ILogger Logger { get; }
 
     #region Car Properties
 
@@ -395,8 +397,9 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
 
     public CarViewModel(Event evt, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService, 
-        IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        IHttpClientFactory httpClientFactory, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         this.evt = evt;
         this.serverClient = serverClient;
         this.hubClient = hubClient;
@@ -592,8 +595,9 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         Class = entry.Class;
         ClassColor = classColor;
 
-        // Force reset once loaded - prevents color from getting stuck on update color
-        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH, DispatcherPriority.Send));
+        // Removing to prevent stale color reset
+        //// Force reset once loaded - prevents color from getting stuck on update color
+        //Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH, DispatcherPriority.Send));
         // Initialize the car row width
         Receive(new SizeChangedNotification(viewSizeService.CurrentSize));
     }

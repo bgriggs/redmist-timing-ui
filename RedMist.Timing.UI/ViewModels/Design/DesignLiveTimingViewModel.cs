@@ -17,6 +17,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         var hc = new DesignHubClient();
         var httpClientFactory = new DesignHttpClientFactory();
         var configuration = new DesignConfiguration();
+        var loggerFactory = new DebugLoggerFactory();
         var evt = new Event { EventId = 1 }; // Mock event for design time
         SessionName = "Design Event 1231231231 123 1 312312";
         Flag = "Green";
@@ -24,7 +25,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         RaceTime = "01:00:00";
         LocalTime = "9:14:33 am";
 
-        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "34",
             OriginalName = "Team Awesome 1",
@@ -40,7 +41,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             DriverName = "Jane Smith",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "14",
             OriginalName = "Team Awesome 2",
@@ -56,7 +57,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             DriverName = "John Doe",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "12",
             OriginalName = "Team Awesome Really Long Team Name 12345678123123123123123123",
@@ -73,7 +74,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             DriverName = "Alex Johnson",
         });
 
-        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "1x",
             OriginalName = "Team Stale",
@@ -103,7 +104,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsPitStartFinish = true,
         }));
 
-        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "111",
             OriginalName = "Team Cars Best Time",
@@ -131,7 +132,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             IsEnteredPit = true,
         }));
 
-        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration)
+        carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "222",
             OriginalName = "Team Overall Best Time",

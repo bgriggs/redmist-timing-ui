@@ -69,7 +69,7 @@
 					<!--Timing - Car Row-->
 					<Color x:Key="carRowNormalBackgroundBrush">Transparent</Color>
 					<Color x:Key="carRowUpdatedBackgroundBrush">#fce3cf</Color>
-					<Color x:Key="carRowStaleBackgroundBrush">#f7d2bb</Color>
+					<Color x:Key="carRowStaleBackgroundBrush">#E5E7EB</Color>
 					<SolidColorBrush x:Key="carRowLapTextForegroundNormalBrush">Black</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowLapTextForegroundBestBrush">#5da639</SolidColorBrush>
 					<SolidColorBrush x:Key="carRowLapTextForegroundOverallBestBrush">#7C3AED</SolidColorBrush>

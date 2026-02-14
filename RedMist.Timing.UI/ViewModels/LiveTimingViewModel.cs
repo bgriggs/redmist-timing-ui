@@ -55,6 +55,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private Dictionary<string, string> classOrder = [];
     private readonly InMemoryLogProvider? logProvider;
     private readonly OrganizationIconCacheService iconCacheService;
+    private readonly ILoggerFactory loggerFactory;
 
     private ILogger Logger { get; }
 
@@ -181,6 +182,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         this.hubClient = hubClient;
         this.serverClient = serverClient;
+        this.loggerFactory = loggerFactory;
         this.viewSizeService = viewSizeService;
         this.eventContext = eventContext;
         this.httpClientFactory = httpClientFactory;
@@ -501,7 +503,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration) { CurrentGroupMode = CurrentGrouping };
+                var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory) { CurrentGroupMode = CurrentGrouping };
                 vm.ApplyEntry(entry, classColor);
                 carCache.AddOrUpdate(vm);
 
@@ -741,7 +743,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public void InsertDuplicateCar()
     {
-        var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration)
+        var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "DuplicateCar",
             Class = "Test Class",
