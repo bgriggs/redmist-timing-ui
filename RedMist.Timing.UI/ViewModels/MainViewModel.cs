@@ -344,14 +344,18 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     }
                 });
                 
-                try
+                _ = Task.Run(async () =>
                 {
-                    _ = ControlLogViewModel?.UnsubscribeFromControlLogs();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error unsubscribing from control logs: {ex}");
-                }
+                    try
+                    {
+                        if (ControlLogViewModel != null)
+                            await ControlLogViewModel.UnsubscribeFromControlLogs();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error unsubscribing from control logs: {ex}");
+                    }
+                });
 
                 IsEventsListVisible = true;
 

@@ -26,31 +26,38 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
     {
         base.OnLoaded(e);
 
-        // Set the app to display edge-to-edge specifically for Android Pixel devices
-        // http://github.com/AvaloniaUI/Avalonia/issues/18544
-        var insetsManager = TopLevel.GetTopLevel(this)?.InsetsManager;
-        if (insetsManager is not null)
+        try
         {
-            // Use dynamic to set DisplayEdgeToEdgePreference (enum value not directly accessible)
-            // This property replaces the obsolete DisplayEdgeToEdge boolean
-            try
+            // Set the app to display edge-to-edge specifically for Android Pixel devices
+            // http://github.com/AvaloniaUI/Avalonia/issues/18544
+            var insetsManager = TopLevel.GetTopLevel(this)?.InsetsManager;
+            if (insetsManager is not null)
             {
-                dynamic manager = insetsManager;
-                manager.DisplayEdgeToEdgePreference = 1; // 1 = Always
-            }
-            catch
-            {
-                // Fallback for versions without the new property
+                // Use dynamic to set DisplayEdgeToEdgePreference (enum value not directly accessible)
+                // This property replaces the obsolete DisplayEdgeToEdge boolean
+                try
+                {
+                    dynamic manager = insetsManager;
+                    manager.DisplayEdgeToEdgePreference = 1; // 1 = Always
+                }
+                catch
+                {
+                    // Fallback for versions without the new property
 #pragma warning disable CS0618 // Type or member is obsolete
-                insetsManager.DisplayEdgeToEdge = true;
+                    insetsManager.DisplayEdgeToEdge = true;
 #pragma warning restore CS0618 // Type or member is obsolete
+                }
+            }
+
+            if (DataContext is MainViewModel vm)
+            {
+                await vm.Initialize();
+                vm.IsTimingTabStripVisibleChanged += isVisible => Observable.Timer(TimeSpan.FromMilliseconds(100)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => UpdateTabBarVisibility(Bounds.Size)));
             }
         }
-
-        if (DataContext is MainViewModel vm)
+        catch (Exception ex)
         {
-            await vm.Initialize();
-            vm.IsTimingTabStripVisibleChanged += isVisible => Observable.Timer(TimeSpan.FromMilliseconds(100)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => UpdateTabBarVisibility(Bounds.Size)));
+            System.Diagnostics.Debug.WriteLine($"Error in MainView.OnLoaded: {ex}");
         }
     }
 

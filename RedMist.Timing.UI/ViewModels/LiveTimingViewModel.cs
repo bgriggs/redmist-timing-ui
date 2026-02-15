@@ -314,7 +314,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 catch { }
                 fullUpdateInterval = null;
             }
-            fullUpdateInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(async _ => await RefreshStatusAsync());
+            fullUpdateInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(tick =>
+            {
+                try
+                {
+                    _ = RefreshStatusAsync();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error in periodic refresh timer");
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -379,17 +389,24 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         if (!IsRealTime)
             return;
-        Dispatcher.UIThread.InvokeOnUIThread(async () =>
+        Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
-            try
+            IsLoading = true;
+            _ = Task.Run(async () =>
             {
-                IsLoading = true;
-                await RefreshStatusAsync();
-            }
-            finally
-            {
-                IsLoading = false;
-            }
+                try
+                {
+                    await RefreshStatusAsync();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error refreshing status on app resume");
+                }
+                finally
+                {
+                    Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = false);
+                }
+            });
         });
         return;
     }
@@ -499,7 +516,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
             ResetEvent();
-            _ = RefreshStatusAsync();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await RefreshStatusAsync();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error refreshing status after reset");
+                }
+            });
         });
 
         return;
