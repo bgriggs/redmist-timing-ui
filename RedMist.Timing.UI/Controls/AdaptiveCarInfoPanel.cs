@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using BigMission.Avalonia.Utilities.Extensions;
 using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 namespace RedMist.Timing.UI.Controls;
@@ -14,7 +15,6 @@ namespace RedMist.Timing.UI.Controls;
 public class AdaptiveCarInfoPanel : Grid
 {
     const double WidthOffset = 56;
-    //private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(400));
 
     public static readonly StyledProperty<int> NumberIndexProperty =
         AvaloniaProperty.Register<AdaptiveCarInfoPanel, int>(nameof(NumberIndex));
@@ -98,66 +98,85 @@ public class AdaptiveCarInfoPanel : Grid
     }
 
     private double? originalNameWidth;
+    private CompositeDisposable? subscriptions;
 
 
     static AdaptiveCarInfoPanel()
     {
-        PageSizeProperty.Changed.AddClassHandler<AdaptiveCarInfoPanel>((panel, e) => panel.OnPageSizeChanged(e));
+        PageSizeProperty.Changed.AddClassHandler<AdaptiveCarInfoPanel>((panel, e) => panel.OnPageSizeChanged());
     }
 
+    private static double GetVisibleWidth(Control child)
+    {
+        return child.IsVisible ? child.DesiredSize.Width : 0;
+    }
 
-    protected virtual void OnPageSizeChanged(AvaloniaPropertyChangedEventArgs e)
+    protected virtual void OnPageSizeChanged()
     {
         if (double.IsNaN(PageSize.Width) || double.IsInfinity(PageSize.Width))
             return;
 
-        var numberWidth = Children[NumberIndex].IsVisible ? Children[NumberIndex].DesiredSize.Width : 0;
+        var nameChild = Children[NameIndex];
 
         // Note the originalNameWidth is only set once, the first time we have a valid DesiredSize.Width
-        if (originalNameWidth == null && Children[NameIndex].DesiredSize.Width > 0)
-            originalNameWidth = Children[NameIndex].DesiredSize.Width;
+        if (originalNameWidth == null && nameChild.DesiredSize.Width > 0)
+            originalNameWidth = nameChild.DesiredSize.Width;
 
-        var nameWidth = Children[NameIndex].IsVisible ? Children[NameIndex].DesiredSize.Width : 0;
-        var classWidth = Children[ClassIndex].IsVisible ? Children[ClassIndex].DesiredSize.Width : 0;
-        var inClassPosGainedWidth = Children[InClassPosGainedIndex].IsVisible ? Children[InClassPosGainedIndex].DesiredSize.Width : 0;
-        var overallPosGainedWidth = Children[OverallPosGainedIndex].IsVisible ? Children[OverallPosGainedIndex].DesiredSize.Width : 0;
-        var inClassFastestAveragePaceWidth = Children[InClassFastestAveragePaceIndex].IsVisible ? Children[InClassFastestAveragePaceIndex].DesiredSize.Width : 0;
-        var inCarVideoWidth = Children[InCarVideoIndex].IsVisible ? Children[InCarVideoIndex].DesiredSize.Width : 0;
-        var pitStateWidth = Children[PitStateIndex].IsVisible ? Children[PitStateIndex].DesiredSize.Width : 0;
+        var nameWidth = GetVisibleWidth(nameChild);
 
-        double fixedWith = numberWidth + classWidth + inClassPosGainedWidth + overallPosGainedWidth + inClassFastestAveragePaceWidth + inCarVideoWidth + pitStateWidth;
-        double availableWidth = PageSize.Width - fixedWith - WidthOffset;
-        if (availableWidth < 0)
-            availableWidth = 0;
+        double fixedWidth = GetVisibleWidth(Children[NumberIndex])
+            + GetVisibleWidth(Children[ClassIndex])
+            + GetVisibleWidth(Children[InClassPosGainedIndex])
+            + GetVisibleWidth(Children[OverallPosGainedIndex])
+            + GetVisibleWidth(Children[InClassFastestAveragePaceIndex])
+            + GetVisibleWidth(Children[InCarVideoIndex])
+            + GetVisibleWidth(Children[PitStateIndex]);
+
+        double availableWidth = Math.Max(0, PageSize.Width - fixedWidth - WidthOffset);
 
         if (nameWidth > availableWidth)
-            Children[NameIndex].Width = availableWidth;
+            nameChild.Width = availableWidth;
         else if (originalNameWidth != null)
-            Children[NameIndex].Width = originalNameWidth.Value;
+            nameChild.Width = originalNameWidth.Value;
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
 
+        subscriptions?.Dispose();
+        subscriptions = [];
+
         if (originalNameWidth == null && Children[NameIndex].DesiredSize.Width > 0)
             originalNameWidth = Children[NameIndex].DesiredSize.Width;
 
-        if (InClassPosGainedIndex >= 0 && InClassPosGainedIndex < Children.Count)
-            Children[InClassPosGainedIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+        SubscribeToVisibility(InClassPosGainedIndex);
+        SubscribeToVisibility(OverallPosGainedIndex);
+        SubscribeToVisibility(InClassFastestAveragePaceIndex);
+        SubscribeToVisibility(InCarVideoIndex);
+        SubscribeToVisibility(PitStateIndex);
 
-        if (OverallPosGainedIndex >= 0 && OverallPosGainedIndex < Children.Count)
-            Children[OverallPosGainedIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+        subscriptions.Add(
+            Observable.Timer(TimeSpan.FromMilliseconds(50))
+                .Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => OnPageSizeChanged()))
+        );
+    }
 
-        if (InClassFastestAveragePaceIndex >= 0 && InClassFastestAveragePaceIndex < Children.Count)
-            Children[InClassFastestAveragePaceIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
+    protected override void OnUnloaded(RoutedEventArgs e)
+    {
+        subscriptions?.Dispose();
+        subscriptions = null;
+        base.OnUnloaded(e);
+    }
 
-        if (InCarVideoIndex >= 0 && InCarVideoIndex < Children.Count)
-            Children[InCarVideoIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
-
-        if (PitStateIndex >= 0 && PitStateIndex < Children.Count)
-            Children[PitStateIndex].GetObservable(IsVisibleProperty).Subscribe(_ => OnPageSizeChanged(null!));
-
-        Observable.Timer(TimeSpan.FromMilliseconds(50)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => OnPageSizeChanged(null!)));
+    private void SubscribeToVisibility(int childIndex)
+    {
+        if (childIndex >= 0 && childIndex < Children.Count)
+        {
+            subscriptions!.Add(
+                Children[childIndex].GetObservable(IsVisibleProperty)
+                    .Subscribe(_ => OnPageSizeChanged())
+            );
+        }
     }
 }
