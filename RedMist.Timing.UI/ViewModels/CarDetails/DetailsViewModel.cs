@@ -75,7 +75,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         this.hubClient = hubClient;
         this.pitTracking = pitTracking;
         this.httpClientFactory = httpClientFactory;
-        archiveBaseUrl = configuration["Cdn:ArchiveUrl"] ?? throw new ArgumentException("Cdn:ArchiveUrl is not configured.");
+        archiveBaseUrl = (configuration["Cdn:ArchiveUrl"] ?? throw new ArgumentException("Cdn:ArchiveUrl is not configured.")).TrimEnd('/');
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -168,15 +168,20 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     {
         if (message.Value.CarNumber == carNumber)
         {
-            var controlLog = message.Value.ControlLogEntries.OrderByDescending(l => l.OrderId);
+            // Sort and create ViewModels off the UI thread
+            var entries = message.Value.ControlLogEntries
+                .OrderByDescending(l => l.OrderId)
+                .Select(e => new ControlLogEntryViewModel(e))
+                .ToArray();
+
             Dispatcher.UIThread.InvokeOnUIThread(() =>
             {
                 try
                 {
                     ControlLog.Clear();
-                    foreach (var entry in controlLog)
+                    foreach (var entry in entries)
                     {
-                        ControlLog.Add(new ControlLogEntryViewModel(entry));
+                        ControlLog.Add(entry);
                     }
                 }
                 catch { }
@@ -220,7 +225,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         try
         {
             // Build the URL: {archiveBaseUrl}/event-{eventId}-session-{sessionId}-car-laps/car-{carNum}-laps.gz
-            var url = $"{archiveBaseUrl.TrimEnd('/')}/event-laps/event-{eventId}-session-{sessionId}-car-laps/car-{carNumber}-laps.gz";
+            var url = $"{archiveBaseUrl}/event-laps/event-{eventId}-session-{sessionId}-car-laps/car-{carNumber}-laps.gz";
             var laps = await ArchiveHelper.DownloadArchivedDataAsync<List<CarPosition>>(httpClientFactory, url);
             return laps ?? [];
         }
@@ -235,7 +240,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     {
         try
         {
-            var url = $"{archiveBaseUrl.TrimEnd('/')}/event-competitor-metadata/event-{eventId}-competitor-metadata.gz";
+            var url = $"{archiveBaseUrl}/event-competitor-metadata/event-{eventId}-competitor-metadata.gz";
             var eventMetadata = await ArchiveHelper.DownloadArchivedDataAsync<List<CompetitorMetadata>>(httpClientFactory, url);
             var carMetadata = eventMetadata?.FirstOrDefault(cm => cm.CarNumber == carNumber);
             return carMetadata;
@@ -251,6 +256,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     {
         try
         {
+            WeakReferenceMessenger.Default.UnregisterAll(this);
             _ = hubClient.UnsubscribeFromCarControlLogsAsync(evt.EventId, carNumber);
         }
         catch { }
