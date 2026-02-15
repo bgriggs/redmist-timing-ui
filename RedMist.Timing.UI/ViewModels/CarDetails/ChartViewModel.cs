@@ -20,9 +20,10 @@ public partial class ChartViewModel : ObservableObject
 {
     private static readonly double BarWidth = 13;
     private readonly SortedDictionary<int, LapViewModel> laps = [];
+    private int lastSeriesValueCount;
 
-    // Putting chart in here to be able to manage the cleanup and prevent exception when it has no axes.
-    public CartesianChart Chart => new()
+    private CartesianChart? chart;
+    public CartesianChart Chart => chart ??= new()
     {
         Padding = new Thickness(0),
         MinWidth = 90,
@@ -223,13 +224,10 @@ public partial class ChartViewModel : ObservableObject
         // Fill in missing laps
         if (laps.Count > 0)
         {
-            var maxLap = laps.Keys.Max();
+            var maxLap = laps.Keys.Last();
             for (int i = 1; i <= maxLap; i++)
             {
-                if (!laps.ContainsKey(i))
-                {
-                    laps[i] = new LapViewModel(new CarPosition { LastLapCompleted = i });
-                }
+                laps.TryAdd(i, new LapViewModel(new CarPosition { LastLapCompleted = i }));
             }
         }
 
@@ -264,8 +262,9 @@ public partial class ChartViewModel : ObservableObject
             }
         }
 
-        if (Series[0].Values?.Cast<object>().Count() != laps.Count)
+        if (lastSeriesValueCount != laps.Count)
         {
+            lastSeriesValueCount = laps.Count;
             Series[0].Values = laps.Values;
             Series[1].Values = laps.Values;
             Series[2].Values = laps.Values;
