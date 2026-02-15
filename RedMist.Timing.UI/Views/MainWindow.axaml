@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:RedMist.Timing.UI.Views"
-        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
-		Width="520" Height="600"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="500"
+		Width="500" Height="600"
         x:Class="RedMist.Timing.UI.Views.MainWindow"
         Icon="/Assets/redmist.ico"
         Title="Red Mist Timing">

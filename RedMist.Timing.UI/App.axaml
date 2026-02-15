@@ -145,6 +145,12 @@
 					<SolidColorBrush x:Key="ChartOverallPositionBrush">#FF9966</SolidColorBrush>
 					<SolidColorBrush x:Key="ChartClassPositionBrush">#4A9DFF</SolidColorBrush>
 
+					<!-- Lap Progress Bar -->
+					<SolidColorBrush x:Key="LapProgressTrackBrush">#E5E7EB</SolidColorBrush>
+					<SolidColorBrush x:Key="LapProgressNormalBrush">#3B82F6</SolidColorBrush>
+					<SolidColorBrush x:Key="LapProgressOverrunBrush">#DC2626</SolidColorBrush>
+					<SolidColorBrush x:Key="LapProgressMarkerBrush">#6B7280</SolidColorBrush>
+
 					<!--Update Notifications-->
 					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#FFF4CE</SolidColorBrush>
 					<SolidColorBrush x:Key="OptionalUpdateBorderBrush">#F0AD4E</SolidColorBrush>
@@ -264,6 +270,12 @@
 					<!-- Chart Colors -->
 					<SolidColorBrush x:Key="ChartOverallPositionBrush">#FF9966</SolidColorBrush>
 					<SolidColorBrush x:Key="ChartClassPositionBrush">#4A9DFF</SolidColorBrush>
+
+					<!-- Lap Progress Bar -->
+					<SolidColorBrush x:Key="LapProgressTrackBrush">#374151</SolidColorBrush>
+					<SolidColorBrush x:Key="LapProgressNormalBrush">#60A5FA</SolidColorBrush>
+					<SolidColorBrush x:Key="LapProgressOverrunBrush">#F87171</SolidColorBrush>
+					<SolidColorBrush x:Key="LapProgressMarkerBrush">#9CA3AF</SolidColorBrush>
 
 					<!--Update Notifications-->
 					<SolidColorBrush x:Key="OptionalUpdateBackgroundBrush">#3d3418</SolidColorBrush>

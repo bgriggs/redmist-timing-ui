@@ -413,7 +413,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             if (message.Value.TimeToGo != null)
                 TimeToGo = message.Value.TimeToGo;
             if (message.Value.RunningRaceTime != null)
+            {
                 RaceTime = message.Value.RunningRaceTime;
+                Dispatcher.UIThread.Post(UpdateProjectedLapTimeProgression, DispatcherPriority.Background);
+            }
 
             if (message.Value.LocalTimeOfDay != null &&
                 DateTime.TryParseExact(message.Value.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var tod))
@@ -614,6 +617,15 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
+    private void UpdateProjectedLapTimeProgression()
+    {
+        var raceTime = ParseRMTime(RaceTime);
+        foreach (var carVm in carCache.Items)
+        {
+            carVm.UpdateProjectedLapTimeProgression(raceTime);
+        }
+    }
+
     private void UpdatePositionsByFastestTime()
     {
         // Sort the cars by fastest time
@@ -660,6 +672,15 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             LocalTime = string.Empty;
             TotalLaps = string.Empty;
         }
+    }
+
+    public static TimeSpan ParseRMTime(string time)
+    {
+        if (TimeSpan.TryParseExact(time, @"hh\:mm\:ss\.fff", null, TimeSpanStyles.None, out var result))
+            return result;
+        if (TimeSpan.TryParseExact(time, @"hh\:mm\:ss", null, TimeSpanStyles.None, out result))
+            return result;
+        return TimeSpan.Zero;
     }
 
     #region Consistency Check

@@ -187,6 +187,26 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private PitStates pitState;
     [ObservableProperty]
     private Size pageSize;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LapProgressNormalFraction))]
+    [NotifyPropertyChangedFor(nameof(LapProgressOverrunFraction))]
+    [NotifyPropertyChangedFor(nameof(IsLapProgressOverrun))]
+    private double projectedLapTimePercent;
+
+    /// <summary>
+    /// Fraction of total bar width (1.3) representing the normal portion (0 to 1.0).
+    /// </summary>
+    public double LapProgressNormalFraction => Math.Min(Math.Max(ProjectedLapTimePercent, 0), 1.0) / 1.3;
+
+    /// <summary>
+    /// Fraction of total bar width (1.3) representing the overrun portion (past 1.0).
+    /// </summary>
+    public double LapProgressOverrunFraction => Math.Max(0, Math.Min(ProjectedLapTimePercent, 1.3) - 1.0) / 1.3;
+
+    /// <summary>
+    /// Whether the projected lap time has exceeded the expected lap time.
+    /// </summary>
+    public bool IsLapProgressOverrun => ProjectedLapTimePercent > 1.0;
 
     #endregion
 
@@ -635,6 +655,50 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             OnPropertyChanged(nameof(SortablePosition));
             OnPropertyChanged(nameof(Position));
         }
+    }
+
+    public void UpdateProjectedLapTimeProgression(TimeSpan raceTime)
+    {
+        if (LastCarPosition == null || LastCarPosition.LastLapCompleted <= 0 || string.IsNullOrEmpty(LastCarPosition.TotalTime))
+        {
+            ProjectedLapTimePercent = 0;
+            return;
+        }
+
+        double projectedMs = LastCarPosition.ProjectedLapTimeMs;
+
+        // Fill missing projected time from LastLapTime or BestTime
+        if (projectedMs <= 0)
+        {
+            projectedMs = ParseTimeToMs(LastCarPosition.LastLapTime);
+            if (projectedMs <= 0)
+            {
+                projectedMs = ParseTimeToMs(LastCarPosition.BestTime);
+                if (projectedMs > 0)
+                {
+                    // Add 5% buffer to best time for projection if no last lap time
+                    projectedMs *= 1.05;
+                }
+            }
+            if (projectedMs <= 0)
+            {
+                ProjectedLapTimePercent = 0;
+                return;
+            }
+        }
+
+        var lapStart = LiveTimingViewModel.ParseRMTime(LastCarPosition.TotalTime);
+        var projectedEndTime = lapStart.Add(TimeSpan.FromMilliseconds(projectedMs));
+        var msToGo = projectedEndTime.TotalMilliseconds - raceTime.TotalMilliseconds;
+        var percent = 1 - (msToGo / projectedMs);
+        ProjectedLapTimePercent = Math.Clamp(percent, 0, 1.3);
+    }
+
+    private static double ParseTimeToMs(string? time)
+    {
+        if (TimeSpan.TryParseExact(time, "hh\\:mm\\:ss\\.fff", CultureInfo.InvariantCulture, out var ts))
+            return ts.TotalMilliseconds;
+        return 0;
     }
 
     /// <summary>

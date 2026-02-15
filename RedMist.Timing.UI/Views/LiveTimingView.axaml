@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
 			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -20,7 +20,7 @@
 	<UserControl.Resources>
 		<!--Car Row Template-->
 		<DataTemplate x:Key="carTemplate" DataType="model:CarViewModel">
-			<Grid ColumnDefinitions="Auto,*">
+			<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
 				<!--Row update flash animation-->
 				<Grid.Transitions>
 					<Transitions>
@@ -57,15 +57,15 @@
 				</Grid>
 				<Grid RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,1" Grid.Column="1">
 					<c:AdaptiveCarInfoPanel ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
-							 PageSize="{Binding PageSize}"
-							 NumberIndex="0"
-							 NameIndex="1"
-							 ClassIndex="2"
-							 InClassPosGainedIndex="3"
-							 OverallPosGainedIndex="4"
-							 InClassFastestAveragePaceIndex="5"
-							 InCarVideoIndex="6"
-							 PitStateIndex="7">
+											PageSize="{Binding PageSize}"
+											NumberIndex="0"
+											NameIndex="1"
+											ClassIndex="2"
+											InClassPosGainedIndex="3"
+											OverallPosGainedIndex="4"
+											InClassFastestAveragePaceIndex="5"
+											InCarVideoIndex="6"
+											PitStateIndex="7">
 						<TextBlock Text="{Binding Number, StringFormat='#{0}'}" Classes="carnum" VerticalAlignment="Center"/>
 						<TextBlock Text="{Binding Name}" Grid.Column="1" Margin="2,0,1,0" Classes="lg" TextTrimming="CharacterEllipsis"/>
 						<Border Grid.Column="2" Margin="1" CornerRadius="4" Background="{Binding ClassColor}">
@@ -142,6 +142,65 @@
 						</StackPanel>
 					</Grid>
 				</Grid>
+
+				<!--Lap projection progress bar Row 1-->
+				<Grid Grid.Row="1" Grid.ColumnSpan="2" Height="1.2" ClipToBounds="True" Margin="0,1,0,0">
+					<!--Track background-->
+					<Border Background="{DynamicResource LapProgressTrackBrush}" CornerRadius="0"/>
+
+					<!--Normal progress fill (0 to 1.0)-->
+					<Border Background="{DynamicResource LapProgressNormalBrush}" CornerRadius="0"
+							HorizontalAlignment="Stretch" RenderTransformOrigin="0%,50%">
+						<Border.Transitions>
+							<Transitions>
+								<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.6" Easing="CubicEaseOut"/>
+							</Transitions>
+						</Border.Transitions>
+						<Border.RenderTransform>
+							<ScaleTransform ScaleX="{Binding LapProgressNormalFraction}"/>
+						</Border.RenderTransform>
+					</Border>
+
+					<!--Overrun progress fill (past 1.0), positioned after the normal portion-->
+					<Border Background="{DynamicResource LapProgressOverrunBrush}" CornerRadius="0"
+							HorizontalAlignment="Stretch" RenderTransformOrigin="0%,50%"
+							IsVisible="{Binding IsLapProgressOverrun}">
+						<Border.Transitions>
+							<Transitions>
+								<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.6" Easing="CubicEaseOut"/>
+							</Transitions>
+						</Border.Transitions>
+						<Border.RenderTransform>
+							<TransformGroup>
+								<ScaleTransform ScaleX="{Binding LapProgressOverrunFraction}"/>
+								<TranslateTransform>
+									<TranslateTransform.X>
+										<MultiBinding Converter="{x:Static conv:LapProgressMarkerPositionConverter.Instance}">
+											<Binding Path="LapProgressNormalFraction"/>
+											<Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=Grid}"/>
+										</MultiBinding>
+									</TranslateTransform.X>
+								</TranslateTransform>
+							</TransformGroup>
+						</Border.RenderTransform>
+					</Border>
+
+					<!--Marker at the 1.0 threshold (76.9% of the bar)-->
+					<Border Width="1" Height="3" Background="{DynamicResource LapProgressMarkerBrush}"
+							HorizontalAlignment="Left" VerticalAlignment="Center">
+						<Border.RenderTransform>
+							<TranslateTransform>
+								<TranslateTransform.X>
+									<MultiBinding Converter="{x:Static conv:LapProgressMarkerPositionConverter.Instance}">
+										<Binding Source="{x:Static conv:LapProgressMarkerPositionConverter.ThresholdFraction}"/>
+										<Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=Grid}"/>
+									</MultiBinding>
+								</TranslateTransform.X>
+							</TranslateTransform>
+						</Border.RenderTransform>
+					</Border>
+				</Grid>
+
 			</Grid>
 		</DataTemplate>
 
