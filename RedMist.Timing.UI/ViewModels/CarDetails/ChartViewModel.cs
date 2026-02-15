@@ -106,7 +106,6 @@ public partial class ChartViewModel : ObservableObject
         {
             MinLimit = 1,
             MinStep = 1,
-            ForceStepToMin = true,
             Position = AxisPosition.End
         },
     ];
