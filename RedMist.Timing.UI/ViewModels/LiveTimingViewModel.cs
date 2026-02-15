@@ -53,6 +53,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private readonly SessionState lastSessionState = new();
     private Dictionary<string, string> classColors = [];
     private Dictionary<string, string> classOrder = [];
+    private Dictionary<string, SolidColorBrush> classColorBrushCache = [];
     private readonly InMemoryLogProvider? logProvider;
     private readonly OrganizationIconCacheService iconCacheService;
     private readonly ILoggerFactory loggerFactory;
@@ -460,8 +461,13 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             // Update event entries
             if (message.Value.EventEntries != null)
             {
-                classColors = message.Value.ClassColors ?? lastSessionState.ClassColors;
+                var newClassColors = message.Value.ClassColors ?? lastSessionState.ClassColors;
                 classOrder = message.Value.ClassOrder ?? lastSessionState.ClassOrder;
+                if (newClassColors != classColors)
+                {
+                    classColors = newClassColors;
+                    classColorBrushCache = [];
+                }
                 ApplyEntries(message.Value.EventEntries, isDeltaUpdate: false);
             }
 
@@ -558,9 +564,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (!isDeltaUpdate)
         {
             // Remove cars not in entries
+            var entryNumbers = new HashSet<string>(entries.Select(e => e.Number));
             foreach (var num in carCache.Keys)
             {
-                if (!entries.Any(e => e.Number == num))
+                if (!entryNumbers.Contains(num))
                 {
                     carCache.RemoveKey(num);
                 }
@@ -572,20 +579,26 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         if (string.IsNullOrEmpty(@class))
         {
-            // No class specified
             return new SolidColorBrush(Colors.Transparent);
+        }
+
+        if (classColorBrushCache.TryGetValue(@class, out var cached))
+        {
+            return cached;
+        }
+
+        SolidColorBrush brush;
+        if (classColors.TryGetValue(@class, out var classColorHex))
+        {
+            brush = Color.TryParse(classColorHex, out Color color) ? new SolidColorBrush(color) : new SolidColorBrush(Colors.Gray);
         }
         else
         {
-            if (classColors.TryGetValue(@class, out var classColorHex))
-            {
-                return Color.TryParse(classColorHex, out Color color) ? new SolidColorBrush(color) : new SolidColorBrush(Colors.Gray);
-            }
-            else // No class color specified
-            {
-                return new SolidColorBrush(Colors.Gray);
-            }
+            brush = new SolidColorBrush(Colors.Gray);
         }
+
+        classColorBrushCache[@class] = brush;
+        return brush;
     }
 
     /// <summary>
@@ -608,17 +621,19 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     private void UpdateCars(CarPositionPatch[] carUpdates)
     {
+        bool anyBestLapTimeChanged = false;
+        bool isFastestSort = CurrentSortMode == SortMode.Fastest;
+
         foreach (var carUpdate in carUpdates)
         {
             if (carUpdate.Number == null)
                 continue;
 
-            bool bestLapTimeChanged = false;
             var carVm = carCache.Lookup(carUpdate.Number);
             if (carVm.HasValue)
             {
                 int lastBestLapTime = 0;
-                if (CurrentSortMode == SortMode.Fastest)
+                if (isFastestSort)
                 {
                     lastBestLapTime = carVm.Value.BestTimeMs;
                 }
@@ -626,21 +641,21 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 // Update the car data
                 carVm.Value.ApplyPatch(carUpdate);
 
-                if (!bestLapTimeChanged && CurrentSortMode == SortMode.Fastest && lastBestLapTime != carVm.Value?.BestTimeMs)
+                if (!anyBestLapTimeChanged && isFastestSort && lastBestLapTime != carVm.Value.BestTimeMs)
                 {
-                    bestLapTimeChanged = true;
+                    anyBestLapTimeChanged = true;
                 }
             }
+        }
 
-            if (bestLapTimeChanged)
-            {
-                UpdatePositionsByFastestTime();
-            }
-            else if (CurrentSortMode == SortMode.Position)
-            {
-                // Reset position override
-                ResetPositionOverrides();
-            }
+        if (anyBestLapTimeChanged)
+        {
+            UpdatePositionsByFastestTime();
+        }
+        else if (!isFastestSort)
+        {
+            // Reset position override
+            ResetPositionOverrides();
         }
     }
 
@@ -658,8 +673,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         // Sort the cars by fastest time
         if (CurrentGrouping == GroupMode.Overall)
         {
-            var sortedCars = carCache.Items.OrderBy(c => c.BestTimeMs).ToList();
-            for (int i = 0; i < sortedCars.Count; i++)
+            var sortedCars = carCache.Items.OrderBy(c => c.BestTimeMs).ToArray();
+            for (int i = 0; i < sortedCars.Length; i++)
             {
                 sortedCars[i].OverridePosition(i + 1);
             }
@@ -667,11 +682,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         else if (CurrentGrouping == GroupMode.Class)
         {
             // Sort the cars by class and then by fastest time
-            var sortedCars = carCache.Items.GroupBy(c => c.Class);
-            foreach (var group in sortedCars)
+            foreach (var group in carCache.Items.GroupBy(c => c.Class))
             {
-                var sortedGroup = group.OrderBy(c => c.BestTimeMs).ToList();
-                for (int i = 0; i < sortedGroup.Count; i++)
+                var sortedGroup = group.OrderBy(c => c.BestTimeMs).ToArray();
+                for (int i = 0; i < sortedGroup.Length; i++)
                 {
                     sortedGroup[i].OverridePosition(i + 1);
                 }
@@ -681,7 +695,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     private void ResetPositionOverrides()
     {
-        carCache.Items.ToList().ForEach(car => car.OverridePosition(null));
+        foreach (var car in carCache.Items)
+        {
+            car.OverridePosition(null);
+        }
     }
 
     private void ResetEvent()
