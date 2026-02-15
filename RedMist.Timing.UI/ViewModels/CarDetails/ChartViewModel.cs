@@ -104,7 +104,9 @@ public partial class ChartViewModel : ObservableObject
         new Axis
         {
             MinLimit = 1,
-            Position = LiveChartsCore.Measure.AxisPosition.End
+            MinStep = 1,
+            ForceStepToMin = true,
+            Position = AxisPosition.End
         },
     ];
 
