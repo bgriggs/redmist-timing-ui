@@ -19,6 +19,7 @@ namespace RedMist.Timing.UI.ViewModels.CarDetails;
 public partial class ChartViewModel : ObservableObject
 {
     private static readonly double BarWidth = 13;
+    private const int VisibleLapWindow = 23;
     private readonly SortedDictionary<int, LapViewModel> laps = [];
     private int lastSeriesValueCount;
 
@@ -122,7 +123,7 @@ public partial class ChartViewModel : ObservableObject
             TextSize = 12,
             SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)),
             MinLimit = 0,
-            MaxLimit = 23,
+            MaxLimit = VisibleLapWindow,
         }
     ];
 
@@ -271,6 +272,14 @@ public partial class ChartViewModel : ObservableObject
             Series[1].Values = laps.Values;
             Series[2].Values = laps.Values;
             Series[3].Values = pitLaps;
+
+            // Scroll the visible area to keep the latest lap in view
+            var maxLap = laps.Keys.Last();
+            if (maxLap > VisibleLapWindow)
+            {
+                XAxes[0].MinLimit = maxLap - VisibleLapWindow;
+                XAxes[0].MaxLimit = maxLap + 1;
+            }
         }
     }
 }
