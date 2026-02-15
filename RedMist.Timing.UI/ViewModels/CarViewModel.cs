@@ -51,30 +51,12 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [ObservableProperty]
     private string number = string.Empty;
 
-    public string Name
-    {
-        get
-        {
-            var upper = OriginalName.ToUpperInvariant();
-            //var size = viewSizeService.CurrentSize;
-            //if (size.Width < 400)
-            //{
-            //    return upper[..Math.Min(upper.Length, 25)];
-            //}
-            //else if (size.Width < 525)
-            //{
-            //    return upper[..Math.Min(upper.Length, 30)];
-            //}
-            //else if (size.Width < 600)
-            //{
-            //    return upper[..Math.Min(upper.Length, 35)];
-            //}
-            return upper;
-        }
-    }
+    private string cachedName = string.Empty;
+    public string Name => cachedName;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Name))]
     private string originalName = string.Empty;
+    partial void OnOriginalNameChanged(string value) => cachedName = value.ToUpperInvariant();
     [ObservableProperty]
     private string team = string.Empty;
     [ObservableProperty]
@@ -84,31 +66,25 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BestTimeShort))]
     private string? bestTime;
-    public string BestTimeShort
+    private int cachedBestTimeMs = int.MaxValue;
+    private string cachedBestTimeShort = string.Empty;
+    partial void OnBestTimeChanged(string? value)
     {
-        get
+        if (TimeSpan.TryParseExact(value, "hh\\:mm\\:ss\\.fff", CultureInfo.InvariantCulture, out TimeSpan ts))
         {
-            if (DateTime.TryParseExact(BestTime, "hh:mm:ss.fff", null, DateTimeStyles.None, out DateTime time))
-            {
-                return time.ToString("m:ss.fff");
-            }
-            return string.Empty;
+            var ms = (int)ts.TotalMilliseconds;
+            cachedBestTimeMs = ms > 0 ? ms : int.MaxValue;
         }
-    }
-    public int BestTimeMs
-    {
-        get
+        else
         {
-            if (TimeSpan.TryParseExact(BestTime, "hh\\:mm\\:ss\\.fff", CultureInfo.InvariantCulture, out TimeSpan time))
-            {
-                var ms = (int)time.TotalMilliseconds;
-                if (ms <= 0)
-                    return int.MaxValue;
-                return ms;
-            }
-            return int.MaxValue;
+            cachedBestTimeMs = int.MaxValue;
         }
+        cachedBestTimeShort = DateTime.TryParseExact(value, "hh:mm:ss.fff", null, DateTimeStyles.None, out DateTime dt)
+            ? dt.ToString("m:ss.fff")
+            : string.Empty;
     }
+    public string BestTimeShort => cachedBestTimeShort;
+    public int BestTimeMs => cachedBestTimeMs;
 
     [ObservableProperty]
     private int bestLap;
@@ -368,6 +344,13 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     }
 
     private readonly Debouncer viewSizeDebouncer = new(TimeSpan.FromMilliseconds(50));
+    private IDisposable? flashStartTimer;
+    private IDisposable? flashEndTimer;
+    private IDisposable? forcePropertyTimer;
+    private static readonly object s_imageLock = new();
+    private static IImage? s_sentinelImage;
+    private static IImage? s_mrlImage;
+    private static IImage? s_defaultImage;
 
     #region Car Details
 
@@ -547,8 +530,10 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         // Flash the row background if the lap has changed
         if (prevLap != LastLap && RowBackgroundKey != CARROW_UPDATED_BACKGROUNDBRUSH)
         {
-            Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_UPDATED_BACKGROUNDBRUSH));
-            Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH));
+            flashStartTimer?.Dispose();
+            flashEndTimer?.Dispose();
+            flashStartTimer = Observable.Timer(TimeSpan.FromMilliseconds(80)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_UPDATED_BACKGROUNDBRUSH));
+            flashEndTimer = Observable.Timer(TimeSpan.FromSeconds(0.9)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH));
         }
 
         if (LastLap > 0)
@@ -579,7 +564,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         // Force update of the position as these are getting dropped at times such as 
         // changing from overall to class mode. Simply firing a property changed does not work.
         ForcePropertyChange();
-        Observable.Timer(TimeSpan.FromMilliseconds(500)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => ForcePropertyChange()));
+        forcePropertyTimer?.Dispose();
+        forcePropertyTimer = Observable.Timer(TimeSpan.FromMilliseconds(500)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => ForcePropertyChange()));
 
         if (LastCarPosition != null)
         {
@@ -724,21 +710,42 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     {
         if (type == VideoSystemType.Sentinel)
         {
-            if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, SENTINEL_IMAGE) is string image)
+            if (s_sentinelImage != null)
+                return s_sentinelImage;
+            lock (s_imageLock)
             {
-                return new Bitmap(AssetLoader.Open(new Uri(image)));
+                if (s_sentinelImage != null)
+                    return s_sentinelImage;
+                if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, SENTINEL_IMAGE) is string image)
+                {
+                    s_sentinelImage = new Bitmap(AssetLoader.Open(new Uri(image)));
+                    return s_sentinelImage;
+                }
             }
         }
         else if (type == VideoSystemType.MyRacesLive)
         {
-            //return new SvgImage { Source = SvgSource.Load("avares://RedMist.Timing.UI/Assets/MRL_vectorial.svg", null) };
-            if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, MRL_IMAGE) is string image)
+            if (s_mrlImage != null)
+                return s_mrlImage;
+            lock (s_imageLock)
             {
-                return new Bitmap(AssetLoader.Open(new Uri(image)));
+                if (s_mrlImage != null)
+                    return s_mrlImage;
+                if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, MRL_IMAGE) is string image)
+                {
+                    s_mrlImage = new Bitmap(AssetLoader.Open(new Uri(image)));
+                    return s_mrlImage;
+                }
             }
         }
 
-        return new Bitmap(AssetLoader.Open(new Uri("avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png")));
+        if (s_defaultImage != null)
+            return s_defaultImage;
+        lock (s_imageLock)
+        {
+            s_defaultImage ??= new Bitmap(AssetLoader.Open(new Uri("avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png")));
+            return s_defaultImage;
+        }
     }
 
     [RelayCommand]
