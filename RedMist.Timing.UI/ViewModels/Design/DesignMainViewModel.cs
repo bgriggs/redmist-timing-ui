@@ -10,7 +10,7 @@ public class DesignMainViewModel : MainViewModel
             new DesignLiveTimingViewModel(), new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), 
             new DebugLoggerFactory(), new Services.ViewSizeService(), new EventContext(),
             new DesignPlatformDetectionService(), new DesignVersionCheckService(), new DesignHttpClientFactory(), 
-            new DesignConfiguration(), new DesignOrganizationIconCacheService(), new MockPreferencesService())
+            new DesignConfiguration(), new DesignOrganizationIconCacheService(), new MockPreferencesService(), new NoOpScreenWakeService())
     {
         IsContentVisible = true;
     }

@@ -29,6 +29,12 @@ public partial class App : Application
     private CancellationTokenSource? _cancellationTokenSource;
     private ILogger? _logger;
 
+    /// <summary>
+    /// Factory for creating platform-specific screen wake service.
+    /// Set by platform projects (Android/iOS) before app initialization.
+    /// </summary>
+    public static Func<IScreenWakeService>? ScreenWakeServiceFactory { get; set; }
+
 
     public override void Initialize()
     {
@@ -91,6 +97,16 @@ public partial class App : Application
 
         // Register preferences service
         services.AddSingleton<IPreferencesService, PreferencesService>();
+
+        // Register screen wake service (platform-specific if available, otherwise no-op)
+        if (ScreenWakeServiceFactory is not null)
+        {
+            services.AddSingleton(ScreenWakeServiceFactory());
+        }
+        else
+        {
+            services.AddSingleton<IScreenWakeService, NoOpScreenWakeService>();
+        }
 
         // Register version check services
         services.AddSingleton<IPlatformDetectionService, PlatformDetectionService>();

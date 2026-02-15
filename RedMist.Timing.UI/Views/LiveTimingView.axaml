@@ -78,7 +78,7 @@
 								  IsVisible="{Binding IsClassMostPositionsGained}" ToolTip.Tip="Most in-class positions gained"/>
 						<PathIcon Grid.Column="4" Height="12" Width="12" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource doubleLightning}"
 								  IsVisible="{Binding IsOverallMostPositionsGained}" ToolTip.Tip="Most positions gained"/>
-						<PathIcon Grid.Column="5" Height="17" Width="18" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource fastpace}"
+						<PathIcon Grid.Column="5" Height="20" Width="20" Foreground="{DynamicResource carRowLapTextForegroundOverallBestBrush}" Data="{StaticResource fastpace}"
 								  IsVisible="{Binding InClassFastestAveragePace}" ToolTip.Tip="Fastest pace in-class"/>
 						<Button Grid.Column="6" Classes="icon" IsVisible="{Binding IsCarStreaming}" Command="{Binding LaunchInCarVideo}" ToolTip.Tip="Open in-car video" Padding="0" Height="13" Margin="2,0,0,0">
 							<Image Source="{Binding CarStreamImage}" Cursor="Hand"/>

@@ -30,7 +30,7 @@
                                FontSize="16" 
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource TextTitleForegroundBrush}"/>
-                    <TextBlock Text="Choose your preferred theme for the application" 
+                    <TextBlock Text="Choose your preferred theme for the app" 
                                FontSize="12"
                                Foreground="{DynamicResource TextMedForegroundBrush}"
                                TextWrapping="Wrap"
@@ -39,6 +39,23 @@
                               SelectedItem="{Binding SelectedTheme}"
                               MinWidth="200"
                               HorizontalAlignment="Left"/>
+                </StackPanel>
+
+                <!-- Keep Screen On (mobile only) -->
+                <StackPanel Spacing="8" IsVisible="{Binding IsMobileDevice}">
+                    <TextBlock Text="Keep Screen On" 
+                               FontSize="16" 
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextTitleForegroundBrush}"/>
+                    <TextBlock Text="Prevent the screen from turning off while the app is in use" 
+                               FontSize="12"
+                               Foreground="{DynamicResource TextMedForegroundBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,8"/>
+                    <ToggleSwitch IsChecked="{Binding KeepScreenOn}"
+                                  OnContent="On"
+                                  OffContent="Off"
+                                  HorizontalAlignment="Left"/>
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>

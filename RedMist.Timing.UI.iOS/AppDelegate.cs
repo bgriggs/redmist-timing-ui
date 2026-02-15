@@ -12,6 +12,7 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
 {
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
+        App.ScreenWakeServiceFactory = () => new iOSScreenWakeService();
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }

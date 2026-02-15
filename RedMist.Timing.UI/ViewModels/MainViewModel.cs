@@ -55,6 +55,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private readonly IConfiguration configuration;
     private readonly OrganizationIconCacheService iconCacheService;
     private readonly IPreferencesService preferencesService;
+    private readonly IScreenWakeService screenWakeService;
     private readonly ILogger Logger;
     [ObservableProperty]
     private bool isContentVisible = false;
@@ -169,7 +170,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
         EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext,
-        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, IPreferencesService preferencesService)
+        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, IPreferencesService preferencesService, IScreenWakeService screenWakeService)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -184,6 +185,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.configuration = configuration;
         this.iconCacheService = iconCacheService;
         this.preferencesService = preferencesService;
+        this.screenWakeService = screenWakeService;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -301,7 +303,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService);
                     ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService);
                     FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService);
-                    SettingsViewModel = new SettingsViewModel(preferencesService);
+                    var isMobile = platformDetectionService.GetCurrentPlatform() is AppPlatform.Android or AppPlatform.iOS;
+                    SettingsViewModel = new SettingsViewModel(preferencesService, screenWakeService, isMobile);
                     IsControlLogAvailable = eventModel.HasControlLog;
 
                     IsTimingTabStripVisible = true;

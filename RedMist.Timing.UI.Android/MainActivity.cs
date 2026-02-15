@@ -20,6 +20,7 @@ public class MainActivity : AvaloniaMainActivity<App>
 
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
+        App.ScreenWakeServiceFactory = () => new AndroidScreenWakeService(this);
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }
