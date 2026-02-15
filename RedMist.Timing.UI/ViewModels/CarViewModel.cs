@@ -22,6 +22,7 @@ using System;
 using System.Globalization;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Threading;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -324,6 +325,13 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [ObservableProperty]
     private FontWeight lapDataFontWeight = FontWeight.Normal;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BestLapDataColor))]
+    private string bestLapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
+    public IBrush BestLapDataColor => (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, BestLapDataBrushKey) ?? Brushes.Black;
+    [ObservableProperty]
+    private FontWeight bestLapDataFontWeight = FontWeight.Normal;
+
     private GroupMode currentGroupMode = GroupMode.Overall;
     public GroupMode CurrentGroupMode
     {
@@ -347,7 +355,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private IDisposable? flashStartTimer;
     private IDisposable? flashEndTimer;
     private IDisposable? forcePropertyTimer;
-    private static readonly object s_imageLock = new();
+    private static readonly Lock s_imageLock = new();
     private static IImage? s_sentinelImage;
     private static IImage? s_mrlImage;
     private static IImage? s_defaultImage;
@@ -538,18 +546,30 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
         if (LastLap > 0)
         {
-            // Check for best lap overall/in-class and car's fastest lap
+            // Best time styling (overall/class best, then car's personal best)
             if (IsBestTime)
             {
-                LapDataBrushKey = CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH;
-                LapDataFontWeight = FontWeight.Bold;
+                BestLapDataBrushKey = CARROWLAPTEXTFOREGROUND_OVERALLBEST_BRUSH;
+                BestLapDataFontWeight = FontWeight.Bold;
             }
             else if (BestLap == LastLap)
+            {
+                BestLapDataBrushKey = CARROWLAPTEXTFOREGROUND_BEST_BRUSH;
+                BestLapDataFontWeight = FontWeight.Bold;
+            }
+            else
+            {
+                BestLapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
+                BestLapDataFontWeight = FontWeight.Normal;
+            }
+
+            // Last lap styling (car's personal best)
+            if (BestLap == LastLap)
             {
                 LapDataBrushKey = CARROWLAPTEXTFOREGROUND_BEST_BRUSH;
                 LapDataFontWeight = FontWeight.Bold;
             }
-            else // Reset to normal
+            else
             {
                 LapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
                 LapDataFontWeight = FontWeight.Normal;
@@ -559,6 +579,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         {
             LapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
             LapDataFontWeight = FontWeight.Normal;
+            BestLapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
+            BestLapDataFontWeight = FontWeight.Normal;
         }
 
         // Force update of the position as these are getting dropped at times such as 

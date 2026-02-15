@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="430" d:DesignHeight="450"
 			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -136,9 +136,9 @@
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Grid.Column="5" Margin="0,0,6,0">
-							<TextBlock Text="{Binding BestLap}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
-							<TextBlock Text=" / " Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
-							<TextBlock Text="{Binding BestTimeShort}" Classes="sm" Foreground="{Binding LapDataColor}" FontWeight="{Binding LapDataFontWeight}"/>
+							<TextBlock Text="{Binding BestLap}" Classes="sm" Foreground="{Binding BestLapDataColor}" FontWeight="{Binding BestLapDataFontWeight}"/>
+							<TextBlock Text=" / " Classes="sm" Foreground="{Binding BestLapDataColor}" FontWeight="{Binding BestLapDataFontWeight}"/>
+							<TextBlock Text="{Binding BestTimeShort}" Classes="sm" Foreground="{Binding BestLapDataColor}" FontWeight="{Binding BestLapDataFontWeight}"/>
 						</StackPanel>
 					</Grid>
 				</Grid>
