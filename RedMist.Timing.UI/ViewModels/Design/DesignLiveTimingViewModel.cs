@@ -30,7 +30,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
         carCache.AddOrUpdate(new CarViewModel(evt, ec, hc, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory)
         {
             Number = "34",
-            OriginalName = "Team Awesome 1",
+            OriginalName = "Team Short",
             OverallPosition = 13,
             LastLap = 33,
             LastTime = "00:02:46.872",
@@ -40,6 +40,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallDifference = "00:12.872",
             Class = "GP3",
             PitState = PitStates.ExitedPit,
+            HasDriverName = true,
             DriverName = "Jane Smith",
             InClassFastestAveragePace = true,
             ProjectedLapTimePercent = 0.65,
@@ -58,6 +59,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallDifference = "00:12.872",
             Class = "GP3",
             PitState = PitStates.InPit,
+            HasDriverName = true,
             DriverName = "John Doe",
         });
 
@@ -76,6 +78,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             PenaltyLaps = 2,
             ShowPenaltyColumn = true,
             Class = "GP3",
+            HasDriverName = true,
             DriverName = "Alex Johnson",
             ProjectedLapTimePercent = 1.15,
         });

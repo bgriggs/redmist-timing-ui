@@ -88,6 +88,15 @@ public class AdaptiveCarInfoPanel : Grid
         set => SetValue(PitStateIndexProperty, value);
     }
 
+    public static readonly StyledProperty<int> DriverNameIndexProperty =
+        AvaloniaProperty.Register<AdaptiveCarInfoPanel, int>(nameof(DriverNameIndex), defaultValue: -1);
+
+    public int DriverNameIndex
+    {
+        get => GetValue(DriverNameIndexProperty);
+        set => SetValue(DriverNameIndexProperty, value);
+    }
+
     public static readonly StyledProperty<Size> PageSizeProperty =
         AvaloniaProperty.Register<AdaptiveCarInfoPanel, Size>(nameof(PageSize));
 
@@ -95,6 +104,15 @@ public class AdaptiveCarInfoPanel : Grid
     {
         get => GetValue(PageSizeProperty);
         set => SetValue(PageSizeProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> IsDriverNameInlineProperty =
+        AvaloniaProperty.Register<AdaptiveCarInfoPanel, bool>(nameof(IsDriverNameInline));
+
+    public bool IsDriverNameInline
+    {
+        get => GetValue(IsDriverNameInlineProperty);
+        set => SetValue(IsDriverNameInlineProperty, value);
     }
 
     private double? originalNameWidth;
@@ -113,7 +131,7 @@ public class AdaptiveCarInfoPanel : Grid
 
     protected virtual void OnPageSizeChanged()
     {
-        if (double.IsNaN(PageSize.Width) || double.IsInfinity(PageSize.Width))
+        if (double.IsNaN(PageSize.Width) || double.IsInfinity(PageSize.Width) || PageSize.Width <= 0)
             return;
 
         var nameChild = Children[NameIndex];
@@ -122,7 +140,9 @@ public class AdaptiveCarInfoPanel : Grid
         if (originalNameWidth == null && nameChild.DesiredSize.Width > 0)
             originalNameWidth = nameChild.DesiredSize.Width;
 
-        var nameWidth = GetVisibleWidth(nameChild);
+        // Cannot adjust layout until the name has been measured at least once
+        if (originalNameWidth == null)
+            return;
 
         double fixedWidth = GetVisibleWidth(Children[NumberIndex])
             + GetVisibleWidth(Children[ClassIndex])
@@ -132,11 +152,48 @@ public class AdaptiveCarInfoPanel : Grid
             + GetVisibleWidth(Children[InCarVideoIndex])
             + GetVisibleWidth(Children[PitStateIndex]);
 
-        double availableWidth = Math.Max(0, PageSize.Width - fixedWidth - WidthOffset);
+        // Check if driver name can fit inline without reducing the name field
+        bool canFitDriverInline = false;
+        if (DriverNameIndex >= 0 && DriverNameIndex < Children.Count)
+        {
+            var driverChild = Children[DriverNameIndex];
 
-        if (nameWidth > availableWidth)
+            // Only consider inline if the driver name has meaningful text
+            bool hasDriverText = driverChild is TextBlock tb && !string.IsNullOrWhiteSpace(tb.Text)
+                && tb.Text != "Driver: ";
+
+            if (hasDriverText)
+            {
+                // Temporarily make visible so we can measure its desired width
+                bool wasVisible = driverChild.IsVisible;
+                if (!wasVisible)
+                    driverChild.IsVisible = true;
+                driverChild.Measure(Size.Infinity);
+                double driverWidth = driverChild.DesiredSize.Width;
+                if (!wasVisible)
+                    driverChild.IsVisible = false;
+
+                double availableForNameAndDriver = Math.Max(0, PageSize.Width - fixedWidth - WidthOffset);
+                if (driverWidth > 0)
+                {
+                    canFitDriverInline = (originalNameWidth.Value + driverWidth) <= availableForNameAndDriver;
+                }
+            }
+
+            driverChild.IsVisible = canFitDriverInline;
+        }
+        IsDriverNameInline = canFitDriverInline;
+
+        // Recalculate available width for name, now accounting for the inline driver name if shown
+        double totalFixedWidth = fixedWidth;
+        if (canFitDriverInline && DriverNameIndex >= 0 && DriverNameIndex < Children.Count)
+            totalFixedWidth += GetVisibleWidth(Children[DriverNameIndex]);
+
+        double availableWidth = Math.Max(0, PageSize.Width - totalFixedWidth - WidthOffset);
+
+        if (GetVisibleWidth(nameChild) > availableWidth)
             nameChild.Width = availableWidth;
-        else if (originalNameWidth != null)
+        else
             nameChild.Width = originalNameWidth.Value;
     }
 
@@ -155,6 +212,18 @@ public class AdaptiveCarInfoPanel : Grid
         SubscribeToVisibility(InClassFastestAveragePaceIndex);
         SubscribeToVisibility(InCarVideoIndex);
         SubscribeToVisibility(PitStateIndex);
+
+        if (DriverNameIndex >= 0 && DriverNameIndex < Children.Count)
+        {
+            // Re-evaluate layout when driver name text changes (which affects DesiredSize)
+            if (Children[DriverNameIndex] is Avalonia.Controls.TextBlock driverTb)
+            {
+                subscriptions!.Add(
+                    driverTb.GetObservable(Avalonia.Controls.TextBlock.TextProperty)
+                        .Subscribe(_ => OnPageSizeChanged())
+                );
+            }
+        }
 
         subscriptions.Add(
             Observable.Timer(TimeSpan.FromMilliseconds(50))

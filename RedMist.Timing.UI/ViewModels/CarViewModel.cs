@@ -403,10 +403,20 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     #endregion
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDriverNameStandaloneVisible))]
     private bool hasDriverName;
 
     [ObservableProperty]
     private string driverName = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDriverNameStandaloneVisible))]
+    private bool isDriverNameInline;
+
+    /// <summary>
+    /// True when the driver name should be shown on its own row (has a driver name but it doesn't fit inline).
+    /// </summary>
+    public bool IsDriverNameStandaloneVisible => HasDriverName && !IsDriverNameInline;
 
 
     public CarViewModel(Event evt, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService, 
