@@ -435,11 +435,16 @@
 
 	</UserControl.Styles>
 
-	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+	<Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 		<!--Top-->
 		<Border Grid.Row="0" Background="{DynamicResource FlagOverlayBackgroundBrush}" Margin="4,5,4,0" CornerRadius="4" Padding="6,4">
 			<Grid ColumnDefinitions="Auto,*,Auto,Auto">
-				<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+				<StackPanel VerticalAlignment="Center">
+					<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+					<Button Classes="icon" Command="{Binding ToggleSearch}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,4,5,0" Padding="0" ToolTip.Tip="Search cars">
+						<PathIcon Height="12" Width="20" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource searchIcon}"/>
+					</Button>
+				</StackPanel>
 
 				<StackPanel Grid.Column="1">
 					<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
@@ -481,8 +486,16 @@
 			</Grid>
 		</Border>
 
+		<!--Search Box-->
+		<Border Grid.Row="1" Margin="4,3,4,0" Padding="4,1" IsVisible="{Binding IsSearchVisible}"
+				Background="{DynamicResource TimingTableBackgroundBrush}" BorderThickness="1"
+				BorderBrush="{DynamicResource BorderPrimaryBrush}" CornerRadius="4">
+			<TextBox Watermark="Search by car # or name (comma separated)" Text="{Binding SearchText, Mode=TwoWay}"
+					 FontSize="11" Padding="4,2" MinHeight="0" BorderThickness="0" Background="Transparent"/>
+		</Border>
+
 		<!--Table Header-->
-		<Border x:Name="tableHeader" Grid.Row="1" Background="{DynamicResource TimingTableHeaderBackgroundBrush}" Margin="3,6,3,0" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}">
+		<Border x:Name="tableHeader" Grid.Row="2" Background="{DynamicResource TimingTableHeaderBackgroundBrush}" Margin="3,3,3,0" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}">
 			<Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="0,2,0,0">
 				<TextBlock Text="" Grid.Column="0" Width="34"/>
 				<TextBlock Text="LAST LAP             GAP             TO P1" Width="244" Grid.Column="1" Classes="tableheader"/>
@@ -494,10 +507,10 @@
 			</Grid>
 		</Border>
 
-		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="2" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="3" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
 		<!--Car Table-->
-		<Border x:Name="tableBody" Grid.Row="3" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
+		<Border x:Name="tableBody" Grid.Row="4" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
 			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 				<Grid>
 					<!--Flat-->
@@ -527,7 +540,7 @@
 		</Border>
 
 		<!--Log Display-->
-		<Border Grid.Row="5" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3"
+		<Border Grid.Row="6" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3"
 				Background="{DynamicResource TimingTableBackgroundBrush}"
 				IsVisible="{Binding ShowLogDisplay}">
 			<Grid RowDefinitions="Auto,*">

@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -178,6 +179,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     [ObservableProperty]
     private bool showLogDisplay = false;
 
+    [ObservableProperty]
+    private bool isSearchVisible = false;
+
+    [ObservableProperty]
+    private string searchText = string.Empty;
+
+    private Func<CarViewModel, bool> searchFilter = _ => true;
+    private readonly BehaviorSubject<Func<CarViewModel, bool>> searchFilterSubject = new(_ => true);
+
+    private IDisposable? searchDebounce;
+
     private int logoClickCount = 0;
     private DateTime lastLogoClickTime = DateTime.MinValue;
 
@@ -204,6 +216,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
         // Flat
         var f = carCache.Connect()
+            .Filter(searchFilterSubject)
             .AutoRefresh(t => t.OverallPosition)
             .AutoRefresh(t => t.SortablePosition)
             .AutoRefresh(t => t.BestTime)
@@ -213,6 +226,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
         // Grouped by class
         carCache.Connect()
+            .Filter(searchFilterSubject)
             .GroupOnProperty(c => c.Class)
             .Transform(g => new GroupHeaderViewModel(g.Key, GetClassColor(g.Key), g.Cache), true)
             .SortAndBind(GroupedCars, Comparer<GroupHeaderViewModel>.Create((a, b) =>
@@ -861,6 +875,53 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
         var routerEvent = new RouterEvent { Path = BackRouterPath };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
+    }
+
+    public void ToggleSearch()
+    {
+        IsSearchVisible = !IsSearchVisible;
+        if (!IsSearchVisible)
+        {
+            SearchText = string.Empty;
+        }
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        searchDebounce?.Dispose();
+        searchDebounce = Observable.Timer(TimeSpan.FromMilliseconds(400))
+            .Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => ApplySearchFilter(value)));
+    }
+
+    private void ApplySearchFilter(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            searchFilter = _ => true;
+        }
+        else
+        {
+            var terms = text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            searchFilter = car =>
+            {
+                foreach (var term in terms)
+                {
+                    if (int.TryParse(term, out _))
+                    {
+                        if (car.Number.Equals(term, StringComparison.OrdinalIgnoreCase))
+                            return true;
+                    }
+                    else
+                    {
+                        if (car.Number.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                            car.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                            return true;
+                    }
+                }
+                return false;
+            };
+        }
+        searchFilterSubject.OnNext(searchFilter);
     }
 
     /// <summary>
