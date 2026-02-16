@@ -163,6 +163,9 @@
 					<SolidColorBrush x:Key="MandatoryUpdateButtonBackgroundBrush">#0078D4</SolidColorBrush>
 					<SolidColorBrush x:Key="MandatoryUpdateButtonForegroundBrush">White</SolidColorBrush>
 
+					<!--Legend Overlay-->
+					<SolidColorBrush x:Key="LegendOverlayBackgroundBrush">#80000000</SolidColorBrush>
+
 					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-light.png</x:String>
 					<x:String x:Key="mrlImage">avares://RedMist.Timing.UI/Assets/MRL_Logo_light.png</x:String>
 				</ResourceDictionary>
@@ -288,6 +291,9 @@
 					<SolidColorBrush x:Key="MandatoryUpdateDialogBorderBrush">#DC3545</SolidColorBrush>
 					<SolidColorBrush x:Key="MandatoryUpdateButtonBackgroundBrush">#0078D4</SolidColorBrush>
 					<SolidColorBrush x:Key="MandatoryUpdateButtonForegroundBrush">White</SolidColorBrush>
+
+					<!--Legend Overlay-->
+					<SolidColorBrush x:Key="LegendOverlayBackgroundBrush">#80000000</SolidColorBrush>
 
 					<x:String x:Key="sentinelImage">avares://RedMist.Timing.UI/Assets/sentinel-dark.png</x:String>
 					<x:String x:Key="mrlImage">avares://RedMist.Timing.UI/Assets/MRL_Logo.png</x:String>

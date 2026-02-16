@@ -8,7 +8,7 @@
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="430" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="330" d:DesignHeight="450"
 			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -435,129 +435,206 @@
 
 	</UserControl.Styles>
 
-	<Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
-		<!--Top-->
-		<Border Grid.Row="0" Background="{DynamicResource FlagOverlayBackgroundBrush}" Margin="4,5,4,0" CornerRadius="4" Padding="6,4">
-			<Grid ColumnDefinitions="Auto,*,Auto,Auto">
-				<StackPanel VerticalAlignment="Center">
-					<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
-					<Button Classes="icon" Command="{Binding ToggleSearch}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,4,5,0" Padding="0" ToolTip.Tip="Search cars">
-						<PathIcon Height="12" Width="20" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource searchIcon}"/>
-					</Button>
-				</StackPanel>
+	<Grid>
+		<Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
+			<!--Top-->
+			<Border Grid.Row="0" Background="{DynamicResource FlagOverlayBackgroundBrush}" Margin="4,5,4,0" CornerRadius="4" Padding="6,4">
+				<Grid ColumnDefinitions="Auto,*,Auto,Auto">
+					<StackPanel VerticalAlignment="Center">
+						<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+						<Button Classes="icon" Command="{Binding ToggleSearch}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,2,5,0" Padding="0" ToolTip.Tip="Search cars">
+							<PathIcon Height="12" Width="20" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource searchIcon}"/>
+						</Button>
+						<Button Classes="icon" Command="{Binding ToggleLegend}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,2,5,0" Padding="0" ToolTip.Tip="Show legend">
+							<PathIcon Height="12" Width="20" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
+						</Button>
+					</StackPanel>
 
-				<StackPanel Grid.Column="1">
-					<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-					<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
-					<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
-					<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}" Classes="h1"/>
-					<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}" Classes="h1"/>
-					<TextBlock Text="{Binding Flag, StringFormat='Flag: {0}'}" Classes="h1"/>
-					<Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsBroadcastVisible}">
-						<TextBlock Text="Watch Along: " Classes="h1"/>
-						<Button Grid.Column="1" Classes="link" Command="{Binding LaunchBroadcast}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
-							<TextBlock Text="{Binding BroadcastCompanyName}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+					<StackPanel Grid.Column="1">
+						<TextBlock Text="{Binding SessionName}" Classes="h1" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+						<TextBlock Text="{Binding TimeToGo, StringFormat='Time remaining: {0}'}" Classes="h1" IsVisible="{Binding ShowTimeToGo}"/>
+						<TextBlock Text="{Binding RaceTime, StringFormat='Race Time: {0}'}" Classes="h1" IsVisible="{Binding ShowRaceTime}"/>
+						<TextBlock Text="{Binding LocalTime, StringFormat='Local Time: {0}'}" Classes="h1"/>
+						<TextBlock Text="{Binding TotalLaps, StringFormat='Laps: {0}'}" Classes="h1"/>
+						<TextBlock Text="{Binding Flag, StringFormat='Flag: {0}'}" Classes="h1"/>
+						<Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsBroadcastVisible}">
+							<TextBlock Text="Watch Along: " Classes="h1"/>
+							<Button Grid.Column="1" Classes="link" Command="{Binding LaunchBroadcast}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+								<TextBlock Text="{Binding BroadcastCompanyName}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+							</Button>
+						</Grid>
+					</StackPanel>
+
+					<!--Test Buttons-->
+					<!--<StackPanel Grid.Column="2">
+					<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
+					<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
+					</StackPanel>-->
+
+					<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="1,1,10,1"/>
+
+					<StackPanel Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
+						<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
+							<StackPanel Orientation="Vertical">
+								<TextBlock Text="Sorting" FontStyle="Italic" FontSize="11"/>
+								<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
+							</StackPanel>
+						</Button>
+						<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,8,0,0" Padding="3" Width="55">
+							<StackPanel Orientation="Vertical">
+								<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
+								<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
+							</StackPanel>
+						</Button>
+					</StackPanel>
+				</Grid>
+			</Border>
+
+			<!--Search Box-->
+			<Border Grid.Row="1" Margin="4,3,4,0" Padding="4,1" IsVisible="{Binding IsSearchVisible}"
+					Background="{DynamicResource TimingTableBackgroundBrush}" BorderThickness="1"
+					BorderBrush="{DynamicResource BorderPrimaryBrush}" CornerRadius="4">
+				<TextBox Watermark="Search by car # or name (comma separated)" Text="{Binding SearchText, Mode=TwoWay}"
+						 FontSize="11" Padding="4,2" MinHeight="0" BorderThickness="0" Background="Transparent"/>
+			</Border>
+
+			<!--Table Header-->
+			<Border x:Name="tableHeader" Grid.Row="2" Background="{DynamicResource TimingTableHeaderBackgroundBrush}" Margin="3,3,3,0" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}">
+				<Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="0,2,0,0">
+					<TextBlock Text="" Grid.Column="0" Width="34"/>
+					<TextBlock Text="LAST LAP             GAP             TO P1" Width="244" Grid.Column="1" Classes="tableheader"/>
+					<StackPanel Orientation="Horizontal" Grid.Column="2" IsVisible="{Binding ShowPenaltyColumn}">
+						<TextBlock Text="PENALTY" Classes="tableheader"/>
+						<PathIcon Height="10" Margin="0,0,0,1" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warningopengeom}" VerticalAlignment="Center"/>
+					</StackPanel>
+					<TextBlock Text="BEST LAP" Grid.Column="3" HorizontalAlignment="Right" Classes="tableheader" Margin="0,0,7,0"/>
+				</Grid>
+			</Border>
+
+			<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="3" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+			<!--Car Table-->
+			<Border x:Name="tableBody" Grid.Row="4" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
+				<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+					<Grid>
+						<!--Flat-->
+						<ItemsControl ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carExpanderTemplate}" IsVisible="{Binding IsFlat}"/>
+
+						<!--Grouped Classes-->
+						<ItemsControl ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate DataType="model:GroupHeaderViewModel">
+									<Expander Header="{Binding .}" HorizontalAlignment="Stretch"
+											  Padding="0" CornerRadius="0" MinHeight="0"
+											  Template="{StaticResource groupExpanderTemplate}">
+										<Expander.HeaderTemplate>
+											<DataTemplate DataType="model:GroupHeaderViewModel">
+												<Border Background="{Binding ClassColor}" CornerRadius="4" HorizontalAlignment="Left">
+													<TextBlock Text="{Binding Name}" Classes="classgrp" Padding="8,5"/>
+												</Border>
+											</DataTemplate>
+										</Expander.HeaderTemplate>
+										<ItemsControl ItemsSource="{Binding .}" ItemTemplate="{StaticResource carExpanderTemplate}"/>
+									</Expander>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</Grid>
+				</ScrollViewer>
+			</Border>
+
+			<!--Log Display-->
+			<Border Grid.Row="6" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3"
+					Background="{DynamicResource TimingTableBackgroundBrush}"
+					IsVisible="{Binding ShowLogDisplay}">
+				<Grid RowDefinitions="Auto,*">
+					<Grid ColumnDefinitions="*,Auto" Margin="5,3">
+						<TextBlock Text="Application Logs" Classes="tableheader"/>
+						<Button Grid.Column="1" Command="{Binding CopyLogsToClipboard}"
+								Padding="5,2" FontSize="10" ToolTip.Tip="Copy logs to clipboard">
+							<TextBlock Text="Copy" FontSize="10"/>
 						</Button>
 					</Grid>
-				</StackPanel>
-
-				<!--Test Buttons-->
-				<!--<StackPanel Grid.Column="2">
-				<Button Content="Dup VM" Command="{Binding InsertDuplicateCar}"/>
-				<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
-				</StackPanel>-->
-
-				<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="1,1,10,1"/>
-
-				<StackPanel Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
-					<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Sorting" FontStyle="Italic" FontSize="11"/>
-							<TextBlock Text="{Binding SortToggleText}" FontSize="9"/>
-						</StackPanel>
-					</Button>
-					<Button VerticalAlignment="Center" Command="{Binding ToggleGroupMode}" Margin="0,8,0,0" Padding="3" Width="55">
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Showing" FontStyle="Italic" FontSize="11"/>
-							<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
-						</StackPanel>
-					</Button>
-				</StackPanel>
-			</Grid>
-		</Border>
-
-		<!--Search Box-->
-		<Border Grid.Row="1" Margin="4,3,4,0" Padding="4,1" IsVisible="{Binding IsSearchVisible}"
-				Background="{DynamicResource TimingTableBackgroundBrush}" BorderThickness="1"
-				BorderBrush="{DynamicResource BorderPrimaryBrush}" CornerRadius="4">
-			<TextBox Watermark="Search by car # or name (comma separated)" Text="{Binding SearchText, Mode=TwoWay}"
-					 FontSize="11" Padding="4,2" MinHeight="0" BorderThickness="0" Background="Transparent"/>
-		</Border>
-
-		<!--Table Header-->
-		<Border x:Name="tableHeader" Grid.Row="2" Background="{DynamicResource TimingTableHeaderBackgroundBrush}" Margin="3,3,3,0" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}">
-			<Grid ColumnDefinitions="Auto,Auto,Auto,*" Margin="0,2,0,0">
-				<TextBlock Text="" Grid.Column="0" Width="34"/>
-				<TextBlock Text="LAST LAP             GAP             TO P1" Width="244" Grid.Column="1" Classes="tableheader"/>
-				<StackPanel Orientation="Horizontal" Grid.Column="2" IsVisible="{Binding ShowPenaltyColumn}">
-					<TextBlock Text="PENALTY" Classes="tableheader"/>
-					<PathIcon Height="10" Margin="0,0,0,1" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warningopengeom}" VerticalAlignment="Center"/>
-				</StackPanel>
-				<TextBlock Text="BEST LAP" Grid.Column="3" HorizontalAlignment="Right" Classes="tableheader" Margin="0,0,7,0"/>
-			</Grid>
-		</Border>
-
-		<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Grid.Row="3" Classes="title" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
-		<!--Car Table-->
-		<Border x:Name="tableBody" Grid.Row="4" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
-			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
-				<Grid>
-					<!--Flat-->
-					<ItemsControl ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carExpanderTemplate}" IsVisible="{Binding IsFlat}"/>
-
-					<!--Grouped Classes-->
-					<ItemsControl ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
-						<ItemsControl.ItemTemplate>
-							<DataTemplate DataType="model:GroupHeaderViewModel">
-								<Expander Header="{Binding .}" HorizontalAlignment="Stretch"
-										  Padding="0" CornerRadius="0" MinHeight="0"
-										  Template="{StaticResource groupExpanderTemplate}">
-									<Expander.HeaderTemplate>
-										<DataTemplate DataType="model:GroupHeaderViewModel">
-											<Border Background="{Binding ClassColor}" CornerRadius="4" HorizontalAlignment="Left">
-												<TextBlock Text="{Binding Name}" Classes="classgrp" Padding="8,5"/>
-											</Border>
-										</DataTemplate>
-									</Expander.HeaderTemplate>
-									<ItemsControl ItemsSource="{Binding .}" ItemTemplate="{StaticResource carExpanderTemplate}"/>
-								</Expander>
-							</DataTemplate>
-						</ItemsControl.ItemTemplate>
-					</ItemsControl>
+					<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="150">
+						<TextBox Text="{Binding LogMessages}" IsReadOnly="True"
+								 TextWrapping="Wrap" BorderThickness="0"
+								 Background="Transparent" FontFamily="Consolas" FontSize="10"
+								 AcceptsReturn="True" Padding="5"/>
+					</ScrollViewer>
 				</Grid>
-			</ScrollViewer>
-		</Border>
+			</Border>
+		</Grid>
 
-		<!--Log Display-->
-		<Border Grid.Row="6" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3"
-				Background="{DynamicResource TimingTableBackgroundBrush}"
-				IsVisible="{Binding ShowLogDisplay}">
-			<Grid RowDefinitions="Auto,*">
-				<Grid ColumnDefinitions="*,Auto" Margin="5,3">
-					<TextBlock Text="Application Logs" Classes="tableheader"/>
-					<Button Grid.Column="1" Command="{Binding CopyLogsToClipboard}"
-							Padding="5,2" FontSize="10" ToolTip.Tip="Copy logs to clipboard">
-						<TextBlock Text="Copy" FontSize="10"/>
-					</Button>
-				</Grid>
-				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="150">
-					<TextBox Text="{Binding LogMessages}" IsReadOnly="True"
-							 TextWrapping="Wrap" BorderThickness="0"
-							 Background="Transparent" FontFamily="Consolas" FontSize="10"
-							 AcceptsReturn="True" Padding="5"/>
-				</ScrollViewer>
+		<!--Legend Overlay-->
+		<Grid IsVisible="{Binding IsLegendVisible}">
+			<!--Dismiss area: clicking outside the legend closes it-->
+			<Border Background="{DynamicResource LegendOverlayBackgroundBrush}" PointerPressed="LegendDismiss_PointerPressed"/>
+
+			<!--Legend content centered at 80% width-->
+			<Grid ColumnDefinitions="*,8*,*" VerticalAlignment="Center" IsHitTestVisible="False">
+				<Border Grid.Column="1" Background="{DynamicResource TimingTableBackgroundBrush}"
+						BorderBrush="{DynamicResource BorderPrimaryBrush}" BorderThickness="1"
+						CornerRadius="8" Padding="12" IsHitTestVisible="True">
+					<Grid RowDefinitions="Auto,*">
+						<Grid ColumnDefinitions="*,Auto" MinHeight="30">
+							<TextBlock Text="Legend" Classes="h1" FontWeight="Bold" VerticalAlignment="Center"/>
+							<Button Grid.Column="1" Classes="icon" Command="{Binding ToggleLegend}" Padding="4,6" MinHeight="28" ToolTip.Tip="Close legend">
+								<TextBlock Text="&#x2715;" FontSize="14"/>
+							</Button>
+						</Grid>
+						<!--Legend content-->
+						<Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" Margin="0,8,0,0">
+							<!--Most positions gained overall-->
+							<PathIcon Height="14" Width="14" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource doubleLightning}" Margin="4,4"/>
+							<TextBlock Grid.Column="1" Text="Most positions gained overall" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Most positions gained in class-->
+							<PathIcon Grid.Row="1" Height="12" Width="12" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource lightning}" Margin="4,4"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="Most positions gained in class" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Fastest pace in-class-->
+							<PathIcon Grid.Row="2" Height="20" Width="20" Foreground="{DynamicResource carRowLapTextForegroundOverallBestBrush}" Data="{StaticResource fastpace}" Margin="4,4"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Text="Fastest pace in-class (average of last 5 contiguous laps)" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Warning from race control-->
+							<PathIcon Grid.Row="3" Height="12" Width="12" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource warningopengeom}" Margin="4,4"/>
+							<TextBlock Grid.Row="3" Grid.Column="1" Text="Car was issued a warning by race control" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Car passed start/finish-->
+							<Border Grid.Row="4" Width="24" Height="16" CornerRadius="3" Margin="4,4">
+								<Border.Background>
+									<SolidColorBrush Color="{DynamicResource carRowUpdatedBackgroundBrush}"/>
+								</Border.Background>
+							</Border>
+							<TextBlock Grid.Row="4" Grid.Column="1" Text="Car passed the start/finish line" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Car has not updated recently-->
+							<Border Grid.Row="5" Width="24" Height="16" CornerRadius="3" Margin="4,4">
+								<Border.Background>
+									<SolidColorBrush Color="{DynamicResource carRowStaleBackgroundBrush}"/>
+								</Border.Background>
+							</Border>
+							<TextBlock Grid.Row="5" Grid.Column="1" Text="Car has not updated recently" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Best time posted last lap-->
+							<TextBlock Grid.Row="6" Text="1:23.456" Classes="sm" Foreground="{DynamicResource carRowLapTextForegroundBestBrush}" FontWeight="Bold" VerticalAlignment="Center" Margin="4,4"/>
+							<TextBlock Grid.Row="6" Grid.Column="1" Text="Best time posted last lap" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Fastest time overall or in-class-->
+							<TextBlock Grid.Row="7" Text="1:23.456" Classes="sm" Foreground="{DynamicResource carRowLapTextForegroundOverallBestBrush}" FontWeight="Bold" VerticalAlignment="Center" Margin="4,4"/>
+							<TextBlock Grid.Row="7" Grid.Column="1" Text="Fastest time overall or in-class (if grouped by class)" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--Sentinel live streaming-->
+							<Image Grid.Row="8" Source="{Binding SentinelLegendImage}" Height="13" Margin="4,4"/>
+							<TextBlock Grid.Row="8" Grid.Column="1" Text="In-car live streaming by Sentinel" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
+							<!--MyRaces.live streaming-->
+							<Image Grid.Row="9" Source="{Binding MrlLegendImage}" Height="13" Margin="4,4"/>
+							<TextBlock Grid.Row="9" Grid.Column="1" Text="In-car live streaming by MyRaces.live" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+						</Grid>
+					</Grid>
+				</Border>
 			</Grid>
-		</Border>
+		</Grid>
 	</Grid>
 </UserControl>

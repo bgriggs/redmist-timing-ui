@@ -1,5 +1,8 @@
-﻿using Avalonia.Media;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -183,6 +186,21 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private bool isSearchVisible = false;
 
     [ObservableProperty]
+    private bool isLegendVisible = false;
+
+    public IImage? SentinelLegendImage => GetLegendImage(CarViewModel.SENTINEL_IMAGE);
+    public IImage? MrlLegendImage => GetLegendImage(CarViewModel.MRL_IMAGE);
+
+    private static IImage? GetLegendImage(string resourceKey)
+    {
+        if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, resourceKey) is string uri)
+        {
+            return new Bitmap(AssetLoader.Open(new Uri(uri)));
+        }
+        return null;
+    }
+
+    [ObservableProperty]
     private string searchText = string.Empty;
 
     private Func<CarViewModel, bool> searchFilter = _ => true;
@@ -194,7 +212,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private DateTime lastLogoClickTime = DateTime.MinValue;
 
 
-    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, InMemoryLogProvider? logProvider = null)
+    public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, 
+        ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, 
+        IConfiguration configuration, OrganizationIconCacheService iconCacheService, 
+        InMemoryLogProvider? logProvider = null)
     {
         this.hubClient = hubClient;
         this.serverClient = serverClient;
@@ -884,6 +905,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         {
             SearchText = string.Empty;
         }
+    }
+
+    public void ToggleLegend()
+    {
+        IsLegendVisible = !IsLegendVisible;
     }
 
     partial void OnSearchTextChanged(string value)

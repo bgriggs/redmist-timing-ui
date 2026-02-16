@@ -49,6 +49,14 @@ public partial class LiveTimingView : UserControl, IRecipient<CopyToClipboardReq
         }
     }
 
+    private void LegendDismiss_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is LiveTimingViewModel viewModel)
+        {
+            viewModel.IsLegendVisible = false;
+        }
+    }
+
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
