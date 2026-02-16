@@ -27,27 +27,20 @@ public interface IUpdateMessageService
 /// <summary>
 /// Implementation of update message service with platform-specific messages
 /// </summary>
-public class UpdateMessageService : IUpdateMessageService
+public class UpdateMessageService(IConfiguration configuration) : IUpdateMessageService
 {
-    private readonly IConfiguration _configuration;
-    
-    public UpdateMessageService(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-    
     public string GetUpdateMessage(UpdateRequirement requirement, AppPlatform platform)
     {
         return (requirement, platform) switch
         {
             (UpdateRequirement.Mandatory, AppPlatform.iOS) => 
-                "A mandatory update is required to continue using Red Mist Timing. Please update to the latest version from the App Store.",
+                "An update is required to continue using Red Mist Timing. Please update to the latest version from the App Store.",
             
             (UpdateRequirement.Mandatory, AppPlatform.Android) => 
-                "A mandatory update is required to continue using Red Mist Timing. Please update to the latest version from the Play Store.",
+                "An update is required to continue using Red Mist Timing. Please update to the latest version from the Play Store.",
             
-            (UpdateRequirement.Mandatory, AppPlatform.Browser) => 
-                "A mandatory update is required to continue using Red Mist Timing. Please refresh your browser (Ctrl+F5 or Cmd+Shift+R) to load the latest version.",
+            (UpdateRequirement.Mandatory, AppPlatform.Browser) =>
+                "An update is required to continue using Red Mist Timing. Please refresh (Ctrl+Shift+R or Cmd+Shift+R) to load the latest version.",
             
             (UpdateRequirement.Optional, AppPlatform.iOS) => 
                 "A new version of Red Mist Timing is available. Update from the App Store for the latest features and improvements.",
@@ -55,8 +48,8 @@ public class UpdateMessageService : IUpdateMessageService
             (UpdateRequirement.Optional, AppPlatform.Android) => 
                 "A new version of Red Mist Timing is available. Update from the Play Store for the latest features and improvements.",
             
-            (UpdateRequirement.Optional, AppPlatform.Browser) => 
-                "A new version of Red Mist Timing is available. Please refresh your browser (Ctrl+F5 or Cmd+Shift+R) to load the latest version.",
+            (UpdateRequirement.Optional, AppPlatform.Browser) =>
+                "A new version of Red Mist Timing is available. Please refresh (Ctrl+Shift+R or Cmd+Shift+R) to load the latest version.",
             
             _ => string.Empty
         };
@@ -66,8 +59,8 @@ public class UpdateMessageService : IUpdateMessageService
     {
         return platform switch
         {
-            AppPlatform.iOS => _configuration["VersionCheck:iOSAppStoreUrl"],
-            AppPlatform.Android => _configuration["VersionCheck:AndroidPlayStoreUrl"],
+            AppPlatform.iOS => configuration["VersionCheck:iOSAppStoreUrl"],
+            AppPlatform.Android => configuration["VersionCheck:AndroidPlayStoreUrl"],
             AppPlatform.Browser => null, // No URL for browser, just refresh instructions
             _ => null
         };

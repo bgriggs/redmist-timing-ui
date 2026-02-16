@@ -450,15 +450,15 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     {
         try
         {
-            //// Check if version checking should be performed (skip for Desktop)
-            //if (!platformDetectionService.ShouldCheckVersion())
-            //{
-            //    Logger.LogInformation("Version check skipped for Desktop platform");
-            //    return;
-            //}
-
             var platform = platformDetectionService.GetCurrentPlatform();
-            platform = AppPlatform.iOS;
+
+            // Check if version checking should be performed (skip for Desktop)
+            if (!platformDetectionService.ShouldCheckVersion())
+            {
+                //Logger.LogInformation("Version check skipped for Desktop platform");
+                platform = AppPlatform.iOS;
+            }
+            
             Logger.LogInformation("Performing version check for platform: {Platform}", platform);
 
             // Get version info from server with timeout
