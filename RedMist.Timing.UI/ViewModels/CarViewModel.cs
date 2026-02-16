@@ -423,7 +423,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     public bool IsDriverNameStandaloneVisible => HasDriverName && !IsDriverNameInline;
 
 
-    public CarViewModel(Event evt, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService, 
+    public CarViewModel(Event evt, EventClient serverClient, HubClient hubClient, PitTracking pitTracking, ViewSizeService viewSizeService,
         IHttpClientFactory httpClientFactory, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         Logger = loggerFactory.CreateLogger(GetType().Name);
@@ -643,9 +643,12 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         Class = entry.Class;
         ClassColor = classColor;
 
-        // Removing to prevent stale color reset
-        //// Force reset once loaded - prevents color from getting stuck on update color
-        //Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH, DispatcherPriority.Send));
+        // Force reset once loaded - prevents color from getting stuck on update color
+        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() =>
+        {
+            if (RowBackgroundKey == CARROW_UPDATED_BACKGROUNDBRUSH)
+                RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH;
+        }, DispatcherPriority.Send));
         // Initialize the car row width
         Receive(new SizeChangedNotification(viewSizeService.CurrentSize));
     }
