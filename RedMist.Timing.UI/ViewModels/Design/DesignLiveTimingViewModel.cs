@@ -75,6 +75,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             OverallGap = "00:02.872",
             OverallDifference = "00:12.872",
             PenaltyWarnings = 1,
+            PenaltyBlackFlags = 1,
             PenaltyLaps = 2,
             ShowPenaltyColumn = true,
             Class = "GP3",

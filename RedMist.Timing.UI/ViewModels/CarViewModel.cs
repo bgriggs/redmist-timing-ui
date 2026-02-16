@@ -157,6 +157,10 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private int penaltyWarnings;
     public bool HasPenaltyWarnings => PenaltyWarnings > 0;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPenaltyBlackFlags))]
+    private int penaltyBlackFlags;
+    public bool HasPenaltyBlackFlags => PenaltyBlackFlags > 0;
+    [ObservableProperty]
     private bool showPenaltyColumn = false;
     [ObservableProperty]
     private bool isStale;
@@ -480,6 +484,8 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             PenaltyLaps = p.PenalityLaps.Value;
         if (p.PenalityWarnings != null)
             PenaltyWarnings = p.PenalityWarnings.Value;
+        if (p.BlackFlags != null)
+            PenaltyBlackFlags = p.BlackFlags.Value;
         if (p.IsStale != null)
             IsStale = p.IsStale.Value;
 

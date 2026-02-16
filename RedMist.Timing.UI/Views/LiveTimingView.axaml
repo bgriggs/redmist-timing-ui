@@ -135,6 +135,7 @@
 
 						<StackPanel Orientation="Horizontal" Grid.Column="3" IsVisible="{Binding ShowPenaltyColumn}">
 							<PathIcon Height="10" IsVisible="{Binding HasPenaltyWarnings}" Margin="0,0,0,1" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource warningopengeom}" VerticalAlignment="Center" ToolTip.Tip="Car was issued a warning"/>
+							<PathIcon Height="10" IsVisible="{Binding HasPenaltyBlackFlags}" Margin="0,0,0,1" Foreground="{DynamicResource BlackFlagIconBrush}" Data="{StaticResource blackflaggeom}" VerticalAlignment="Center" ToolTip.Tip="Car was issued a black flag or drive through penalty"/>
 							<StackPanel Orientation="Horizontal" IsVisible="{Binding HasPenaltyLaps}">
 								<TextBlock Text="{Binding PenaltyLaps, StringFormat='-{0}'}" Classes="sm"/>
 								<TextBlock Text="{Binding PenaltyLapTerm}" Classes="sm" Margin="2,0,0,0"/>
@@ -583,7 +584,7 @@
 							</Button>
 						</Grid>
 						<!--Legend content-->
-						<Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" Margin="0,8,0,0">
+						<Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" Margin="0,8,0,0">
 							<!--Most positions gained overall-->
 							<PathIcon Height="14" Width="14" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource doubleLightning}" Margin="4,4"/>
 							<TextBlock Grid.Column="1" Text="Most positions gained overall" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
@@ -600,37 +601,41 @@
 							<PathIcon Grid.Row="3" Height="12" Width="12" Foreground="{DynamicResource LightningIconBrush}" Data="{StaticResource warningopengeom}" Margin="4,4"/>
 							<TextBlock Grid.Row="3" Grid.Column="1" Text="Car was issued a warning by race control" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
 
+							<!--Black flag or drive through penalty-->
+							<PathIcon Grid.Row="4" Height="12" Width="12" Foreground="{DynamicResource BlackFlagIconBrush}" Data="{StaticResource blackflaggeom}" Margin="4,4"/>
+							<TextBlock Grid.Row="4" Grid.Column="1" Text="Car was issued a black flag or drive through penalty" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+
 							<!--Car passed start/finish-->
-							<Border Grid.Row="4" Width="24" Height="16" CornerRadius="3" Margin="4,4">
+							<Border Grid.Row="5" Width="24" Height="16" CornerRadius="3" Margin="4,4">
 								<Border.Background>
 									<SolidColorBrush Color="{DynamicResource carRowUpdatedBackgroundBrush}"/>
 								</Border.Background>
 							</Border>
-							<TextBlock Grid.Row="4" Grid.Column="1" Text="Car passed the start/finish line" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+							<TextBlock Grid.Row="5" Grid.Column="1" Text="Car passed the start/finish line" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
 
 							<!--Car has not updated recently-->
-							<Border Grid.Row="5" Width="24" Height="16" CornerRadius="3" Margin="4,4">
+							<Border Grid.Row="6" Width="24" Height="16" CornerRadius="3" Margin="4,4">
 								<Border.Background>
 									<SolidColorBrush Color="{DynamicResource carRowStaleBackgroundBrush}"/>
 								</Border.Background>
 							</Border>
-							<TextBlock Grid.Row="5" Grid.Column="1" Text="Car has not updated recently" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+							<TextBlock Grid.Row="6" Grid.Column="1" Text="Car has not updated recently" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
 
 							<!--Best time posted last lap-->
-							<TextBlock Grid.Row="6" Text="1:23.456" Classes="sm" Foreground="{DynamicResource carRowLapTextForegroundBestBrush}" FontWeight="Bold" VerticalAlignment="Center" Margin="4,4"/>
-							<TextBlock Grid.Row="6" Grid.Column="1" Text="Best time posted last lap" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+							<TextBlock Grid.Row="7" Text="1:23.456" Classes="sm" Foreground="{DynamicResource carRowLapTextForegroundBestBrush}" FontWeight="Bold" VerticalAlignment="Center" Margin="4,4"/>
+							<TextBlock Grid.Row="7" Grid.Column="1" Text="Best time posted last lap" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
 
 							<!--Fastest time overall or in-class-->
-							<TextBlock Grid.Row="7" Text="1:23.456" Classes="sm" Foreground="{DynamicResource carRowLapTextForegroundOverallBestBrush}" FontWeight="Bold" VerticalAlignment="Center" Margin="4,4"/>
-							<TextBlock Grid.Row="7" Grid.Column="1" Text="Fastest time overall or in-class (if grouped by class)" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+							<TextBlock Grid.Row="8" Text="1:23.456" Classes="sm" Foreground="{DynamicResource carRowLapTextForegroundOverallBestBrush}" FontWeight="Bold" VerticalAlignment="Center" Margin="4,4"/>
+							<TextBlock Grid.Row="8" Grid.Column="1" Text="Fastest time overall or in-class (if grouped by class)" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
 
 							<!--Sentinel live streaming-->
-							<Image Grid.Row="8" Source="{Binding SentinelLegendImage}" Height="13" Margin="4,4"/>
-							<TextBlock Grid.Row="8" Grid.Column="1" Text="In-car live streaming by Sentinel" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+							<Image Grid.Row="9" Source="{Binding SentinelLegendImage}" Height="13" Margin="4,4"/>
+							<TextBlock Grid.Row="9" Grid.Column="1" Text="In-car live streaming by Sentinel" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
 
 							<!--MyRaces.live streaming-->
-							<Image Grid.Row="9" Source="{Binding MrlLegendImage}" Height="13" Margin="4,4"/>
-							<TextBlock Grid.Row="9" Grid.Column="1" Text="In-car live streaming by MyRaces.live" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
+							<Image Grid.Row="10" Source="{Binding MrlLegendImage}" Height="13" Margin="4,4"/>
+							<TextBlock Grid.Row="10" Grid.Column="1" Text="In-car live streaming by MyRaces.live" Classes="sm" VerticalAlignment="Center" Margin="8,4" TextWrapping="Wrap"/>
 						</Grid>
 					</Grid>
 				</Border>
