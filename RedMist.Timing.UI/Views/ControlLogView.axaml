@@ -18,7 +18,7 @@
 
 	<!-- Uses global DataGrid styles from App.axaml -->
 
-	<Grid RowDefinitions="Auto,*" Background="{DynamicResource lightAppBackground}">
+	<Grid RowDefinitions="Auto,Auto,*" Background="{DynamicResource lightAppBackground}">
 		<!-- Header with background -->
 		<Border Background="{DynamicResource TimingTableHeaderBackgroundBrush}"
 				Grid.Row="0"
@@ -26,7 +26,12 @@
 				BorderBrush="{DynamicResource boldItemBorder}"
 				BorderThickness="0,0,0,1">
 			<Grid ColumnDefinitions="Auto,Auto,*">
-				<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+				<StackPanel>
+					<Button Classes="back" Margin="0,0,12,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
+					<Button Classes="icon" Command="{Binding ToggleSearch}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,3,12,0" Padding="0" ToolTip.Tip="Search by car #">
+						<PathIcon Height="11" Width="20" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource searchIcon}"/>
+					</Button>
+				</StackPanel>
 				<Image Source="{Binding OrganizationLogo}" Grid.Column="1" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="0,0,12,0"/>
 				<StackPanel Orientation="Vertical" Grid.Column="2">
 					<TextBlock Text="Control Log" Classes="title"/>
@@ -35,7 +40,15 @@
 			</Grid>
 		</Border>
 
-		<Grid RowDefinitions="*" Grid.Row="1" Margin="5">
+		<!--Search Box-->
+		<Border Grid.Row="1" Margin="4,3,4,0" Padding="4,1" IsVisible="{Binding IsSearchVisible}"
+				Background="{DynamicResource TimingTableBackgroundBrush}" BorderThickness="1"
+				BorderBrush="{DynamicResource BorderPrimaryBrush}" CornerRadius="4">
+			<TextBox Watermark="Search by car # (comma separated)" Text="{Binding SearchText, Mode=TwoWay}"
+					 FontSize="11" Padding="4,2" MinHeight="0" BorderThickness="0" Background="Transparent"/>
+		</Border>
+
+		<Grid RowDefinitions="*" Grid.Row="2" Margin="5">
 			<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
 
 			<!-- No control log message -->

@@ -493,6 +493,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                     lastIsQualifying = message.Value.IsPracticeQualifying;
                 }
             }
+
             // Update event entries
             if (message.Value.EventEntries != null)
             {

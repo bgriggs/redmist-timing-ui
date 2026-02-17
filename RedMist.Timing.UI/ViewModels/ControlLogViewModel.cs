@@ -17,6 +17,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -67,6 +68,16 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     [ObservableProperty]
     private bool isLoading = false;
 
+    [ObservableProperty]
+    private bool isSearchVisible = false;
+
+    [ObservableProperty]
+    private string searchText = string.Empty;
+
+    private Func<ControlLogEntryViewModel, bool> searchFilter = _ => true;
+    private readonly BehaviorSubject<Func<ControlLogEntryViewModel, bool>> searchFilterSubject = new(_ => true);
+    private IDisposable? searchDebounce;
+
     partial void OnIsLoadingChanged(bool value)
     {
         OnPropertyChanged(nameof(ShowNoControlLogMessage));
@@ -82,6 +93,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         this.iconCacheService = iconCacheService;
 
         logCache.Connect()
+            .Filter(searchFilterSubject)
             .AutoRefresh(t => t.Timestamp)
             .SortAndBind(ControlLog, SortExpressionComparer<ControlLogEntryViewModel>.Descending(t => t.LogEntry.Timestamp))
             .DisposeMany()
@@ -175,6 +187,54 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     {
         var routerEvent = new RouterEvent { Path = "EventsList" };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
+    }
+
+    public void ToggleSearch()
+    {
+        IsSearchVisible = !IsSearchVisible;
+        if (!IsSearchVisible)
+        {
+            SearchText = string.Empty;
+        }
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        searchDebounce?.Dispose();
+        searchDebounce = Observable.Timer(TimeSpan.FromMilliseconds(400))
+            .Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => ApplySearchFilter(value)));
+    }
+
+    private void ApplySearchFilter(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            searchFilter = _ => true;
+        }
+        else
+        {
+            var terms = text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            searchFilter = entry =>
+            {
+                foreach (var term in terms)
+                {
+                    if (int.TryParse(term, out _))
+                    {
+                        if (entry.Car1?.Equals(term, StringComparison.OrdinalIgnoreCase) == true ||
+                            entry.Car2?.Equals(term, StringComparison.OrdinalIgnoreCase) == true)
+                            return true;
+                    }
+                    else
+                    {
+                        if (entry.Car1?.Contains(term, StringComparison.OrdinalIgnoreCase) == true ||
+                            entry.Car2?.Contains(term, StringComparison.OrdinalIgnoreCase) == true)
+                            return true;
+                    }
+                }
+                return false;
+            };
+        }
+        searchFilterSubject.OnNext(searchFilter);
     }
 
     public async Task Initialize()
