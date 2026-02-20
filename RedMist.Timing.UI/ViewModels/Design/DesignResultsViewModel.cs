@@ -1,4 +1,5 @@
-﻿using RedMist.TimingCommon.Models;
+﻿using RedMist.Timing.UI.Services;
+using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.Configuration;
 using System;
 
@@ -30,7 +31,7 @@ public class DesignResultsViewModel : ResultsViewModel
             new Session { Id = 1, Name = "Practice", StartTime = new DateTime(2025, 2, 28, 8, 0, 0), EndTime = new DateTime(2025, 2, 28, 8, 40, 0), IsLive = false },
             new Session { Id = 2, Name = "Race 1", StartTime = new DateTime(2025, 2, 28, 9, 0, 0), EndTime = new DateTime(2025, 2, 28, 17, 00, 0), IsLive = false },
         ]
-    }, new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new Services.ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService())
+    }, new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new Services.ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService(), new SponsorRotatorViewModel(new SponsorsService(new DesignSponsorClient(), new SponsorIconCacheService(new DesignHttpClientFactory(), new DebugLoggerFactory()), new DebugLoggerFactory()), new SponsorIconCacheService(new DesignHttpClientFactory(), new DebugLoggerFactory()), new DesignSponsorClient(), new DebugLoggerFactory()))
     {
     }
 }

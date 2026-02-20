@@ -64,5 +64,7 @@ public partial class LiveTimingView : UserControl, IRecipient<CopyToClipboardReq
         double availableWidth = e.NewSize.Width - 10;
         tableHeader.MaxWidth = availableWidth;
         this.tableBody.MaxWidth = availableWidth;
+
+        OrganizationLogoImage.IsVisible = e.NewSize.Width > 385;
     }
 }

@@ -1,15 +1,21 @@
-﻿using DynamicData;
+﻿using Avalonia.Media.Imaging;
+using Avalonia.Threading;
+using DynamicData;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignLiveTimingViewModel : LiveTimingViewModel
 {
-    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService())
+    public DesignLiveTimingViewModel() : base(new HubClient(new DebugLoggerFactory(), new DesignConfiguration()), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory(), new ViewSizeService(), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService(), new SponsorRotatorViewModel(new SponsorsService(new DesignSponsorClient(), new SponsorIconCacheService(new DesignHttpClientFactory(), new DebugLoggerFactory()), new DebugLoggerFactory()), new SponsorIconCacheService(new DesignHttpClientFactory(), new DebugLoggerFactory()), new DesignSponsorClient(), new DebugLoggerFactory()))
     {
         var pitTracking = new PitTracking();
         var viewSizeService = new ViewSizeService();
@@ -200,5 +206,40 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             }));
 
         //ToggleGroupMode();
+
+        // Load a design-time sponsor image
+        _ = LoadDesignSponsorAsync();
+    }
+
+    private async Task LoadDesignSponsorAsync()
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            var imageBytes = await httpClient.GetByteArrayAsync("https://assets.redmist.racing/sponsors/wrl-logo.png");
+            if (imageBytes.Length > 0)
+            {
+                using var ms = new MemoryStream(imageBytes);
+                var bitmap = Bitmap.DecodeToWidth(ms, 45);
+                var sponsor = new SponsorInfo
+                {
+                    Id = 1,
+                    Name = "World Racing League",
+                    ImageUrl = "https://assets.redmist.racing/sponsors/wrl-logo.png",
+                    TargetUrl = "https://www.racewrl.com",
+                    DisplayDurationMs = 5000,
+                    DisplayPriority = 1,
+                };
+                Dispatcher.UIThread.InvokeOnUIThread(() =>
+                {
+                    SponsorRotator.CurrentSponsorImage = bitmap;
+                    SponsorRotator.CurrentSponsor = sponsor;
+                });
+            }
+        }
+        catch
+        {
+            // Ignore errors loading design-time sponsor image
+        }
     }
 }

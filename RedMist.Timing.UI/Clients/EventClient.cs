@@ -1,6 +1,4 @@
-﻿using BigMission.Shared.Auth;
-using BigMission.Shared.RestSharp;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.TimingCommon;
 using RedMist.TimingCommon.Models;
@@ -13,26 +11,15 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Clients;
 
-public class EventClient
+public class EventClient : BaseRestClient
 {
     private ILogger Logger { get; }
-    private readonly RestClient restClient;
 
 
     public EventClient(IConfiguration configuration, ILoggerFactory loggerFactory)
+        : base(configuration, "Server:EventUrl")
     {
         Logger = loggerFactory.CreateLogger(GetType().Name);
-        var url = configuration["Server:EventUrl"] ?? throw new InvalidOperationException("Server EventUrl is not configured.");
-        var authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
-        var realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
-        var clientId = configuration["Keycloak:ClientId"] ?? throw new InvalidOperationException("Keycloak client ID is not configured.");
-        var clientSecret = configuration["Keycloak:ClientSecret"] ?? throw new InvalidOperationException("Keycloak client secret is not configured.");
-
-        var options = new RestClientOptions(url)
-        {
-            Authenticator = new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret)
-        };
-        restClient = options.CreateWithMessagePack();
     }
 
 
@@ -68,7 +55,7 @@ public class EventClient
     public virtual async Task<List<EventListSummary>> LoadRecentEventsAsync() 
     {
         var request = new RestRequest("LoadLiveAndRecentEvents", Method.Get);
-        return await restClient.GetAsync<List<EventListSummary>>(request) ?? [];
+        return await RestClient.GetAsync<List<EventListSummary>>(request) ?? [];
     }
 
     public virtual async Task<List<EventListSummary>> LoadArchivedEventsAsync(int offset, int take)
@@ -76,7 +63,7 @@ public class EventClient
         var request = new RestRequest("LoadArchivedEvents", Method.Get);
         request.AddQueryParameter("offset", offset);
         request.AddQueryParameter("take", take);
-        return await restClient.GetAsync<List<EventListSummary>>(request) ?? [];
+        return await RestClient.GetAsync<List<EventListSummary>>(request) ?? [];
     }
 
     public virtual async Task<TimingCommon.Models.Event?> LoadEventAsync(int eventId)
@@ -85,7 +72,7 @@ public class EventClient
             return null;
         var request = new RestRequest("LoadEvent", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await restClient.GetAsync<TimingCommon.Models.Event?>(request);
+        return await RestClient.GetAsync<TimingCommon.Models.Event?>(request);
     }
 
     public virtual async Task<SessionState?> LoadEventStatusAsync(int eventId)
@@ -94,7 +81,7 @@ public class EventClient
             return null;
         var request = new RestRequest("GetCurrentSessionState", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await restClient.GetAsync<SessionState?>(request);
+        return await RestClient.GetAsync<SessionState?>(request);
     }
 
     public virtual async Task<List<CarPosition>> LoadCarLapsAsync(int eventId, int sessionId, string carNumber)
@@ -103,14 +90,14 @@ public class EventClient
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
         request.AddQueryParameter("carNumber", carNumber);
-        return await restClient.GetAsync<List<CarPosition>>(request) ?? [];
+        return await RestClient.GetAsync<List<CarPosition>>(request) ?? [];
     }
 
     public virtual async Task<List<Session>> LoadSessionsAsync(int eventId)
     {
         var request = new RestRequest("LoadSessions", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await restClient.GetAsync<List<Session>>(request) ?? [];
+        return await RestClient.GetAsync<List<Session>>(request) ?? [];
     }
 
     public virtual async Task<SessionState?> LoadSessionResultsAsync(int eventId, int sessionId)
@@ -118,7 +105,7 @@ public class EventClient
         var request = new RestRequest("LoadSessionResults", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
-        return await restClient.GetAsync<SessionState?>(request);
+        return await RestClient.GetAsync<SessionState?>(request);
     }
 
     public virtual async Task<CompetitorMetadata?> LoadCompetitorMetadataAsync(int eventId, string car)
@@ -126,14 +113,14 @@ public class EventClient
         var request = new RestRequest("LoadCompetitorMetadata", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("car", car);
-        return await restClient.GetAsync<CompetitorMetadata?>(request);
+        return await RestClient.GetAsync<CompetitorMetadata?>(request);
     }
 
     public virtual async Task<List<ControlLogEntry>> LoadControlLogAsync(int eventId)
     {
         var request = new RestRequest("LoadControlLog", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await restClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
+        return await RestClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
     }
 
     public virtual async Task<List<ControlLogEntry>> LoadSessionHistoricalControlLogAsync(int eventId, int sessionId)
@@ -141,7 +128,7 @@ public class EventClient
         var request = new RestRequest("LoadSessionHistoricalControlLog", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
-        return await restClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
+        return await RestClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
     }
 
     public virtual async Task<CarControlLogs?> LoadCarControlLogsAsync(int eventId, string car)
@@ -149,7 +136,7 @@ public class EventClient
         var request = new RestRequest("LoadCarControlLogs", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("car", car);
-        return await restClient.GetAsync<CarControlLogs?>(request);
+        return await RestClient.GetAsync<CarControlLogs?>(request);
     }
 
     public virtual async Task<InCarPayload?> LoadInCarDriverModePayloadAsync(int eventId, string car)
@@ -157,7 +144,7 @@ public class EventClient
         var request = new RestRequest("LoadInCarPayload", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("car", car);
-        return await restClient.GetAsync<InCarPayload?>(request);
+        return await RestClient.GetAsync<InCarPayload?>(request);
     }
 
     public virtual async Task<List<FlagDuration>> LoadFlagsAsync(int eventId, int sessionId)
@@ -165,12 +152,12 @@ public class EventClient
         var request = new RestRequest("LoadFlags", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
-        return await restClient.GetAsync<List<FlagDuration>>(request) ?? [];
+        return await RestClient.GetAsync<List<FlagDuration>>(request) ?? [];
     }
 
     public virtual async Task<UIVersionInfo?> LoadUIVersionInfoAsync()
     {
         var request = new RestRequest("GetUIVersionInfo", Method.Get);
-        return await restClient.GetAsync<UIVersionInfo>(request);
+        return await RestClient.GetAsync<UIVersionInfo>(request);
     }
 }

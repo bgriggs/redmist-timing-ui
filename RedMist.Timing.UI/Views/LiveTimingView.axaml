@@ -7,8 +7,9 @@
 			 xmlns:sel="clr-namespace:RedMist.Timing.UI.TemplateSelectors"
 			 xmlns:c="clr-namespace:RedMist.Timing.UI.Controls"
 			 xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+			 xmlns:anim="clr-namespace:RedMist.Timing.UI.Animations"
 			 xmlns:model="using:RedMist.Timing.UI.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="430" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="390" d:DesignHeight="450"
 			 x:Class="RedMist.Timing.UI.Views.LiveTimingView"
 			 x:DataType="model:LiveTimingViewModel">
 	<Design.DataContext>
@@ -440,7 +441,7 @@
 		<Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" Background="{Binding Flag, Converter={StaticResource FlagToColorConverter}}">
 			<!--Top-->
 			<Border Grid.Row="0" Background="{DynamicResource FlagOverlayBackgroundBrush}" Margin="4,5,4,0" CornerRadius="4" Padding="6,4">
-				<Grid ColumnDefinitions="Auto,*,Auto,Auto">
+				<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
 					<StackPanel VerticalAlignment="Center">
 						<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
 						<Button Classes="icon" Command="{Binding ToggleLegend}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,2,5,0" Padding="0" ToolTip.Tip="Show legend">
@@ -472,9 +473,28 @@
 					<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
 					</StackPanel>-->
 
-					<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="45" MaxWidth="45" VerticalAlignment="Center" Margin="1,1,10,1"/>
+					<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="55" MaxWidth="55" VerticalAlignment="Center" Margin="1,1,5,1"/>
 
-					<StackPanel Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
+					<!--Sponsor Image-->
+					<StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,3,0" Grid.Column="3"
+								IsVisible="{Binding SponsorRotator.IsSponsorVisible}">
+						<TextBlock Text="Red Mist" FontSize="7" FontStyle="Italic" HorizontalAlignment="Center" Opacity="0.7"/>
+						<TextBlock Text="Sponsored By" FontSize="7" FontStyle="Italic" HorizontalAlignment="Center" Opacity="0.7"/>
+						<Button Command="{Binding SponsorRotator.OnSponsorClicked}" Padding="0" Cursor="Hand" Background="Transparent" BorderThickness="0" ClipToBounds="True">
+							<TransitioningContentControl Content="{Binding SponsorRotator.CurrentSponsorImage}" Width="45" Height="45">
+								<TransitioningContentControl.PageTransition>
+									<anim:ReversePageSlide Duration="0:0:0.3" Orientation="Horizontal"/>
+								</TransitioningContentControl.PageTransition>
+								<TransitioningContentControl.ContentTemplate>
+									<DataTemplate>
+										<Image Source="{Binding}" Stretch="Uniform"/>
+									</DataTemplate>
+								</TransitioningContentControl.ContentTemplate>
+							</TransitioningContentControl>
+						</Button>
+					</StackPanel>
+
+					<StackPanel Grid.Column="4" Orientation="Vertical" VerticalAlignment="Center">
 						<Button VerticalAlignment="Center" Command="{Binding ToggleSortMode}" Padding="3" Width="55">
 							<StackPanel Orientation="Vertical">
 								<TextBlock Text="Sorting" FontStyle="Italic" FontSize="11"/>

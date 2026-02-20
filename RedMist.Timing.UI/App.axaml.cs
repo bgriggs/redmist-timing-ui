@@ -277,9 +277,13 @@ public partial class App : Application
     [Transient(typeof(EventClient))]
     [Singleton(typeof(HubClient))]
     [Transient(typeof(OrganizationClient))]
+    [Transient(typeof(SponsorClient))]
     [Singleton(typeof(ViewSizeService))]
     [Singleton(typeof(EventContext))]
     [Singleton(typeof(OrganizationIconCacheService))]
+    [Singleton(typeof(SponsorIconCacheService))]
+    [Singleton(typeof(SponsorsService))]
+    [Singleton(typeof(SponsorRotatorViewModel))]
     internal static partial void ConfigureServices(IServiceCollection services);
 
     [Singleton(typeof(MainViewModel))]

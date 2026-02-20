@@ -53,6 +53,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private readonly IHttpClientFactory httpClientFactory;
     private readonly IConfiguration configuration;
     private readonly OrganizationIconCacheService iconCacheService;
+    private readonly SponsorRotatorViewModel sponsorRotator;
 
     public Bitmap? OrganizationLogo
     {
@@ -82,7 +83,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private bool allowEventList = true;
 
 
-    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService)
+    public ResultsViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, SponsorRotatorViewModel sponsorRotator)
     {
         EventModel = eventModel;
         this.hubClient = hubClient;
@@ -93,6 +94,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         this.httpClientFactory = httpClientFactory;
         this.configuration = configuration;
         this.iconCacheService = iconCacheService;
+        this.sponsorRotator = sponsorRotator;
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         InitializeSessions(eventModel.Sessions);
@@ -151,7 +153,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                     //logger.LogError(ex, "Error loading session results");
                 }
 
-                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService) 
+                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator) 
                 { 
                     BackRouterPath = "SessionResultsList",
                     EventModel = EventModel,

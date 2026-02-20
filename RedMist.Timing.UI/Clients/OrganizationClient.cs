@@ -1,33 +1,18 @@
-﻿using BigMission.Shared.Auth;
-using BigMission.Shared.RestSharp;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using RestSharp;
-using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Clients;
 
-public class OrganizationClient
+public class OrganizationClient : BaseRestClient
 {
-    private readonly RestClient restClient;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly string cdnLogosUrl = "https://assets.redmist.racing/logos";
 
     public OrganizationClient(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+        : base(configuration, "Server:OrganizationUrl")
     {
-        var url = configuration["Server:OrganizationUrl"] ?? throw new InvalidOperationException("Server OrganizationUrl is not configured.");
-        var authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
-        var realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
-        var clientId = configuration["Keycloak:ClientId"] ?? throw new InvalidOperationException("Keycloak client ID is not configured.");
-        var clientSecret = configuration["Keycloak:ClientSecret"] ?? throw new InvalidOperationException("Keycloak client secret is not configured.");
-
-        var options = new RestClientOptions(url)
-        {
-            Authenticator = new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret)
-        };
-        restClient = options.CreateWithMessagePack();
-
         if (configuration["Cdn:BaseUrl"] != null && configuration["Cdn:Logos"] != null)
         {
             var baseUrl = configuration["Cdn:BaseUrl"]!.TrimEnd('/');
@@ -42,7 +27,7 @@ public class OrganizationClient
     {
         var request = new RestRequest("GetOrganizationIcon", Method.Get);
         request.AddQueryParameter("organizationId", organizationId.ToString());
-        var response = await restClient.ExecuteAsync(request);
+        var response = await RestClient.ExecuteAsync(request);
 
         if (!response.IsSuccessful || response.RawBytes == null)
         {

@@ -62,6 +62,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     private readonly OrganizationIconCacheService iconCacheService;
     private readonly ILoggerFactory loggerFactory;
 
+    public SponsorRotatorViewModel SponsorRotator { get; }
+
     private ILogger Logger { get; }
 
     [ObservableProperty]
@@ -215,6 +217,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     public LiveTimingViewModel(HubClient hubClient, EventClient serverClient, ILoggerFactory loggerFactory, 
         ViewSizeService viewSizeService, EventContext eventContext, IHttpClientFactory httpClientFactory, 
         IConfiguration configuration, OrganizationIconCacheService iconCacheService, 
+        SponsorRotatorViewModel sponsorRotator,
         InMemoryLogProvider? logProvider = null)
     {
         this.hubClient = hubClient;
@@ -226,6 +229,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         this.configuration = configuration;
         this.logProvider = logProvider;
         this.iconCacheService = iconCacheService;
+        SponsorRotator = sponsorRotator;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -311,6 +315,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                     }
                 });
             }
+
+            // Start sponsor rotation
+            _ = SponsorRotator.StartAsync(EventModel.EventId.ToString());
 
             try
             {
@@ -399,6 +406,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public async Task UnsubscribeLiveAsync()
     {
+        SponsorRotator.Stop();
         try
         {
             await hubClient.UnsubscribeFromEventAsync(EventModel.EventId);

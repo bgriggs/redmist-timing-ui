@@ -12,6 +12,7 @@ class DesignConfiguration : IConfiguration
         { "Server:Url", "https://localhost:5001" },
         { "Server:EventUrl", "https://api.redmist.racing/status/Events" },
         { "Server:OrganizationUrl", "https://localhost:5001" },
+        { "Server:SponsorUrl", "https://localhost:5001" },
         { "Hub:Url", "https://localhost:5001/hub" },
         { "Keycloak:AuthServerUrl", "https://localhost:5001/auth" },
         { "Keycloak:Realm", "test" },
@@ -22,7 +23,7 @@ class DesignConfiguration : IConfiguration
         { "Cdn:ArchiveUrl", "https://archive.redmist.racing/" },
     };
 
-    public string? this[string key] { get => config[key]; set => throw new NotImplementedException(); }
+    public string? this[string key] { get => config.GetValueOrDefault(key); set => throw new NotImplementedException(); }
 
     public IEnumerable<IConfigurationSection> GetChildren()
     {
