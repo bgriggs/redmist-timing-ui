@@ -40,6 +40,7 @@ jobs:
           # Update Server URLs
           $json.Server.EventUrl = "${{ vars.SERVER_EVENT_URL || 'https://api-dev.redmist.racing/status/v2/Events' }}"
           $json.Server.OrganizationUrl = "${{ vars.SERVER_ORGANIZATION_URL || 'https://api-dev.redmist.racing/status/v1/Organization' }}"
+          $json.Server.SponsorUrl = "${{ vars.SERVER_SPONSOR_URL || 'https://api-dev.redmist.racing/status/v1/SponsorTelemetry' }}"
           
           # Update Hub URL
           $json.Hub.Url = "${{ vars.HUB_URL || 'https://api-dev.redmist.racing/status/event-status' }}"
