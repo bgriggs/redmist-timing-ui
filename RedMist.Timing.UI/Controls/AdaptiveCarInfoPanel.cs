@@ -216,10 +216,10 @@ public class AdaptiveCarInfoPanel : Grid
         if (DriverNameIndex >= 0 && DriverNameIndex < Children.Count)
         {
             // Re-evaluate layout when driver name text changes (which affects DesiredSize)
-            if (Children[DriverNameIndex] is Avalonia.Controls.TextBlock driverTb)
+            if (Children[DriverNameIndex] is TextBlock driverTb)
             {
-                subscriptions!.Add(
-                    driverTb.GetObservable(Avalonia.Controls.TextBlock.TextProperty)
+                subscriptions.Add(
+                    driverTb.GetObservable(TextBlock.TextProperty)
                         .Subscribe(_ => OnPageSizeChanged())
                 );
             }
