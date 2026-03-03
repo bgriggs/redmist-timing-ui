@@ -225,8 +225,12 @@ public class AdaptiveCarInfoPanel : Grid
             }
         }
 
+        // Retry sizing periodically at startup to handle the race condition where
+        // DesiredSize has not yet been computed when OnLoaded fires.
+        // Fires up to 15 times (~3 s) to cover slow devices, then stops.
         subscriptions.Add(
-            Observable.Timer(TimeSpan.FromMilliseconds(50))
+            Observable.Timer(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(200))
+                .Take(15)
                 .Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => OnPageSizeChanged()))
         );
     }
