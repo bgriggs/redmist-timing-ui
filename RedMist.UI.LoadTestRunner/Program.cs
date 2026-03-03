@@ -4,9 +4,9 @@ namespace RedMist.UI.LoadTestRunner;
 
 internal class Program
 {
-    const string EXE_PATH = "C:\\Code\\redmist-timing-ui\\RedMist.Timing.UI.Desktop\\bin\\Debug\\net9.0\\RedMist.Timing.UI.Desktop.exe";
-    const int INSTANCES = 100;
-    const int EVENT_ID = 36;
+    const string EXE_PATH = "D:\\code\\redmist-timing-ui\\RedMist.Timing.UI.Desktop\\bin\\Debug\\net10.0\\RedMist.Timing.UI.Desktop.exe";
+    const int INSTANCES = 25;
+    const int EVENT_ID = 8;
 
     static void Main()
     {
