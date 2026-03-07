@@ -19,6 +19,54 @@
         </div>
     </div>
     <script>
+      // Auto-update: fetch version.json (bypassing browser cache) on every load.
+      // If the server version differs from the locally stored version, clear all
+      // browser caches and force a fresh page load via a cache-busting redirect.
+      (async function() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var vParam = params.get('_v');
+          if (vParam) {
+            localStorage.setItem('app-version', vParam);
+            params.delete('_v');
+            var clean = window.location.pathname +
+              (params.toString() ? '?' + params.toString() : '') +
+              window.location.hash;
+            history.replaceState(null, '', clean);
+            return;
+          }
+          var resp = await fetch('./version.json', { cache: 'no-store' });
+          if (!resp.ok) return;
+          var data = await resp.json();
+          var serverVer = data.version;
+          var localVer = localStorage.getItem('app-version');
+          if (!localVer) {
+            localStorage.setItem('app-version', serverVer);
+            return;
+          }
+          if (localVer !== serverVer) {
+            if ('caches' in window) {
+              var names = await caches.keys();
+              await Promise.all(names.map(function(n) { return caches.delete(n); }));
+            }
+            if ('serviceWorker' in navigator) {
+              var regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map(function(r) { return r.unregister(); }));
+            }
+            if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
+              var dbs = await indexedDB.databases();
+              dbs.forEach(function(db) { if (db.name) indexedDB.deleteDatabase(db.name); });
+            }
+            var url = new URL(window.location.href);
+            url.searchParams.set('_v', serverVer);
+            window.location.replace(url.toString());
+          }
+        } catch (e) {
+          console.warn('Version check error:', e);
+        }
+      })();
+    </script>
+    <script>
       window.addEventListener('message', async function (e) {
         if (e.data && e.data.type !== 'purge-cache') return;
 

@@ -95,3 +95,30 @@ jobs:
           }
           Invoke-RestMethod -Uri https://api.bunny.net/pullzone/4295899/purgeCache -Method Post -Headers $headers
         shell: pwsh
+
+      - name: Set CDN no-cache headers for HTML files
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $headers = @{
+            "AccessKey" = "${{ secrets.BUNNY_API_KEY }}"
+            "Content-Type" = "application/json"
+          }
+          $body = @{
+            Guid = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+            ActionType = 5
+            ActionParameter1 = "Cache-Control"
+            ActionParameter2 = "no-cache, no-store, must-revalidate"
+            TriggerMatchingType = 0
+            Triggers = @(
+              @{
+                Type = 0
+                PatternMatchingType = 0
+                PatternMatches = @("*/index.html", "*/version.json", "*/")
+              }
+            )
+            Description = "Prevent browser caching of index.html and version.json"
+            Enabled = $true
+          } | ConvertTo-Json -Depth 5
+          Invoke-RestMethod -Uri "https://api.bunny.net/pullzone/4295899/edgerules/addOrUpdate" -Method Post -Headers $headers -Body $body
+          Write-Host "CDN edge rule configured successfully"
