@@ -473,15 +473,15 @@
 					<Button Content="Dup View" Command="{Binding InsertDuplicateView}"/>
 					</StackPanel>-->
 
-					<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="62" MaxWidth="62" VerticalAlignment="Center" Margin="1,1,5,1"/>
+					<Image x:Name="OrganizationLogoImage" Source="{Binding OrganizationLogo}" Grid.Column="2" MaxHeight="70" MaxWidth="70" VerticalAlignment="Center" Margin="1,1,1,1"/>
 
 					<!--Sponsor Image-->
-					<StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,7,0" Grid.Column="3"
+					<StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,1,0" Grid.Column="3"
 								IsVisible="{Binding SponsorRotator.IsSponsorVisible}">
 						<TextBlock Text="Red Mist" FontSize="7" FontStyle="Italic" HorizontalAlignment="Center" Opacity="0.7"/>
 						<TextBlock Text="Sponsored By" FontSize="7" FontStyle="Italic" HorizontalAlignment="Center" Opacity="0.7"/>
 						<Button Command="{Binding SponsorRotator.OnSponsorClicked}" Padding="0" Cursor="Hand" Background="Transparent" BorderThickness="0" ClipToBounds="True">
-							<TransitioningContentControl Content="{Binding SponsorRotator.CurrentSponsorImage}" Width="45" Height="45">
+							<TransitioningContentControl Content="{Binding SponsorRotator.CurrentSponsorImage}" Width="80" Height="50">
 								<TransitioningContentControl.PageTransition>
 									<anim:ReversePageSlide Duration="0:0:0.3" Orientation="Horizontal"/>
 								</TransitioningContentControl.PageTransition>
