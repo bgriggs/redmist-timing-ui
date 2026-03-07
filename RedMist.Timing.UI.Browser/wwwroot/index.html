@@ -9,16 +9,50 @@
 </head>
 
 <body style="margin: 0; overflow: hidden">
-<div id="out">
-    <div class="avalonia-splash">
-        <h2>
-            Loading Red Mist Timing...
-            <br />
-            <img src="web_hi_res_1024.png" width="300" />
-        </h2>
+    <div id="out">
+        <div class="avalonia-splash">
+            <h2>
+                Loading Red Mist Timing...
+                <br />
+                <img src="web_hi_res_1024.png" width="300" />
+            </h2>
+        </div>
     </div>
-</div>
-<script type='module' src="./main.js"></script>
+    <script>
+      window.addEventListener('message', async function (e) {
+        if (e.data && e.data.type !== 'purge-cache') return;
+
+        try {
+          // Clear Cache Storage
+          if ('caches' in window) {
+            var names = await caches.keys();
+            await Promise.all(names.map(function (n) { return caches.delete(n); }));
+          }
+
+          // Unregister Service Workers
+          if ('serviceWorker' in navigator) {
+            var regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(function (r) { return r.unregister(); }));
+          }
+
+          // Clear IndexedDB (Avalonia/.NET WASM may cache assemblies here)
+          if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
+            var dbs = await indexedDB.databases();
+            dbs.forEach(function (db) {
+              if (db.name) indexedDB.deleteDatabase(db.name);
+            });
+          }
+        } catch (err) {
+          console.warn('purge-cache error:', err);
+        }
+
+        // Acknowledge to the parent so it can proceed
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'purge-cache-done' }, '*');
+        }
+      });
+    </script>
+    <script type='module' src="./main.js"></script>
 </body>
 
 </html>
