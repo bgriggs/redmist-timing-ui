@@ -69,12 +69,12 @@
             // files and update its HTTP cache. Without this, the browser serves
             // stale main.js / dotnet.js from its HTTP cache after the redirect,
             // which in turn loads stale WASM assemblies.
+            // Note: dotnet.runtime.*.js and dotnet.native.*.js use fingerprinted
+            // filenames (content hash), so they are inherently cache-safe.
             console.log('[auto-update] Pre-fetching fresh framework files...');
             await Promise.allSettled([
               fetch('./main.js', { cache: 'reload' }),
               fetch('./_framework/dotnet.js', { cache: 'reload' }),
-              fetch('./_framework/dotnet.runtime.js', { cache: 'reload' }),
-              fetch('./_framework/dotnet.native.js', { cache: 'reload' }),
             ]);
             console.log('[auto-update] Pre-fetch complete, redirecting...');
             var url = new URL(window.location.href);
