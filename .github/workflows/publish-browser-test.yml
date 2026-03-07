@@ -54,6 +54,28 @@ jobs:
       - name: Publish
         run: dotnet publish "RedMist.Timing.UI.Browser/RedMist.Timing.UI.Browser.csproj" -p:PublishTrimmed=false -o ${{ github.workspace }}\publish-output
 
+      - name: Cache-bust static assets
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content "Directory.Build.props"
+          $version = ($props.Project.PropertyGroup.SharedVersion | Where-Object { $_ })
+          $publishDir = "${{ github.workspace }}\publish-output\wwwroot"
+
+          # Append ?v=VERSION to main.js and app.css references in index.html
+          $indexPath = "$publishDir\index.html"
+          $html = Get-Content $indexPath -Raw
+          $html = $html -replace 'href="./app.css"', "href=`"./app.css?v=$version`""
+          $html = $html -replace 'src="./main.js"', "src=`"./main.js?v=$version`""
+          Set-Content $indexPath $html -NoNewline -Encoding UTF8
+
+          # Append ?v=VERSION to _framework/dotnet.js import in main.js
+          $mainJsPath = "$publishDir\main.js"
+          $js = Get-Content $mainJsPath -Raw
+          $js = $js -replace "from '\./\_framework/dotnet\.js'", "from './_framework/dotnet.js?v=$version'"
+          Set-Content $mainJsPath $js -NoNewline -Encoding UTF8
+
+          Write-Host "Cache-busted static assets with version $version"
+
       - name: Create version.json
         shell: pwsh
         run: |
