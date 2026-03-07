@@ -65,6 +65,18 @@
               var dbs = await indexedDB.databases();
               dbs.forEach(function(db) { if (db.name) indexedDB.deleteDatabase(db.name); });
             }
+            // Force the browser to download fresh copies of critical framework
+            // files and update its HTTP cache. Without this, the browser serves
+            // stale main.js / dotnet.js from its HTTP cache after the redirect,
+            // which in turn loads stale WASM assemblies.
+            console.log('[auto-update] Pre-fetching fresh framework files...');
+            await Promise.allSettled([
+              fetch('./main.js', { cache: 'reload' }),
+              fetch('./_framework/dotnet.js', { cache: 'reload' }),
+              fetch('./_framework/dotnet.runtime.js', { cache: 'reload' }),
+              fetch('./_framework/dotnet.native.js', { cache: 'reload' }),
+            ]);
+            console.log('[auto-update] Pre-fetch complete, redirecting...');
             var url = new URL(window.location.href);
             url.searchParams.set('_v', serverVer);
             window.location.replace(url.toString());
