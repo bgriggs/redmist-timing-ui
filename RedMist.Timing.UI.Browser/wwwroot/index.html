@@ -27,6 +27,7 @@
           var params = new URLSearchParams(window.location.search);
           var vParam = params.get('_v');
           if (vParam) {
+            console.log('[auto-update] Arrived via version redirect, storing version:', vParam);
             localStorage.setItem('app-version', vParam);
             params.delete('_v');
             var clean = window.location.pathname +
@@ -35,16 +36,23 @@
             history.replaceState(null, '', clean);
             return;
           }
+          console.log('[auto-update] Checking for new version...');
           var resp = await fetch('./version.json', { cache: 'no-store' });
-          if (!resp.ok) return;
+          if (!resp.ok) {
+            console.warn('[auto-update] Failed to fetch version.json:', resp.status);
+            return;
+          }
           var data = await resp.json();
           var serverVer = data.version;
           var localVer = localStorage.getItem('app-version');
+          console.log('[auto-update] Server version:', serverVer, '| Local version:', localVer);
           if (!localVer) {
+            console.log('[auto-update] First visit, storing version:', serverVer);
             localStorage.setItem('app-version', serverVer);
             return;
           }
           if (localVer !== serverVer) {
+            console.log('[auto-update] Version mismatch! Clearing caches and redirecting...');
             if ('caches' in window) {
               var names = await caches.keys();
               await Promise.all(names.map(function(n) { return caches.delete(n); }));
@@ -60,9 +68,11 @@
             var url = new URL(window.location.href);
             url.searchParams.set('_v', serverVer);
             window.location.replace(url.toString());
+          } else {
+            console.log('[auto-update] Version is current, no update needed.');
           }
         } catch (e) {
-          console.warn('Version check error:', e);
+          console.warn('[auto-update] Version check error:', e);
         }
       })();
     </script>
