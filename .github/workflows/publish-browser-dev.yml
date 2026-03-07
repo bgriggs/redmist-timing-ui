@@ -71,7 +71,7 @@ jobs:
           # Append ?v=VERSION to _framework/dotnet.js import in main.js
           $mainJsPath = "$publishDir\main.js"
           $js = Get-Content $mainJsPath -Raw
-          $js = $js -replace "from '\./_framework/dotnet\.js'", "from './_framework/dotnet.js?v=$version'"
+          $js = $js -replace "from '\._framework/dotnet\.js'", "from './_framework/dotnet.js?v=$version'"
           Set-Content $mainJsPath $js -NoNewline -Encoding UTF8
 
           Write-Host "Cache-busted static assets with version $version"
