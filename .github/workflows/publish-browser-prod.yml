@@ -68,12 +68,6 @@ jobs:
           $html = $html -replace 'src="./main.js"', "src=`"./main.js?v=$version`""
           Set-Content $indexPath $html -NoNewline -Encoding UTF8
 
-          # Append ?v=VERSION to _framework/dotnet.js import in main.js
-          $mainJsPath = "$publishDir\main.js"
-          $js = Get-Content $mainJsPath -Raw
-          $js = $js -replace "from '\._framework/dotnet\.js'", "from './_framework/dotnet.js?v=$version'"
-          Set-Content $mainJsPath $js -NoNewline -Encoding UTF8
-
           Write-Host "Cache-busted static assets with version $version"
 
       - name: Create version.json
