@@ -92,7 +92,27 @@ public class MainActivity : AvaloniaMainActivity<App>
 
         public override void HandleOnBackPressed()
         {
-            _activity.HandleBackPress();
+            if (App.Current is App app)
+            {
+                var mainVm = app.GetService<MainViewModel>();
+                bool handled = mainVm.HandleDeviceBackButton();
+                if (!handled)
+                {
+                    // Disable this callback before re-invoking the dispatcher to avoid
+                    // infinite recursion: OnBackPressedDispatcher would call this callback
+                    // again, which calls HandleBackPress, which calls base.OnBackPressed(),
+                    // which calls the dispatcher, and so on (StackOverflowError).
+                    Enabled = false;
+                    _activity.OnBackPressedDispatcher.OnBackPressed();
+                    Enabled = true;
+                }
+            }
+            else
+            {
+                Enabled = false;
+                _activity.OnBackPressedDispatcher.OnBackPressed();
+                Enabled = true;
+            }
         }
     }
 }
