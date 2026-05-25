@@ -41,7 +41,7 @@
 
             <TextBox Grid.Row="3"
                      Text="{Binding Code, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     PlaceholderText="Access code"
+                     Watermark="Access code"
                      MaxLength="7"
                      FontSize="20"
                      HorizontalContentAlignment="Center"
