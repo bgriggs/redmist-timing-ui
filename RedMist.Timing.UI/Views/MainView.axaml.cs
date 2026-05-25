@@ -34,19 +34,8 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
             if (insetsManager is not null)
             {
                 // Use dynamic to set DisplayEdgeToEdgePreference (enum value not directly accessible)
-                // This property replaces the obsolete DisplayEdgeToEdge boolean
-                try
-                {
-                    dynamic manager = insetsManager;
-                    manager.DisplayEdgeToEdgePreference = 1; // 1 = Always
-                }
-                catch
-                {
-                    // Fallback for versions without the new property
-#pragma warning disable CS0618 // Type or member is obsolete
-                    insetsManager.DisplayEdgeToEdge = true;
-#pragma warning restore CS0618 // Type or member is obsolete
-                }
+                dynamic manager = insetsManager;
+                manager.DisplayEdgeToEdgePreference = 1; // 1 = Always
             }
 
             if (DataContext is MainViewModel vm)

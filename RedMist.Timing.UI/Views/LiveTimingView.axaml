@@ -515,7 +515,7 @@
 			<Border Grid.Row="1" Margin="4,3,4,0" Padding="4,1" IsVisible="{Binding IsSearchVisible}"
 					Background="{DynamicResource TimingTableBackgroundBrush}" BorderThickness="1"
 					BorderBrush="{DynamicResource BorderPrimaryBrush}" CornerRadius="4">
-				<TextBox Watermark="Search by car # or name (comma separated)" Text="{Binding SearchText, Mode=TwoWay}"
+				<TextBox PlaceholderText="Search by car # or name (comma separated)" Text="{Binding SearchText, Mode=TwoWay}"
 						 FontSize="11" Padding="4,2" MinHeight="0" BorderThickness="0" Background="Transparent"/>
 			</Border>
 

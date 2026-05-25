@@ -4,8 +4,8 @@ namespace RedMist.UI.LoadTestRunner;
 
 internal class Program
 {
-    const string EXE_PATH = "D:\\code\\redmist-timing-ui\\RedMist.Timing.UI.Desktop\\bin\\Debug\\net10.0\\RedMist.Timing.UI.Desktop.exe";
-    const int INSTANCES = 25;
+    const string EXE_PATH = "C:\\code\\redmist-timing-ui\\RedMist.Timing.UI.Desktop\\bin\\Debug\\net10.0\\RedMist.Timing.UI.Desktop.exe";
+    const int INSTANCES = 125;
     const int EVENT_ID = 8;
 
     static void Main()
@@ -19,6 +19,7 @@ internal class Program
             var p = Process.Start(si);
             processIds.Add(p!.Id);
             Console.WriteLine($"Started {p.Id}");
+            Thread.Sleep(1300);
         }
 
         Console.WriteLine("Press enter to terminate instances");

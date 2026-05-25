@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Extensions.DependencyInjection;
@@ -53,10 +52,6 @@ public partial class App : Application
 #if DEBUG
         //McpRuntimeInspectorExtension.Initialize();
 #endif
-
-        // Line below is needed to remove Avalonia data validation.
-        // Without this line you will get duplicate validations from both Avalonia and CT
-        BindingPlugins.DataValidators.RemoveAt(0);
 
         // Dependency injection: https://github.com/stevemonaco/AvaloniaViewModelFirstDemos
         // NuGet source: https://pkgs.dev.azure.com/dotnet/CommunityToolkit/_packaging/CommunityToolkit-Labs/nuget/v3/index.json

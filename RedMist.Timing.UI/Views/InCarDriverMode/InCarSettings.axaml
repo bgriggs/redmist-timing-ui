@@ -33,7 +33,7 @@
 					BoxShadow="0 2 8 0 #10000000">
 				<StackPanel Spacing="12">
 					<TextBlock Text="Loading..." IsVisible="{Binding IsLoading}" Classes="title"/>
-					<TextBox Text="{Binding CarNumber}" Watermark="Car Number" Width="140" HorizontalAlignment="Left"/>
+					<TextBox Text="{Binding CarNumber}" PlaceholderText="Car Number" Width="140" HorizontalAlignment="Left"/>
 					<StackPanel Spacing="4">
 						<TextBlock Text="Select Event" Classes="tableheader"/>
 						<ComboBox ItemsSource="{Binding Events}" SelectedItem="{Binding SelectedEvent}" HorizontalAlignment="Stretch">
