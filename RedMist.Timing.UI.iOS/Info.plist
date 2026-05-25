@@ -21,6 +21,11 @@
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>Launch</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
