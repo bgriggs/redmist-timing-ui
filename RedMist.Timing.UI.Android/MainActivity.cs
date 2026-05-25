@@ -56,23 +56,13 @@ public class MainActivity : AvaloniaMainActivity<App>
 
     private void HandleBackPress()
     {
-        if (App.Current is App app)
+        if (App.Current is App app
+            && app.GetService<MainViewModel>().HandleDeviceBackButton())
         {
-            var mainVm = app.GetService<MainViewModel>();
-            bool handled = mainVm.HandleDeviceBackButton();
-            if (!handled)
-            {
-#pragma warning disable CA1422 // Validate platform compatibility
-                base.OnBackPressed();
-#pragma warning restore CA1422 // Validate platform compatibility
-            }
+            return;
         }
-        else
-        {
-#pragma warning disable CA1422 // Validate platform compatibility
-            base.OnBackPressed();
-#pragma warning restore CA1422 // Validate platform compatibility
-        }
+
+        MoveTaskToBack(true);
     }
 
     protected override void OnDestroy()
@@ -92,27 +82,18 @@ public class MainActivity : AvaloniaMainActivity<App>
 
         public override void HandleOnBackPressed()
         {
-            if (App.Current is App app)
+            if (App.Current is App app
+                && app.GetService<MainViewModel>().HandleDeviceBackButton())
             {
-                var mainVm = app.GetService<MainViewModel>();
-                bool handled = mainVm.HandleDeviceBackButton();
-                if (!handled)
-                {
-                    // Disable this callback before re-invoking the dispatcher to avoid
-                    // infinite recursion: OnBackPressedDispatcher would call this callback
-                    // again, which calls HandleBackPress, which calls base.OnBackPressed(),
-                    // which calls the dispatcher, and so on (StackOverflowError).
-                    Enabled = false;
-                    _activity.OnBackPressedDispatcher.OnBackPressed();
-                    Enabled = true;
-                }
+                return;
             }
-            else
-            {
-                Enabled = false;
-                _activity.OnBackPressedDispatcher.OnBackPressed();
-                Enabled = true;
-            }
+
+            // At the root with nothing to navigate back to. Don't re-invoke the
+            // dispatcher: that falls through ComponentActivity's default lambda
+            // into Activity.onBackPressed/onBackInvoked while this callback is
+            // still registered, which crashes on some Android 14/15 ROMs.
+            // Instead, mimic the typical launcher-app back behavior directly.
+            _activity.MoveTaskToBack(true);
         }
     }
 }
