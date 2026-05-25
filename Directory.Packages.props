@@ -41,11 +41,10 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.7.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.2.3" />
     <PackageVersion Include="MSTest" Version="4.2.3" />
-    <!-- SkiaSharp - for Android 16KB requirement, use 3.119.0 -->
-    <!-- For other platforms, use the standard version -->
-    <PackageVersion Include="SkiaSharp" Version="3.119.3-preview.1.1" />
-    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.3-preview.1.1" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="3.119.0" />
+    <!-- SkiaSharp 3.119.2+ includes 16KB page size support for Android -->
+    <PackageVersion Include="SkiaSharp" Version="3.119.2" />
+    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.2" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="3.119.2" />
     <PackageVersion Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="8.3.1.3" />
   </ItemGroup>
 </Project>
