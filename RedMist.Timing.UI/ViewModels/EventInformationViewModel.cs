@@ -20,7 +20,9 @@ public partial class EventInformationViewModel : ObservableObject
     public Event EventModel { get; }
     private readonly OrganizationIconCacheService iconCacheService;
 
-    public string Name => EventModel.EventName;
+    public string Name => string.IsNullOrEmpty(EventModel.EventName) && EventModel.IsPrivate
+        ? "Private Event"
+        : EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
     public string Dates
      {

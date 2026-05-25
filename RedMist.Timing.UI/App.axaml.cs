@@ -279,6 +279,7 @@ public partial class App : Application
     [Singleton(typeof(SponsorIconCacheService))]
     [Singleton(typeof(SponsorsService))]
     [Singleton(typeof(SponsorRotatorViewModel))]
+    [Singleton(typeof(EventAccessCodeStore))]
     internal static partial void ConfigureServices(IServiceCollection services);
 
     [Singleton(typeof(MainViewModel))]

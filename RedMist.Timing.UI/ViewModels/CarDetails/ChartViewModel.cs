@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
@@ -153,8 +152,15 @@ public partial class ChartViewModel : ObservableObject
     {
         if (obj.Model != null && obj.Visual != null)
         {
-            var brush = (ImmutableSolidColorBrush)obj.Model.FlagColor;
-            var skColor = new SKColor(brush.Color.R, brush.Color.G, brush.Color.B, brush.Color.A);
+            SKColor skColor;
+            if (obj.Model.FlagColor is ISolidColorBrush solidBrush)
+            {
+                skColor = new SKColor(solidBrush.Color.R, solidBrush.Color.G, solidBrush.Color.B, solidBrush.Color.A);
+            }
+            else
+            {
+                skColor = SKColors.White;
+            }
             obj.Visual.Fill = new SolidColorPaint(skColor);
         }
     }

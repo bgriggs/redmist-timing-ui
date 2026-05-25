@@ -22,8 +22,9 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public enum TabTypes { LiveTiming, Results, ControlLog, EventInformation }
 
-public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, 
-    IRecipient<SizeChangedNotification>
+public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>,
+    IRecipient<SizeChangedNotification>, IRecipient<EventAccessDeniedNotification>,
+    IRecipient<AccessCodeRequestNotification>
 {
     public event Action<bool>? IsTimingTabStripVisibleChanged;
     public EventsListViewModel EventsListViewModel { get; }
@@ -168,10 +169,20 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     [ObservableProperty]
     private bool isMandatoryUpdateVisible = false;
 
+    [ObservableProperty]
+    private AccessCodePromptViewModel? accessCodePromptViewModel;
+
+    [ObservableProperty]
+    private bool isAccessCodePromptVisible = false;
+
+    private readonly EventAccessCodeStore accessCodeStore;
+    private Event? currentEvent;
+    private string currentEventOrganizationName = string.Empty;
+
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
         EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext,
-        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, SponsorRotatorViewModel sponsorRotator, IPreferencesService preferencesService, IScreenWakeService screenWakeService)
+        IPlatformDetectionService platformDetectionService, IVersionCheckService versionCheckService, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, SponsorRotatorViewModel sponsorRotator, IPreferencesService preferencesService, IScreenWakeService screenWakeService, EventAccessCodeStore accessCodeStore)
     {
         EventsListViewModel = eventsListViewModel;
         LiveTimingViewModel = liveTimingViewModel;
@@ -188,6 +199,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         this.sponsorRotator = sponsorRotator;
         this.preferencesService = preferencesService;
         this.screenWakeService = screenWakeService;
+        this.accessCodeStore = accessCodeStore;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
@@ -266,9 +278,11 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 IsEventsListVisible = false;
 
                 int eventId = 0;
+                string organizationName = string.Empty;
                 if (router.Data is EventListSummary @event)
                 {
                     eventId = @event.Id;
+                    organizationName = @event.OrganizationName;
                 }
                 else if (router.Data is int id)
                 {
@@ -281,47 +295,19 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     eventModel = await eventClient.LoadEventAsync(eventId);
                 }
 
-                if (eventModel != null)
+                if (eventModel == null)
+                    return;
+
+                currentEvent = eventModel;
+                currentEventOrganizationName = organizationName;
+
+                if (eventModel.IsPrivate && string.IsNullOrEmpty(accessCodeStore.Get(eventModel.EventId)))
                 {
-                    //var hasLiveSession = eventModel.Sessions.Any(s => s.IsLive);
-                    if (eventModel.IsLive)
-                    {
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                await LiveTimingViewModel.InitializeLiveAsync(eventModel);
-                            }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Error initializing live timing: {ex}");
-                                // If you have access to a logger, use it instead:
-                                // Logger?.LogError(ex, "Error initializing live timing");
-                            }
-                        });
-                    }
-
-                    ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator);
-                    EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService);
-                    ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService);
-                    FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService);
-                    var isMobile = platformDetectionService.GetCurrentPlatform() is AppPlatform.Android or AppPlatform.iOS;
-                    SettingsViewModel = new SettingsViewModel(preferencesService, screenWakeService, isMobile);
-                    IsControlLogAvailable = eventModel.HasControlLog;
-
-                    IsTimingTabStripVisible = true;
-                    IsLiveTimingTabVisible = eventModel.IsLive;
-
-                    // Ensure at least one tab is selected when tab strip becomes visible
-                    if (eventModel.IsLive)
-                    {
-                        IsLiveTimingTabSelected = true;
-                    }
-                    else
-                    {
-                        IsResultsTabSelected = true;
-                    }
+                    ShowAccessCodePrompt(eventModel, organizationName);
+                    return;
                 }
+
+                await SetupForEventAsync(eventModel, organizationName);
             }
             else if (router.Path == "EventsList")
             {
@@ -366,10 +352,14 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
                 IsTimingTabStripVisible = false;
                 IsDriverModeVisible = false;
+                IsAccessCodePromptVisible = false;
+                AccessCodePromptViewModel = null;
+                currentEvent = null;
+                currentEventOrganizationName = string.Empty;
             }
             else if (router.Path == "InCarDriverSettings")
             {
-                InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient);
+                InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient, accessCodeStore);
                 
                 _ = Task.Run(async () =>
                 {
@@ -399,6 +389,92 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             // If you have access to a logger, use it instead:
             // Logger?.LogError(ex, "Error handling router message");
         }
+    }
+
+    private void ShowAccessCodePrompt(Event eventModel, string organizationName,
+        Func<Task>? onSuccess = null, Action? onCancel = null)
+    {
+        var orgName = !string.IsNullOrEmpty(organizationName) ? organizationName : eventModel.OrganizationName;
+        AccessCodePromptViewModel = new AccessCodePromptViewModel(
+            eventModel.EventId,
+            eventModel.EventName,
+            orgName,
+            eventClient,
+            accessCodeStore,
+            loggerFactory,
+            onSuccess: async () =>
+            {
+                IsAccessCodePromptVisible = false;
+                AccessCodePromptViewModel = null;
+                if (onSuccess != null)
+                {
+                    await onSuccess();
+                }
+                else
+                {
+                    await SetupForEventAsync(eventModel, orgName);
+                }
+            },
+            onCancel: () =>
+            {
+                IsAccessCodePromptVisible = false;
+                AccessCodePromptViewModel = null;
+                if (onCancel != null)
+                {
+                    onCancel();
+                }
+                else
+                {
+                    WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(new RouterEvent { Path = "EventsList" }));
+                }
+            });
+        IsAccessCodePromptVisible = true;
+    }
+
+    private async Task SetupForEventAsync(Event eventModel, string organizationName)
+    {
+        if (eventModel.IsLive)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await LiveTimingViewModel.InitializeLiveAsync(eventModel);
+                }
+                catch (EventAccessDeniedException)
+                {
+                    Logger.LogWarning("Access denied subscribing to event {EventId} — re-prompting", eventModel.EventId);
+                    accessCodeStore.Clear(eventModel.EventId);
+                    ShowAccessCodePrompt(eventModel, organizationName);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error initializing live timing");
+                }
+            });
+        }
+
+        ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator);
+        EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService);
+        ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService);
+        FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService);
+        var isMobile = platformDetectionService.GetCurrentPlatform() is AppPlatform.Android or AppPlatform.iOS;
+        SettingsViewModel = new SettingsViewModel(preferencesService, screenWakeService, isMobile);
+        IsControlLogAvailable = eventModel.HasControlLog;
+
+        IsTimingTabStripVisible = true;
+        IsLiveTimingTabVisible = eventModel.IsLive;
+
+        if (eventModel.IsLive)
+        {
+            IsLiveTimingTabSelected = true;
+        }
+        else
+        {
+            IsResultsTabSelected = true;
+        }
+
+        await Task.CompletedTask;
     }
 
     public bool HandleDeviceBackButton()
@@ -602,5 +678,32 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     {
         //IsFlagsTabVisible = viewSizeService.CurrentSize.Width > FlagShowWidth;
         //IsControlLogTabVisible = viewSizeService.CurrentSize.Width > ControlLogShowWidth;
+    }
+
+    /// <summary>
+    /// Another VM (e.g. In-Car driver settings) needs the access-code prompt.
+    /// Honor it using this view model's overlay so there's a single UI surface.
+    /// </summary>
+    public void Receive(AccessCodeRequestNotification message)
+    {
+        var req = message.Value;
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            ShowAccessCodePrompt(req.EventModel, req.OrganizationName, req.OnSuccess, req.OnCancel));
+    }
+
+    /// <summary>
+    /// A gated endpoint rejected the stored access code. Clear it and re-prompt
+    /// if this notification matches the event we're currently viewing.
+    /// </summary>
+    public void Receive(EventAccessDeniedNotification message)
+    {
+        var eventId = message.Value;
+        if (currentEvent == null || currentEvent.EventId != eventId)
+            return;
+        if (IsAccessCodePromptVisible)
+            return;
+
+        accessCodeStore.Clear(eventId);
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => ShowAccessCodePrompt(currentEvent, currentEventOrganizationName));
     }
 }

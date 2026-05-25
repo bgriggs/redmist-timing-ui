@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
+             xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="320"
+             x:Class="RedMist.Timing.UI.Views.AccessCodePromptView"
+             x:DataType="vm:AccessCodePromptViewModel">
+    <Design.DataContext>
+        <design:DesignAccessCodePromptViewModel />
+    </Design.DataContext>
+
+    <Border Background="{DynamicResource MandatoryUpdateDialogBackgroundBrush}"
+            BorderBrush="{DynamicResource MandatoryUpdateDialogBorderBrush}"
+            BorderThickness="2"
+            CornerRadius="8"
+            Padding="24"
+            MaxWidth="380"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
+                <TextBlock Text="🔒" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Private Event" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="1"
+                       Text="{Binding OrganizationName}"
+                       FontSize="12"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,16"
+                       IsVisible="{Binding OrganizationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <TextBlock Grid.Row="2"
+                       Text="Enter the access code provided by the event organizer."
+                       TextWrapping="Wrap"
+                       FontSize="12"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,12"/>
+
+            <TextBox Grid.Row="3"
+                     Text="{Binding Code, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     PlaceholderText="Access code"
+                     MaxLength="7"
+                     FontSize="20"
+                     HorizontalContentAlignment="Center"
+                     Margin="0,0,0,8"
+                     IsEnabled="{Binding !IsValidating}"/>
+
+            <TextBlock Grid.Row="4"
+                       Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,12"
+                       IsVisible="{Binding HasError}"/>
+
+            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                <Button Content="Cancel"
+                        Padding="14,6"
+                        Command="{Binding CancelCommand}"
+                        IsEnabled="{Binding !IsValidating}"/>
+                <Button Content="Continue"
+                        Padding="14,6"
+                        Background="{DynamicResource MandatoryUpdateButtonBackgroundBrush}"
+                        Foreground="{DynamicResource MandatoryUpdateButtonForegroundBrush}"
+                        Command="{Binding ContinueCommand}"
+                        IsDefault="True"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
