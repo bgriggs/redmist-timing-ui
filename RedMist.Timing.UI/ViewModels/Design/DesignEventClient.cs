@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.Configuration;
 using System;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
-public class DesignEventClient(IConfiguration configuration) : EventClient(configuration, new DebugLoggerFactory())
+public class DesignEventClient(IConfiguration configuration) : EventClient(configuration, new DebugLoggerFactory(), new EventAccessCodeStore(new MockPreferencesService()))
 {
     public override Task<List<EventListSummary>> LoadRecentEventsAsync()
     {

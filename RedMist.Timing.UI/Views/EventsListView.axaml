@@ -88,6 +88,12 @@
 									<Border MinWidth="75" Height="26" Background="{DynamicResource eventSimulationBackground}" CornerRadius="6" Padding="10,0" IsVisible="{Binding IsSimulation}">
 										<TextBlock Text="SIMULATION" Foreground="{DynamicResource eventSimulationForeground}" FontSize="9" FontWeight="Medium" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 									</Border>
+									<Border MinWidth="75" Height="26" CornerRadius="6" Padding="10,0" IsVisible="{Binding IsPrivate}" BorderBrush="{DynamicResource boldItemBorder}" BorderThickness="1">
+										<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+											<TextBlock Text="🔒" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+											<TextBlock Text="PRIVATE" FontSize="9" FontWeight="Medium" VerticalAlignment="Center"/>
+										</StackPanel>
+									</Border>
 								</StackPanel>
 							</Grid>
 						</Button>

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarDriverMode;
 using System;
@@ -26,14 +27,17 @@ public class HubClient : HubClientBase
     private (int eventId, string car)? subscribedInCarDriverEventIdAndCar;
     private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(5));
     private readonly IConfiguration configuration;
+    private readonly EventAccessCodeStore accessCodeStore;
     private long sessionUpdateCount;
 
 
-    public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration) : base(loggerFactory, configuration)
+    public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration, EventAccessCodeStore accessCodeStore)
+        : base(loggerFactory, configuration)
     {
         Logger = loggerFactory.CreateLogger(GetType().Name);
         ConnectionStatusChanged += HubClient_ConnectionStatusChanged;
         this.configuration = configuration;
+        this.accessCodeStore = accessCodeStore;
     }
 
 
@@ -79,32 +83,35 @@ public class HubClient : HubClientBase
             {
                 if (subscribedEventId != null)
                 {
+                    var eventId = subscribedEventId.Value;
+                    var accessCode = accessCodeStore.Get(eventId);
                     _ = debouncer.ExecuteAsync(async () =>
                     {
                         try
                         {
-                            Logger.LogInformation("Invoking SubscribeToEventV2 for event {EventId}", subscribedEventId);
-                            await hub.InvokeAsync("SubscribeToEventV2", subscribedEventId.Value);
-                            Logger.LogInformation("Successfully invoked SubscribeToEventV2 for event {EventId}", subscribedEventId);
+                            Logger.LogInformation("Invoking SubscribeToEventV2 for event {EventId}", eventId);
+                            await hub.InvokeAsync("SubscribeToEventV2", eventId, accessCode);
+                            Logger.LogInformation("Successfully invoked SubscribeToEventV2 for event {EventId}", eventId);
                         }
                         catch (Exception ex)
                         {
-                            Logger.LogError(ex, "Failed to invoke SubscribeToEventV2 for event {EventId}", subscribedEventId);
+                            Logger.LogError(ex, "Failed to invoke SubscribeToEventV2 for event {EventId}", eventId);
                             throw;
                         }
                     });
                 }
                 else if (subscribedInCarDriverEventIdAndCar != null)
                 {
+                    var eventId = subscribedInCarDriverEventIdAndCar.Value.eventId;
+                    var car = subscribedInCarDriverEventIdAndCar.Value.car;
+                    var accessCode = accessCodeStore.Get(eventId);
                     _ = debouncer.ExecuteAsync(async () =>
                     {
                         try
                         {
                             Logger.LogInformation("Invoking SubscribeToInCarDriverEventV2 for event {EventId}, car {Car}",
-                                subscribedInCarDriverEventIdAndCar.Value.eventId, subscribedInCarDriverEventIdAndCar.Value.car);
-                            await hub.InvokeAsync("SubscribeToInCarDriverEventV2",
-                                subscribedInCarDriverEventIdAndCar.Value.eventId,
-                                subscribedInCarDriverEventIdAndCar.Value.car);
+                                eventId, car);
+                            await hub.InvokeAsync("SubscribeToInCarDriverEventV2", eventId, car, accessCode);
                             Logger.LogInformation("Successfully invoked SubscribeToInCarDriverEventV2");
                         }
                         catch (Exception ex)
@@ -234,7 +241,8 @@ public class HubClient : HubClientBase
 
         try
         {
-            await hub.InvokeAsync("SubscribeToControlLogs", eventId);
+            var accessCode = accessCodeStore.Get(eventId);
+            await hub.InvokeAsync("SubscribeToControlLogs", eventId, accessCode);
 
             hub.Remove("ReceiveControlLog");
             hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));
@@ -267,7 +275,8 @@ public class HubClient : HubClientBase
 
         try
         {
-            await hub.InvokeAsync("SubscribeToCarControlLogs", eventId, carNum);
+            var accessCode = accessCodeStore.Get(eventId);
+            await hub.InvokeAsync("SubscribeToCarControlLogs", eventId, carNum, accessCode);
 
             hub.Remove("ReceiveControlLog");
             hub.On("ReceiveControlLog", (CarControlLogs s) => ProcessControlLogs(s));

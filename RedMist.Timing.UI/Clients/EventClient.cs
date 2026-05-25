@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.Configuration;
@@ -7,18 +10,21 @@ using RedMist.TimingCommon.Models.InCarDriverMode;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Clients;
 
 public class EventClient : BaseRestClient
 {
+    private readonly EventAccessCodeStore accessCodeStore;
     private ILogger Logger { get; }
 
 
-    public EventClient(IConfiguration configuration, ILoggerFactory loggerFactory)
+    public EventClient(IConfiguration configuration, ILoggerFactory loggerFactory, EventAccessCodeStore accessCodeStore)
         : base(configuration, "Server:EventUrl")
     {
+        this.accessCodeStore = accessCodeStore;
         Logger = loggerFactory.CreateLogger(GetType().Name);
     }
 
@@ -32,6 +38,11 @@ public class EventClient : BaseRestClient
             try
             {
                 return await operation();
+            }
+            catch (EventAccessDeniedException)
+            {
+                // Don't retry on access denied - caller needs to prompt for a new code.
+                throw;
             }
             catch (Exception ex)
             {
@@ -52,7 +63,7 @@ public class EventClient : BaseRestClient
         throw new InvalidOperationException("This should never be reached");
     }
 
-    public virtual async Task<List<EventListSummary>> LoadRecentEventsAsync() 
+    public virtual async Task<List<EventListSummary>> LoadRecentEventsAsync()
     {
         var request = new RestRequest("LoadLiveAndRecentEvents", Method.Get);
         return await RestClient.GetAsync<List<EventListSummary>>(request) ?? [];
@@ -72,7 +83,10 @@ public class EventClient : BaseRestClient
             return null;
         var request = new RestRequest("LoadEvent", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await RestClient.GetAsync<TimingCommon.Models.Event?>(request);
+        // LoadEvent itself is not gated by the access code, but attach it anyway
+        // so the same path works once the user has provided one.
+        AttachAccessCode(request, eventId);
+        return await GetAsync<TimingCommon.Models.Event?>(request, eventId);
     }
 
     public virtual async Task<SessionState?> LoadEventStatusAsync(int eventId)
@@ -81,7 +95,8 @@ public class EventClient : BaseRestClient
             return null;
         var request = new RestRequest("GetCurrentSessionState", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await RestClient.GetAsync<SessionState?>(request);
+        AttachAccessCode(request, eventId);
+        return await GetAsync<SessionState?>(request, eventId);
     }
 
     public virtual async Task<List<CarPosition>> LoadCarLapsAsync(int eventId, int sessionId, string carNumber)
@@ -90,14 +105,16 @@ public class EventClient : BaseRestClient
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
         request.AddQueryParameter("carNumber", carNumber);
-        return await RestClient.GetAsync<List<CarPosition>>(request) ?? [];
+        AttachAccessCode(request, eventId);
+        return await GetAsync<List<CarPosition>>(request, eventId) ?? [];
     }
 
     public virtual async Task<List<Session>> LoadSessionsAsync(int eventId)
     {
         var request = new RestRequest("LoadSessions", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await RestClient.GetAsync<List<Session>>(request) ?? [];
+        AttachAccessCode(request, eventId);
+        return await GetAsync<List<Session>>(request, eventId) ?? [];
     }
 
     public virtual async Task<SessionState?> LoadSessionResultsAsync(int eventId, int sessionId)
@@ -105,7 +122,8 @@ public class EventClient : BaseRestClient
         var request = new RestRequest("LoadSessionResults", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
-        return await RestClient.GetAsync<SessionState?>(request);
+        AttachAccessCode(request, eventId);
+        return await GetAsync<SessionState?>(request, eventId);
     }
 
     public virtual async Task<CompetitorMetadata?> LoadCompetitorMetadataAsync(int eventId, string car)
@@ -113,14 +131,16 @@ public class EventClient : BaseRestClient
         var request = new RestRequest("LoadCompetitorMetadata", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("car", car);
-        return await RestClient.GetAsync<CompetitorMetadata?>(request);
+        AttachAccessCode(request, eventId);
+        return await GetAsync<CompetitorMetadata?>(request, eventId);
     }
 
     public virtual async Task<List<ControlLogEntry>> LoadControlLogAsync(int eventId)
     {
         var request = new RestRequest("LoadControlLog", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        return await RestClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
+        AttachAccessCode(request, eventId);
+        return await GetAsync<List<ControlLogEntry>>(request, eventId) ?? [];
     }
 
     public virtual async Task<List<ControlLogEntry>> LoadSessionHistoricalControlLogAsync(int eventId, int sessionId)
@@ -128,7 +148,8 @@ public class EventClient : BaseRestClient
         var request = new RestRequest("LoadSessionHistoricalControlLog", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
-        return await RestClient.GetAsync<List<ControlLogEntry>>(request) ?? [];
+        AttachAccessCode(request, eventId);
+        return await GetAsync<List<ControlLogEntry>>(request, eventId) ?? [];
     }
 
     public virtual async Task<CarControlLogs?> LoadCarControlLogsAsync(int eventId, string car)
@@ -136,7 +157,8 @@ public class EventClient : BaseRestClient
         var request = new RestRequest("LoadCarControlLogs", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("car", car);
-        return await RestClient.GetAsync<CarControlLogs?>(request);
+        AttachAccessCode(request, eventId);
+        return await GetAsync<CarControlLogs?>(request, eventId);
     }
 
     public virtual async Task<InCarPayload?> LoadInCarDriverModePayloadAsync(int eventId, string car)
@@ -144,7 +166,8 @@ public class EventClient : BaseRestClient
         var request = new RestRequest("LoadInCarPayload", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("car", car);
-        return await RestClient.GetAsync<InCarPayload?>(request);
+        AttachAccessCode(request, eventId);
+        return await GetAsync<InCarPayload?>(request, eventId);
     }
 
     public virtual async Task<List<FlagDuration>> LoadFlagsAsync(int eventId, int sessionId)
@@ -152,12 +175,44 @@ public class EventClient : BaseRestClient
         var request = new RestRequest("LoadFlags", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         request.AddQueryParameter("sessionId", sessionId);
-        return await RestClient.GetAsync<List<FlagDuration>>(request) ?? [];
+        AttachAccessCode(request, eventId);
+        return await GetAsync<List<FlagDuration>>(request, eventId) ?? [];
     }
 
     public virtual async Task<UIVersionInfo?> LoadUIVersionInfoAsync()
     {
         var request = new RestRequest("GetUIVersionInfo", Method.Get);
         return await RestClient.GetAsync<UIVersionInfo>(request);
+    }
+
+    private void AttachAccessCode(RestRequest request, int eventId)
+    {
+        var code = accessCodeStore.Get(eventId);
+        if (!string.IsNullOrEmpty(code))
+        {
+            request.AddHeader(EventAccessCodeStore.HeaderName, code);
+        }
+    }
+
+    /// <summary>
+    /// Executes a request and translates HTTP 401 responses into <see cref="EventAccessDeniedException"/>
+    /// so callers can re-prompt for the access code.
+    /// </summary>
+    private async Task<T?> GetAsync<T>(RestRequest request, int eventId)
+    {
+        var response = await RestClient.ExecuteAsync<T>(request);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            // Broadcast so MainViewModel can re-prompt even if the caller swallows the throw.
+            WeakReferenceMessenger.Default.Send(new EventAccessDeniedNotification(eventId));
+            throw new EventAccessDeniedException(eventId);
+        }
+        if (!response.IsSuccessful)
+        {
+            if (response.ErrorException != null)
+                throw response.ErrorException;
+            return default;
+        }
+        return response.Data;
     }
 }

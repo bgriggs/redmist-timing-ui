@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Maui.Storage;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
+using RedMist.Timing.UI.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -48,12 +49,14 @@ public partial class InCarSettingsViewModel : ObservableValidator
 
     private readonly EventClient eventClient;
     private readonly HubClient hubClient;
+    private readonly EventAccessCodeStore accessCodeStore;
 
 
-    public InCarSettingsViewModel(EventClient eventClient, HubClient hubClient)
+    public InCarSettingsViewModel(EventClient eventClient, HubClient hubClient, EventAccessCodeStore accessCodeStore)
     {
         this.eventClient = eventClient;
         this.hubClient = hubClient;
+        this.accessCodeStore = accessCodeStore;
         inCarPositionsViewModel = new(hubClient, eventClient);
     }
 
@@ -132,18 +135,43 @@ public partial class InCarSettingsViewModel : ObservableValidator
                 sb.AppendLine(e.ErrorMessage);
             }
             Message = sb.ToString().TrimEnd();
+            return;
         }
-        else
+
+        Message = string.Empty;
+        TrySaveSettings();
+
+        var summary = SelectedEvent?.EventModel;
+        var eventId = summary?.Id ?? 0;
+
+        if (summary != null && summary.IsPrivate && string.IsNullOrEmpty(accessCodeStore.Get(eventId)))
         {
-            Message = string.Empty;
-
-            TrySaveSettings();
-
-            // Show driver mode content
-            IsPositionsVisible = true;
-            InCarPositionsViewModel = new InCarPositionsViewModel(hubClient, eventClient);
-            InCarPositionsViewModel.Initialize(SelectedEvent?.EventModel.Id ?? 0, CarNumber, IsInClassOnly);
+            // Use the shared prompt; once the code is set, fall through to start driver mode.
+            var eventModel = new TimingCommon.Models.Event
+            {
+                EventId = eventId,
+                EventName = summary.EventName,
+                OrganizationName = summary.OrganizationName,
+                IsPrivate = summary.IsPrivate,
+                HideName = summary.HideName,
+            };
+            WeakReferenceMessenger.Default.Send(new AccessCodeRequestNotification(
+                new AccessCodeRequest(
+                    eventModel,
+                    summary.OrganizationName,
+                    onSuccess: () => { StartDriverMode(eventId); return Task.CompletedTask; },
+                    onCancel: () => { /* user backed out; stay on settings */ })));
+            return;
         }
+
+        StartDriverMode(eventId);
+    }
+
+    private void StartDriverMode(int eventId)
+    {
+        IsPositionsVisible = true;
+        InCarPositionsViewModel = new InCarPositionsViewModel(hubClient, eventClient);
+        InCarPositionsViewModel.Initialize(eventId, CarNumber, IsInClassOnly);
     }
 
     private void TryLoadSettings()

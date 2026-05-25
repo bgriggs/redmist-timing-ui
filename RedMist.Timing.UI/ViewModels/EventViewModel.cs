@@ -14,9 +14,12 @@ namespace RedMist.Timing.UI.ViewModels;
 public partial class EventViewModel : ObservableObject
 {
     public EventListSummary EventModel { get; }
-    public string Name => EventModel.EventName;
+    public string Name => string.IsNullOrEmpty(EventModel.EventName) && EventModel.IsPrivate
+        ? "Private Event"
+        : EventModel.EventName;
     public string Organization => EventModel.OrganizationName;
     public int OrganizationId => EventModel.OrganizationId;
+    public bool IsPrivate => EventModel.IsPrivate;
 
     [ObservableProperty]
     private Bitmap? organizationLogo;

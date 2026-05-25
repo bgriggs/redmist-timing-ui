@@ -154,6 +154,14 @@
 			</Grid>
 		</Border>
 
+		<!-- Access Code Prompt Overlay - Full screen blocking overlay for private events -->
+		<Border IsVisible="{Binding IsAccessCodePromptVisible}"
+				Background="{DynamicResource MandatoryUpdateOverlayBackgroundBrush}"
+				HorizontalAlignment="Stretch"
+				VerticalAlignment="Stretch">
+			<v:AccessCodePromptView DataContext="{Binding AccessCodePromptViewModel}"/>
+		</Border>
+
 		<!-- Mandatory Update Overlay - Full screen blocking overlay -->
 		<Border IsVisible="{Binding IsMandatoryUpdateVisible}"
 		        Background="{DynamicResource MandatoryUpdateOverlayBackgroundBrush}"
