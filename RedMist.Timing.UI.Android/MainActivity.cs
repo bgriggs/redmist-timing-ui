@@ -14,19 +14,14 @@ namespace RedMist.Timing.UI.Android;
     Icon = "@drawable/icon",
     MainLauncher = true,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
-public class MainActivity : AvaloniaMainActivity<App>
+public class MainActivity : AvaloniaMainActivity
 {
     private OnBackPressedCallback? _backPressedCallback;
 
-    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
-    {
-        App.ScreenWakeServiceFactory = () => new AndroidScreenWakeService(this);
-        return base.CustomizeAppBuilder(builder)
-            .WithInterFont();
-    }
-
     protected override void OnCreate(Bundle? savedInstanceState)
     {
+        App.ScreenWakeServiceFactory = () => new AndroidScreenWakeService(this);
+
         base.OnCreate(savedInstanceState);
 
         // Use the modern OnBackPressedDispatcher API for Android 13+
