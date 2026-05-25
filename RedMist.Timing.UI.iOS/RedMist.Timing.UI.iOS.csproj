@@ -26,10 +26,15 @@
 		<!-- Preserve MessagePack assemblies from trimming -->
 		<TrimmerRootAssembly Include="MessagePack" />
 		<TrimmerRootAssembly Include="MessagePack.Annotations" />
+		<!-- Allow the trimmer to drop unused types from TimingCommon (notably TypeScript codegen specs that reach into TypeGen) -->
+		<TrimmableAssembly Include="RedMist.TimingCommon" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia.iOS" />
+		<!-- TypeGen is a build-time TS codegen library transitively pulled in by RedMist.TimingCommon.
+		     Strip it from the iOS publish so AOT never tries to compile TypeGen.Core (which uses reflection patterns AOT can't handle). -->
+		<PackageReference Include="TypeGen" ExcludeAssets="all" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>
