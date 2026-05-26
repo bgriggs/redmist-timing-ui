@@ -89,13 +89,21 @@ public class HubClient : HubClientBase
                     {
                         try
                         {
-                            Logger.LogInformation("Invoking SubscribeToEventV2 for event {EventId}", eventId);
-                            await hub.InvokeAsync("SubscribeToEventV2", eventId, accessCode);
-                            Logger.LogInformation("Successfully invoked SubscribeToEventV2 for event {EventId}", eventId);
+                            if (string.IsNullOrEmpty(accessCode))
+                            {
+                                Logger.LogInformation("Invoking SubscribeToEventV2 for event {EventId}", eventId);
+                                await hub.InvokeAsync("SubscribeToEventV2", eventId);
+                            }
+                            else
+                            {
+                                Logger.LogInformation("Invoking SubscribeToEventV2WithCode for event {EventId}", eventId);
+                                await hub.InvokeAsync("SubscribeToEventV2WithCode", eventId, accessCode);
+                            }
+                            Logger.LogInformation("Successfully subscribed to event {EventId}", eventId);
                         }
                         catch (Exception ex)
                         {
-                            Logger.LogError(ex, "Failed to invoke SubscribeToEventV2 for event {EventId}", eventId);
+                            Logger.LogError(ex, "Failed to subscribe to event {EventId}", eventId);
                             throw;
                         }
                     });
