@@ -1,10 +1,8 @@
-﻿using RedMist.TimingCommon.Models;
-using System;
-using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -12,14 +10,23 @@ namespace RedMist.Timing.UI.Utilities;
 
 internal class ArchiveHelper
 {
-    public static async Task<T?> DownloadArchivedDataAsync<T>(IHttpClientFactory httpClientFactory, string url)
+    public static async Task<T?> DownloadArchivedDataAsync<T>(IHttpClientFactory httpClientFactory, string url, ILogger logger)
     {
         using var httpClient = httpClientFactory.CreateClient();
         var response = await httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to download archived laps from {url}: {response.StatusCode}");
+            // A missing object is routine - not every event has every archived artifact - so don't
+            // spend a slot in the retained warning buffer on it.
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                logger.LogDebug("No archived data at {Url}", url);
+            }
+            else
+            {
+                logger.LogWarning("Failed to download archived data from {Url}: {StatusCode}", url, response.StatusCode);
+            }
             return default;
         }
 
@@ -29,9 +36,6 @@ internal class ArchiveHelper
         // Decompress using GZipStream
         await using var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
 
-        // Read the decompressed content for debugging
-        using var memoryStream = new MemoryStream();
-        var data = await JsonSerializer.DeserializeAsync<T>(gzipStream);
-        return data;
+        return await JsonSerializer.DeserializeAsync<T>(gzipStream);
     }
 }

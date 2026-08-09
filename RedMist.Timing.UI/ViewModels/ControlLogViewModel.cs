@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -36,6 +37,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     private readonly EventClient eventClient;
     private readonly EventContext eventContext;
     private readonly OrganizationIconCacheService iconCacheService;
+    private ILogger Logger { get; }
 
     public string Name => EventModel.EventName;
     public string OrganizationName => EventModel.OrganizationName;
@@ -85,13 +87,15 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
     }
 
 
-    public ControlLogViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, EventContext eventContext, OrganizationIconCacheService iconCacheService)
+    public ControlLogViewModel(Event eventModel, HubClient hubClient, EventClient eventClient, EventContext eventContext,
+        OrganizationIconCacheService iconCacheService, ILoggerFactory loggerFactory)
     {
         EventModel = eventModel;
         this.hubClient = hubClient;
         this.eventClient = eventClient;
         this.eventContext = eventContext;
         this.iconCacheService = iconCacheService;
+        Logger = loggerFactory.CreateLogger(GetType().Name);
 
         logCache.Connect()
             .Filter(searchFilterSubject)
@@ -120,9 +124,9 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
                     // Notify that the logo may have changed
                     Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Ignore errors loading icon
+                    Logger.LogWarning(ex, "Error refreshing the organization logo for {OrganizationId}", EventModel.OrganizationId);
                 }
             });
         }
@@ -145,7 +149,7 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in AppResumeNotification handler: {ex}");
+            Logger.LogError(ex, "Error reloading the control log after app resume");
         }
     }
 
@@ -178,7 +182,10 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
                     logCache.RemoveKey(k);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error applying control log entries");
+            }
         }, DispatcherPriority.Background);
         return Task.CompletedTask;
     }
@@ -254,9 +261,9 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
             await ProcessControlLogs(new ControlLogNotification(new CarControlLogs { ControlLogEntries = controlLogEntries }));
             await hubClient.SubscribeToControlLogsAsync(EventModel.EventId);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Handle exceptions
+            Logger.LogError(ex, "Error loading the control log for event {EventId}", EventModel.EventId);
         }
         finally
         {
@@ -270,9 +277,9 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
         {
             await hubClient.UnsubscribeFromControlLogsAsync(EventModel.EventId);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Handle exceptions
+            Logger.LogError(ex, "Error unsubscribing from the control log for event {EventId}", EventModel.EventId);
         }
     }
 

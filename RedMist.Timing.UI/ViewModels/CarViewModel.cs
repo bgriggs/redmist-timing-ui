@@ -389,6 +389,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private readonly ViewSizeService viewSizeService;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly IConfiguration configuration;
+    private readonly ILoggerFactory loggerFactory;
     [ObservableProperty]
     private DetailsViewModel? carDetailsViewModel;
 
@@ -435,6 +436,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         this.viewSizeService = viewSizeService;
         this.httpClientFactory = httpClientFactory;
         this.configuration = configuration;
+        this.loggerFactory = loggerFactory;
         WeakReferenceMessenger.Default.RegisterAll(this);
         //Receive(new SizeChangedNotification(Size.Infinity));
     }
@@ -662,7 +664,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         if (isEnabled && CarDetailsViewModel == null)
         {
             _ = int.TryParse(LastCarPosition?.SessionId ?? "0", out int sessionId);
-            CarDetailsViewModel = new DetailsViewModel(evt, sessionId, Number, serverClient, hubClient, pitTracking, httpClientFactory, configuration);
+            CarDetailsViewModel = new DetailsViewModel(evt, sessionId, Number, serverClient, hubClient, pitTracking, httpClientFactory, configuration, loggerFactory);
             _ = CarDetailsViewModel.Initialize();
         }
         else if (!isEnabled && CarDetailsViewModel != null)

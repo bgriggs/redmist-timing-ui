@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -273,6 +274,31 @@ public partial class App : Application
 
     public T GetService<T>() where T : class
         => _host!.Services.GetRequiredService<T>();
+
+    /// <summary>
+    /// Resolves a logger for types that aren't constructed through DI, such as views.
+    /// </summary>
+    /// <remarks>
+    /// Falls back to a no-op logger when there is no host - the designer, and the window between
+    /// Initialize and OnFrameworkInitializationCompleted - so callers never have to null-check.
+    /// Prefer constructor injection wherever the type is built by the container.
+    /// </remarks>
+    public static ILogger GetLogger(string category)
+    {
+        try
+        {
+            if (Current is App { _host: not null } app)
+            {
+                return app._host.Services.GetRequiredService<ILoggerFactory>().CreateLogger(category);
+            }
+        }
+        catch
+        {
+            // Fall through to the no-op logger below.
+        }
+
+        return NullLogger.Instance;
+    }
 
     [Transient(typeof(EventClient))]
     [Singleton(typeof(HubClient))]

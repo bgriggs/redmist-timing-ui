@@ -102,7 +102,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"Error initializing control log: {ex}");
+                            Logger.LogError(ex, "Error initializing control log");
                         }
                     });
                 }
@@ -116,7 +116,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"Error unsubscribing from control logs: {ex}");
+                            Logger.LogError(ex, "Error unsubscribing from control logs");
                         }
                     });
                 }
@@ -270,9 +270,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
     public async void Receive(ValueChangedMessage<RouterEvent> message)
     {
+        var router = message.Value;
         try
         {
-            var router = message.Value;
             if (router.Path == "EventStatus")
             {
                 IsEventsListVisible = false;
@@ -319,7 +319,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error initializing events list: {ex}");
+                        Logger.LogError(ex, "Error initializing events list");
                     }
                 });
                 
@@ -331,7 +331,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error unsubscribing from live timing: {ex}");
+                        Logger.LogError(ex, "Error unsubscribing from live timing");
                     }
                 });
                 
@@ -344,7 +344,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error unsubscribing from control logs: {ex}");
+                        Logger.LogError(ex, "Error unsubscribing from control logs");
                     }
                 });
 
@@ -368,7 +368,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 // Release the previous one's hub subscription before dropping it.
                 InCarSettingsViewModel?.Dispose();
                 InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient, accessCodeStore,
-                    preferencesService, screenWakeService);
+                    preferencesService, screenWakeService, loggerFactory);
                 
                 _ = Task.Run(async () =>
                 {
@@ -378,7 +378,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error initializing in-car settings: {ex}");
+                        Logger.LogError(ex, "Error initializing in-car settings");
                     }
                 });
                 
@@ -394,9 +394,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in router message handler: {ex}");
-            // If you have access to a logger, use it instead:
-            // Logger?.LogError(ex, "Error handling router message");
+            Logger.LogError(ex, "Error handling router message for path {Path}", router?.Path);
         }
     }
 
@@ -461,11 +459,11 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         }
 
         ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator);
-        EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService);
-        ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService);
-        FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService);
+        EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService, loggerFactory);
+        ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService, loggerFactory);
+        FlagsViewModel = new FlagsViewModel(eventModel, eventClient, eventContext, httpClientFactory, configuration, iconCacheService, loggerFactory);
         var isMobile = platformDetectionService.GetCurrentPlatform() is AppPlatform.Android or AppPlatform.iOS;
-        SettingsViewModel = new SettingsViewModel(preferencesService, screenWakeService, isMobile);
+        SettingsViewModel = new SettingsViewModel(preferencesService, screenWakeService, isMobile, loggerFactory);
         IsControlLogAvailable = eventModel.HasControlLog;
 
         IsTimingTabStripVisible = true;

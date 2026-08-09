@@ -1,4 +1,4 @@
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -91,7 +91,10 @@ public partial class SponsorRotatorViewModel : ObservableObject, IDisposable
             rotationCts?.Dispose();
             rotationCts = null;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Error stopping sponsor rotation");
+        }
 
         Dispatcher.UIThread.InvokeOnUIThread(() =>
         {

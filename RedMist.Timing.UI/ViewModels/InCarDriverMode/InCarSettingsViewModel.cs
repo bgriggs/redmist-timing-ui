@@ -3,6 +3,7 @@ using BigMission.Avalonia.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -51,17 +52,21 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
     private readonly EventAccessCodeStore accessCodeStore;
     private readonly IPreferencesService preferencesService;
     private readonly IScreenWakeService screenWakeService;
+    private readonly ILoggerFactory loggerFactory;
+    private ILogger Logger { get; }
 
 
     public InCarSettingsViewModel(EventClient eventClient, HubClient hubClient, EventAccessCodeStore accessCodeStore,
-        IPreferencesService preferencesService, IScreenWakeService screenWakeService)
+        IPreferencesService preferencesService, IScreenWakeService screenWakeService, ILoggerFactory loggerFactory)
     {
         this.eventClient = eventClient;
         this.hubClient = hubClient;
         this.accessCodeStore = accessCodeStore;
         this.preferencesService = preferencesService;
         this.screenWakeService = screenWakeService;
-        inCarPositionsViewModel = new(hubClient, eventClient);
+        Logger = loggerFactory.CreateLogger(GetType().Name);
+        this.loggerFactory = loggerFactory;
+        inCarPositionsViewModel = new(hubClient, eventClient, loggerFactory);
     }
 
 
@@ -110,6 +115,7 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Error loading events for driver mode");
             Message = $"Error loading events: {ex.Message}";
         }
         finally
@@ -132,7 +138,10 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
         {
             InCarPositionsViewModel.Unsubscribe();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error unsubscribing from driver mode updates");
+        }
     }
 
 
@@ -188,7 +197,7 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
         // stays alive on the singleton hub client and keeps reacting to reconnects.
         InCarPositionsViewModel.Dispose();
 
-        InCarPositionsViewModel = new InCarPositionsViewModel(hubClient, eventClient);
+        InCarPositionsViewModel = new InCarPositionsViewModel(hubClient, eventClient, loggerFactory);
         InCarPositionsViewModel.Initialize(eventId, CarNumber, IsInClassOnly);
 
         // Drivers are looking at the screen without touching it.
@@ -196,7 +205,10 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
         {
             screenWakeService.SetKeepScreenOn(true);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to keep the screen awake for driver mode");
+        }
     }
 
     /// <summary>
@@ -212,7 +224,10 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
         {
             screenWakeService.SetKeepScreenOn(preferencesService.Get(SettingsViewModel.KEEP_SCREEN_ON_KEY, false));
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to restore the screen wake setting");
+        }
     }
 
     /// <summary>
@@ -232,9 +247,9 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
             CarNumber = preferencesService.Get(CAR_NUM_KEY, string.Empty) ?? string.Empty;
             IsInClassOnly = preferencesService.Get(IN_CLASS_KEY, false);
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors in loading settings
+            Logger.LogWarning(ex, "Error loading driver mode settings");
         }
     }
 
@@ -245,8 +260,9 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
             preferencesService.Set(CAR_NUM_KEY, CarNumber);
             preferencesService.Set(IN_CLASS_KEY, IsInClassOnly);
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogWarning(ex, "Error saving driver mode settings");
         }
     }
 }

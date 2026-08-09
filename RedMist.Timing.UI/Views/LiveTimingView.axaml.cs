@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.ViewModels;
 using System;
@@ -9,6 +10,8 @@ namespace RedMist.Timing.UI.Views;
 
 public partial class LiveTimingView : UserControl, IRecipient<CopyToClipboardRequest>
 {
+    private static ILogger Logger => App.GetLogger(nameof(LiveTimingView));
+
     public LiveTimingView()
     {
         InitializeComponent();
@@ -45,7 +48,7 @@ public partial class LiveTimingView : UserControl, IRecipient<CopyToClipboardReq
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error copying to clipboard: {ex}");
+            Logger.LogError(ex, "Error copying to clipboard");
         }
     }
 

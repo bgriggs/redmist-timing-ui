@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.ViewModels;
 using System;
 
@@ -7,6 +8,8 @@ namespace RedMist.Timing.UI.Views;
 
 public partial class EventsListView : UserControl
 {
+    private static ILogger Logger => App.GetLogger(nameof(EventsListView));
+
     public EventsListView()
     {
         InitializeComponent();
@@ -24,7 +27,7 @@ public partial class EventsListView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading events list: {ex}");
+            Logger.LogError(ex, "Error loading events list");
         }
     }
 
@@ -42,7 +45,7 @@ public partial class EventsListView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error refreshing events list: {ex}");
+            Logger.LogError(ex, "Error refreshing events list");
         }
         finally
         {

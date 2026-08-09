@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
@@ -18,6 +19,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
 {
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
+    private ILogger Logger { get; }
     private int eventId;
     private string carNumber = string.Empty;
 
@@ -56,10 +58,11 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
     private HubConnectionState? lastHubConnectionState;
 
 
-    public InCarPositionsViewModel(HubClient hubClient, EventClient eventClient)
+    public InCarPositionsViewModel(HubClient hubClient, EventClient eventClient, ILoggerFactory loggerFactory)
     {
         this.hubClient = hubClient;
         this.eventClient = eventClient;
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         DriversCar.SetAsDriver();
         CarAheadOutOfClass.SetAsOutOfClass();
         WeakReferenceMessenger.Default.RegisterAll(this);
@@ -97,6 +100,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
             }
             catch (Exception ex)
             {
+                Logger.LogError(ex, "Failed to connect to event {EventId} for car {CarNumber}", eventId, carNumber);
                 Message = "Failed to connect to event: " + ex.Message;
             }
         });
@@ -117,8 +121,9 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
                 Receive(new InCarPositionUpdate(payload));
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Error loading the in-car payload for event {EventId}, car {CarNumber}", eventId, carNumber);
             Message = "Error loading last payload";
         }
     }
@@ -147,7 +152,10 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
             // re-subscribe on behalf of a car nobody is watching any more.
             Unsubscribe();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error releasing the in-car positions view model");
+        }
         finally
         {
             GC.SuppressFinalize(this);
