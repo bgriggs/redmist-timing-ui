@@ -64,6 +64,10 @@ jobs:
         run: |
           security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
           security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
+          # The runner is a LaunchAgent, so codesign has no GUI session to authorize
+          # key access and fails with errSecInternalComponent. Grant it explicitly.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s \
+            -k "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
 
       - name: Clean
         run: dotnet clean RedMist.Timing.UI.iOS/RedMist.Timing.UI.iOS.csproj -c Release
