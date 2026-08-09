@@ -1,6 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Microsoft.Maui.Devices;
 
 namespace RedMist.Timing.UI.Views.InCarDriverMode;
 
@@ -11,15 +9,7 @@ public partial class InCarPositions : UserControl
         InitializeComponent();
     }
 
-    protected override void OnLoaded(RoutedEventArgs e)
-    {
-        base.OnLoaded(e);
-        DeviceDisplay.KeepScreenOn = true;
-    }
-    
-    protected override void OnUnloaded(RoutedEventArgs e)
-    {
-        base.OnUnloaded(e);
-        DeviceDisplay.KeepScreenOn = false;
-    }
+    // Keeping the screen awake is driven by InCarSettingsViewModel rather than this view's
+    // loaded/unloaded events: driver mode is only toggled with IsVisible, so the view is never
+    // detached from the visual tree and OnUnloaded would not fire to release the wake lock.
 }

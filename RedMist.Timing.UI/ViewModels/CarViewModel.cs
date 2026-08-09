@@ -359,6 +359,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private IDisposable? flashStartTimer;
     private IDisposable? flashEndTimer;
     private IDisposable? forcePropertyTimer;
+    private IDisposable? entryResetTimer;
     private static readonly Lock s_imageLock = new();
     private static IImage? s_sentinelImage;
     private static IImage? s_mrlImage;
@@ -643,8 +644,11 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         Class = entry.Class;
         ClassColor = classColor;
 
-        // Force reset once loaded - prevents color from getting stuck on update color
-        Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() =>
+        // Force reset once loaded - prevents color from getting stuck on update color.
+        // ApplyEntry runs for every car on every full refresh, so replace the pending timer
+        // rather than stacking up a new subscription each time.
+        entryResetTimer?.Dispose();
+        entryResetTimer = Observable.Timer(TimeSpan.FromSeconds(1.5)).Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
             if (RowBackgroundKey == CARROW_UPDATED_BACKGROUNDBRUSH)
                 RowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH;

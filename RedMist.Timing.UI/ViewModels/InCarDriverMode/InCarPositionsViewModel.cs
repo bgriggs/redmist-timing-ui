@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels.InCarDriverMode;
 
-public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCarPositionUpdate>
+public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCarPositionUpdate>, IDisposable
 {
     private readonly HubClient hubClient;
     private readonly EventClient eventClient;
@@ -126,6 +126,32 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
     public void Unsubscribe()
     {
         _ = hubClient.UnsubscribeFromInCarDriverEventAsync(eventId, carNumber);
+    }
+
+    /// <summary>
+    /// Detaches from the shared hub client and the messenger.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="HubClient"/> is a singleton, so its ConnectionStatusChanged event holds a strong
+    /// reference to every instance that ever subscribed. Without this, each trip into driver mode
+    /// leaks a view model that keeps reloading the payload on every reconnect.
+    /// </remarks>
+    public void Dispose()
+    {
+        try
+        {
+            hubClient.ConnectionStatusChanged -= HubClient_ConnectionStatusChanged;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+
+            // Clears the hub's remembered subscription too, so a later reconnect doesn't
+            // re-subscribe on behalf of a car nobody is watching any more.
+            Unsubscribe();
+        }
+        catch { }
+        finally
+        {
+            GC.SuppressFinalize(this);
+        }
     }
 
     public void Back()

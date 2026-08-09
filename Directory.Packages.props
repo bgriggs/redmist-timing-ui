@@ -13,7 +13,6 @@
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.3" />
     <PackageVersion Include="MessagePack" Version="3.1.6" />
-    <PackageVersion Include="Microsoft.Maui.Essentials" Version="10.0.41" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.1" />
     <!-- AndroidX Lifecycle dependencies - align versions to fix dependency conflicts -->
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.10.0.1" />

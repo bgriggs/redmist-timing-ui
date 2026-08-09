@@ -10,7 +10,12 @@ namespace RedMist.Timing.UI.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
     private const string THEME_KEY = "AppTheme";
-    private const string KEEP_SCREEN_ON_KEY = "KeepScreenOn";
+
+    /// <summary>
+    /// Preferences key for the user's keep-screen-on choice. Shared so callers that temporarily
+    /// force the screen awake (driver mode) can restore the user's setting afterwards.
+    /// </summary>
+    public const string KEEP_SCREEN_ON_KEY = "KeepScreenOn";
     private readonly IPreferencesService _preferencesService;
     private readonly IScreenWakeService _screenWakeService;
 

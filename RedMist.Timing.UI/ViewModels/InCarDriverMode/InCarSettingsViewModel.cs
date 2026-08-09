@@ -3,7 +3,6 @@ using BigMission.Avalonia.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using Microsoft.Maui.Storage;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -17,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels.InCarDriverMode;
 
-public partial class InCarSettingsViewModel : ObservableValidator
+public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
 {
     private const string CAR_NUM_KEY = "DriverModeCarNumber";
     private const string IN_CLASS_KEY = "DriverModeIsInClassOnly";
@@ -50,19 +49,32 @@ public partial class InCarSettingsViewModel : ObservableValidator
     private readonly EventClient eventClient;
     private readonly HubClient hubClient;
     private readonly EventAccessCodeStore accessCodeStore;
+    private readonly IPreferencesService preferencesService;
+    private readonly IScreenWakeService screenWakeService;
 
 
-    public InCarSettingsViewModel(EventClient eventClient, HubClient hubClient, EventAccessCodeStore accessCodeStore)
+    public InCarSettingsViewModel(EventClient eventClient, HubClient hubClient, EventAccessCodeStore accessCodeStore,
+        IPreferencesService preferencesService, IScreenWakeService screenWakeService)
     {
         this.eventClient = eventClient;
         this.hubClient = hubClient;
         this.accessCodeStore = accessCodeStore;
+        this.preferencesService = preferencesService;
+        this.screenWakeService = screenWakeService;
         inCarPositionsViewModel = new(hubClient, eventClient);
     }
 
 
     public async Task Initialize()
     {
+        // Called from a background task; hop to the UI thread so the bound property writes below
+        // (IsLoading, Message, Events, and the settings loaded at the end) land on the right thread.
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            await Dispatcher.UIThread.InvokeAsync(Initialize);
+            return;
+        }
+
         IsLoading = true;
         try
         {
@@ -86,7 +98,7 @@ public partial class InCarSettingsViewModel : ObservableValidator
                         vms.Add(new EventViewModel(e, null));
                     }
 
-                    Dispatcher.UIThread.Post(() => Events.SetRange(vms));
+                    Events.SetRange(vms);
                 }
             }
             else
@@ -115,6 +127,7 @@ public partial class InCarSettingsViewModel : ObservableValidator
     public void BackToSettings()
     {
         IsPositionsVisible = false;
+        ReleaseScreenWake();
         try
         {
             InCarPositionsViewModel.Unsubscribe();
@@ -170,16 +183,54 @@ public partial class InCarSettingsViewModel : ObservableValidator
     private void StartDriverMode(int eventId)
     {
         IsPositionsVisible = true;
+
+        // Release the outgoing view model's hub subscription before replacing it, otherwise it
+        // stays alive on the singleton hub client and keeps reacting to reconnects.
+        InCarPositionsViewModel.Dispose();
+
         InCarPositionsViewModel = new InCarPositionsViewModel(hubClient, eventClient);
         InCarPositionsViewModel.Initialize(eventId, CarNumber, IsInClassOnly);
+
+        // Drivers are looking at the screen without touching it.
+        try
+        {
+            screenWakeService.SetKeepScreenOn(true);
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Hands the screen wake lock back to whatever the user chose in settings.
+    /// </summary>
+    /// <remarks>
+    /// The wake service is a single global flag shared with <see cref="SettingsViewModel"/>, so
+    /// driver mode has to restore the user's preference rather than just switching it off.
+    /// </remarks>
+    private void ReleaseScreenWake()
+    {
+        try
+        {
+            screenWakeService.SetKeepScreenOn(preferencesService.Get(SettingsViewModel.KEEP_SCREEN_ON_KEY, false));
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Releases the hub subscription held by the current positions view model and the wake lock.
+    /// </summary>
+    public void Dispose()
+    {
+        InCarPositionsViewModel.Dispose();
+        ReleaseScreenWake();
+        GC.SuppressFinalize(this);
     }
 
     private void TryLoadSettings()
     {
         try
         {
-            CarNumber = Preferences.Get(CAR_NUM_KEY, string.Empty) ?? string.Empty;
-            IsInClassOnly = Preferences.Get(IN_CLASS_KEY, false);
+            CarNumber = preferencesService.Get(CAR_NUM_KEY, string.Empty) ?? string.Empty;
+            IsInClassOnly = preferencesService.Get(IN_CLASS_KEY, false);
         }
         catch
         {
@@ -191,8 +242,8 @@ public partial class InCarSettingsViewModel : ObservableValidator
     {
         try
         {
-            Preferences.Set(CAR_NUM_KEY, CarNumber);
-            Preferences.Set(IN_CLASS_KEY, IsInClassOnly);
+            preferencesService.Set(CAR_NUM_KEY, CarNumber);
+            preferencesService.Set(IN_CLASS_KEY, IsInClassOnly);
         }
         catch
         {

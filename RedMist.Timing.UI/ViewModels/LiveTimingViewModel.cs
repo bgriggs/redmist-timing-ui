@@ -27,6 +27,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -287,16 +288,23 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         try
         {
-            Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = true, DispatcherPriority.Background);
-            EventModel = eventModel;
-            Flag = string.Empty;
-            pitTracking.Clear();
+            // Callers invoke this from a background task, so every write to bound state has to be
+            // marshalled. ResetEvent in particular clears carCache, which SortAndBind projects
+            // straight into the Cars/GroupedCars collections the ItemsControls are bound to -
+            // mutating those off the UI thread desyncs the controls from their source.
+            await Dispatcher.UIThread.InvokeOnUIThreadAsync(() =>
+            {
+                IsLoading = true;
+                EventModel = eventModel;
+                Flag = string.Empty;
+                pitTracking.Clear();
 
-            // Initialize ShowPenaltyColumn based on event control log availability and current viewport size
-            ShowPenaltyColumn = IsControlLogAvailable && viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
+                // Initialize ShowPenaltyColumn based on event control log availability and current viewport size
+                ShowPenaltyColumn = IsControlLogAvailable && viewSizeService.CurrentSize.Width > PenaltyColumnWidth;
 
-            Logger.LogInformation("ResetEvent...");
-            ResetEvent();
+                Logger.LogInformation("ResetEvent...");
+                ResetEvent();
+            });
 
             // Load organization icon from cache or CDN
             if (EventModel.OrganizationId > 0)
@@ -326,7 +334,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 Logger.LogInformation("Subscribe...");
                 await Task.Run(() => hubClient.SubscribeToEventAsync(EventModel.EventId));
                 Logger.LogInformation("Completed subscribe...");
-                IsLive = true;
+                Dispatcher.UIThread.InvokeOnUIThread(() => IsLive = true);
             }
             catch (Exception ex)
             {
@@ -348,16 +356,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             //}
             //consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(3)).Subscribe(_ => RunConsistencyCheck());
 
-            if (fullUpdateInterval != null)
-            {
-                try
-                {
-                    fullUpdateInterval.Dispose();
-                }
-                catch { }
-                fullUpdateInterval = null;
-            }
-            fullUpdateInterval = Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(tick =>
+            SetFullUpdateInterval(Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(tick =>
             {
                 try
                 {
@@ -367,7 +366,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 {
                     Logger.LogError(ex, "Error in periodic refresh timer");
                 }
-            });
+            }));
         }
         catch (Exception ex)
         {
@@ -407,6 +406,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     public async Task UnsubscribeLiveAsync()
     {
         SponsorRotator.Stop();
+
+        // Leaving the event through a tab's back button routes here without going through Back(),
+        // so the periodic refresh has to be torn down here too or it keeps polling the old event.
+        StopFullUpdateInterval();
+
         try
         {
             await hubClient.UnsubscribeFromEventAsync(EventModel.EventId);
@@ -416,6 +420,29 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             Logger.LogError(ex, $"Error unsubscribing event: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Tears down the periodic full-refresh subscription, if one is running.
+    /// </summary>
+    /// <remarks>
+    /// Interlocked because the field is written from more than one thread: leaving an event runs
+    /// UnsubscribeLiveAsync on one background task while opening the next runs InitializeLiveAsync
+    /// on another. A lost update there would orphan a live 5-second poller with no handle to stop it.
+    /// </remarks>
+    private void StopFullUpdateInterval()
+    {
+        try
+        {
+            Interlocked.Exchange(ref fullUpdateInterval, null)?.Dispose();
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Installs the periodic full-refresh subscription, disposing whatever it replaces.
+    /// </summary>
+    private void SetFullUpdateInterval(IDisposable subscription)
+        => Interlocked.Exchange(ref fullUpdateInterval, subscription)?.Dispose();
 
     /// <summary>
     /// Handles notifications related to size changes.
@@ -607,14 +634,13 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
         if (!isDeltaUpdate)
         {
-            // Remove cars not in entries
+            // Remove cars not in entries. Snapshot the keys first - removing while enumerating the
+            // live key collection throws, and the caller's catch would swallow the rest of the update.
             var entryNumbers = new HashSet<string>(entries.Select(e => e.Number));
-            foreach (var num in carCache.Keys)
+            var staleNumbers = carCache.Keys.Where(num => !entryNumbers.Contains(num)).ToArray();
+            foreach (var num in staleNumbers)
             {
-                if (!entryNumbers.Contains(num))
-                {
-                    carCache.RemoveKey(num);
-                }
+                carCache.RemoveKey(num);
             }
         }
     }
@@ -897,11 +923,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public void Back()
     {
-        try
-        {
-            fullUpdateInterval?.Dispose();
-        }
-        catch { }
+        StopFullUpdateInterval();
 
         var routerEvent = new RouterEvent { Path = BackRouterPath };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));

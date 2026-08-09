@@ -103,8 +103,9 @@ public class HubClient : HubClientBase
                         }
                         catch (Exception ex)
                         {
+                            // Nothing awaits the debounced task, so rethrowing only produces an
+                            // unobserved task exception. The log above is the useful signal.
                             Logger.LogError(ex, "Failed to subscribe to event {EventId}", eventId);
-                            throw;
                         }
                     });
                 }
@@ -124,8 +125,8 @@ public class HubClient : HubClientBase
                         }
                         catch (Exception ex)
                         {
+                            // See above - nothing observes this task.
                             Logger.LogError(ex, "Failed to invoke SubscribeToInCarDriverEventV2");
-                            throw;
                         }
                     });
                 }

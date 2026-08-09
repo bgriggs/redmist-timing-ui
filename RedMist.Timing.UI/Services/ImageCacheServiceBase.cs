@@ -11,6 +11,13 @@ namespace RedMist.Timing.UI.Services;
 /// Base class for image cache services that caches Bitmaps to avoid redundant loading and decoding.
 /// Uses an in-memory cache with size-based eviction and request deduplication.
 /// </summary>
+/// <remarks>
+/// Cached bitmaps are handed directly to bindings (Image.Source), so this cache never disposes
+/// them: the cache has no way to know whether a bitmap it is evicting is still on screen, and
+/// disposing one that is frees the underlying Skia surface out from under the renderer, which
+/// takes the process down with a native crash. Evicted entries are simply dropped and reclaimed
+/// by the GC once nothing references them.
+/// </remarks>
 public abstract class ImageCacheServiceBase<TKey> where TKey : notnull
 {
     private readonly ILogger logger;
@@ -133,15 +140,10 @@ public abstract class ImageCacheServiceBase<TKey> where TKey : notnull
     }
 
     /// <summary>
-    /// Clears the image cache.
+    /// Clears the image cache. Bitmaps are dropped, not disposed - see the remarks on this class.
     /// </summary>
     public void ClearCache()
     {
-        // Dispose all bitmaps
-        foreach (var bitmap in iconCache.Values)
-        {
-            bitmap?.Dispose();
-        }
         iconCache.Clear();
         logger.LogInformation("Image cache cleared");
     }
@@ -156,9 +158,8 @@ public abstract class ImageCacheServiceBase<TKey> where TKey : notnull
             foreach (var cacheKey in iconCache.Keys)
             {
                 if (entriesToRemove <= 0) break;
-                if (iconCache.TryRemove(cacheKey, out var oldBitmap))
+                if (iconCache.TryRemove(cacheKey, out _))
                 {
-                    oldBitmap?.Dispose();
                     entriesToRemove--;
                 }
             }
