@@ -12,7 +12,7 @@ public class DesignSponsorClient : SponsorClient
     {
     }
 
-    public override Task<List<SponsorInfo>> GetSponsorsAsync() => Task.FromResult<List<SponsorInfo>>([]);
+    public override Task<List<SponsorInfo>> GetSponsorsAsync(string eventId = "") => Task.FromResult<List<SponsorInfo>>([]);
     public override Task<bool> SaveImpressionAsync(string source, string imageId, string eventId = "") => Task.FromResult(true);
     public override Task<bool> SaveViewableImpressionAsync(string source, string imageId, string eventId = "") => Task.FromResult(true);
     public override Task<bool> SaveClickThroughAsync(string source, string imageId, string eventId = "") => Task.FromResult(true);
