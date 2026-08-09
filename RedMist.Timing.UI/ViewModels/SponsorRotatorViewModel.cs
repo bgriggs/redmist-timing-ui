@@ -61,7 +61,7 @@ public partial class SponsorRotatorViewModel : ObservableObject, IDisposable
 
         try
         {
-            await sponsorsService.InitializeAsync();
+            await sponsorsService.InitializeAsync(eventId);
 
             sortedSponsors = sponsorsService.Sponsors
                 .OrderBy(s => s.DisplayPriority)

@@ -60,9 +60,17 @@ public class SponsorClient : BaseRestClient
         return result.IsSuccessful;
     }
 
-    public virtual async Task<List<SponsorInfo>> GetSponsorsAsync()
+    /// <summary>
+    /// Gets the active sponsors. When <paramref name="eventId"/> is supplied, sponsors excluded by the
+    /// organization running that event are filtered out server-side.
+    /// </summary>
+    public virtual async Task<List<SponsorInfo>> GetSponsorsAsync(string eventId = "")
     {
         var request = new RestRequest("GetSponsors", Method.Get);
+        if (!string.IsNullOrEmpty(eventId))
+        {
+            request.AddQueryParameter("eventId", eventId);
+        }
         return await RestClient.GetAsync<List<SponsorInfo>>(request) ?? [];
     }
 }
