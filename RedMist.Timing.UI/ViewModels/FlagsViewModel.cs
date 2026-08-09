@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -30,6 +31,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     private readonly EventClient eventClient;
     private readonly OrganizationIconCacheService iconCacheService;
     private readonly string archiveBaseUrl;
+    private ILogger Logger { get; }
 
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
     private List<FlagDuration> lastFlagDurations = [];
@@ -71,7 +73,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     }
 
 
-    public FlagsViewModel(Event eventModel, EventClient eventClient, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService)
+    public FlagsViewModel(Event eventModel, EventClient eventClient, EventContext eventContext, IHttpClientFactory httpClientFactory, IConfiguration configuration, OrganizationIconCacheService iconCacheService, ILoggerFactory loggerFactory)
     {
         this.eventModel = eventModel;
         this.eventClient = eventClient;
@@ -79,6 +81,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
         this.httpClientFactory = httpClientFactory;
         this.iconCacheService = iconCacheService;
         archiveBaseUrl = configuration["Cdn:ArchiveUrl"] ?? throw new ArgumentException("Cdn:ArchiveUrl is not configured.");
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         // Load organization icon from cache or CDN
@@ -92,9 +95,9 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
                     // Notify that the logo may have changed
                     Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Ignore errors loading icon
+                    Logger.LogWarning(ex, "Error refreshing the organization logo for {OrganizationId}", eventModel.OrganizationId);
                 }
             });
         }
@@ -132,9 +135,9 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
             var sp = new SessionStatePatch { FlagDurations = flags };
             Receive(new SessionStatusNotification(sp));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Handle exceptions
+            Logger.LogError(ex, "Error loading flags for event {EventId}", eventModel.EventId);
         }
         finally
         {
@@ -170,7 +173,10 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
                 Flags[i].Update(fds.ElementAt(i), tod, i == 0);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating the flag list");
+        }
     }
 
     private List<FlagDuration> ProcessFlags(List<FlagDuration> data)
@@ -205,7 +211,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     private async Task<List<FlagDuration>> LoadFlagsFromArchiveAsync(int eventId, int sessionId)
     {
         var url = $"{archiveBaseUrl.TrimEnd('/')}/event-flags/event-{eventId}-session-{sessionId}-flags.gz";
-        var flags = await ArchiveHelper.DownloadArchivedDataAsync<List<FlagDuration>>(httpClientFactory, url);
+        var flags = await ArchiveHelper.DownloadArchivedDataAsync<List<FlagDuration>>(httpClientFactory, url, Logger);
         return flags ?? [];
     }
 }

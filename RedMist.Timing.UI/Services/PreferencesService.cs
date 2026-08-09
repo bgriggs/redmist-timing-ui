@@ -1,3 +1,4 @@
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,9 +12,11 @@ public class PreferencesService : IPreferencesService
     private readonly string _preferencesFilePath;
     private Dictionary<string, object> _preferences = new();
     private readonly Lock _lock = new();
+    private readonly ILogger _logger;
 
-    public PreferencesService()
+    public PreferencesService(ILoggerFactory loggerFactory)
     {
+        _logger = loggerFactory.CreateLogger<PreferencesService>();
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var appFolder = Path.Combine(appDataPath, "RedMist.Timing.UI");
         Directory.CreateDirectory(appFolder);
@@ -112,8 +115,9 @@ public class PreferencesService : IPreferencesService
                 _preferences = JsonSerializer.Deserialize<Dictionary<string, object>>(json) ?? new();
             }
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Error reading preferences from {Path}", _preferencesFilePath);
             _preferences = new();
         }
     }
@@ -125,9 +129,9 @@ public class PreferencesService : IPreferencesService
             var json = JsonSerializer.Serialize(_preferences, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_preferencesFilePath, json);
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore save errors
+            _logger.LogWarning(ex, "Error writing preferences to {Path}", _preferencesFilePath);
         }
     }
 }

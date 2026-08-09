@@ -163,7 +163,7 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
             Class = "GP1",
         });
 
-        carCache.Lookup("222").Value.CarDetailsViewModel = new DetailsViewModel(evt, 1, "222", new DesignEventClient(new DesignConfiguration()), hc, pitTracking, httpClientFactory, configuration);
+        carCache.Lookup("222").Value.CarDetailsViewModel = new DetailsViewModel(evt, 1, "222", new DesignEventClient(new DesignConfiguration()), hc, pitTracking, httpClientFactory, configuration, new DebugLoggerFactory());
         carCache.Lookup("222").Value.ApplyPatch(CarPositionMapper.CreatePatch(new CarPosition(), new CarPosition
         {
             Number = "222",

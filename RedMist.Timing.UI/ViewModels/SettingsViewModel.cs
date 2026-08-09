@@ -1,8 +1,10 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Services;
+using System;
 using System.Collections.Generic;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -18,6 +20,7 @@ public partial class SettingsViewModel : ObservableObject
     public const string KEEP_SCREEN_ON_KEY = "KeepScreenOn";
     private readonly IPreferencesService _preferencesService;
     private readonly IScreenWakeService _screenWakeService;
+    private ILogger Logger { get; }
 
     [ObservableProperty]
     private string selectedTheme = "System Default";
@@ -39,10 +42,12 @@ public partial class SettingsViewModel : ObservableObject
         "Dark"
     ];
 
-    public SettingsViewModel(IPreferencesService preferencesService, IScreenWakeService screenWakeService, bool isMobileDevice)
+    public SettingsViewModel(IPreferencesService preferencesService, IScreenWakeService screenWakeService, bool isMobileDevice,
+        ILoggerFactory loggerFactory)
     {
         _preferencesService = preferencesService;
         _screenWakeService = screenWakeService;
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         IsMobileDevice = isMobileDevice;
         LoadTheme();
         LoadKeepScreenOn();
@@ -84,9 +89,9 @@ public partial class SettingsViewModel : ObservableObject
                 SelectedTheme = savedTheme;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors in loading theme preference
+            Logger.LogWarning(ex, "Error loading the theme preference");
         }
     }
 
@@ -96,9 +101,9 @@ public partial class SettingsViewModel : ObservableObject
         {
             _preferencesService.Set(THEME_KEY, SelectedTheme);
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors in saving theme preference
+            Logger.LogWarning(ex, "Error saving the theme preference");
         }
     }
 
@@ -108,9 +113,9 @@ public partial class SettingsViewModel : ObservableObject
         {
             KeepScreenOn = _preferencesService.Get(KEEP_SCREEN_ON_KEY, false);
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors in loading keep screen on preference
+            Logger.LogWarning(ex, "Error loading the keep-screen-on preference");
         }
     }
 
@@ -120,9 +125,9 @@ public partial class SettingsViewModel : ObservableObject
         {
             _preferencesService.Set(KEEP_SCREEN_ON_KEY, KeepScreenOn);
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors in saving keep screen on preference
+            Logger.LogWarning(ex, "Error saving the keep-screen-on preference");
         }
     }
 }

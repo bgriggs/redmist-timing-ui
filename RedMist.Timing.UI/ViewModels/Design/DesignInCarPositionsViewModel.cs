@@ -5,7 +5,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignInCarPositionsViewModel : InCarPositionsViewModel
 {
-    public DesignInCarPositionsViewModel() : base(new DesignHubClient(), new DesignEventClient(new DesignConfiguration()))
+    public DesignInCarPositionsViewModel() : base(new DesignHubClient(), new DesignEventClient(new DesignConfiguration()), new DebugLoggerFactory())
     {
         ShowInClassOnly = false;
         var payload = new InCarPayload

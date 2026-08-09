@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using BigMission.Avalonia.Utilities.Extensions;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.ViewModels;
 using System;
@@ -15,6 +16,8 @@ namespace RedMist.Timing.UI.Views;
 public partial class MainView : UserControl, IRecipient<LauncherEvent>
 {
     private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(25));
+
+    private static ILogger Logger => App.GetLogger(nameof(MainView));
 
     public MainView()
     {
@@ -57,7 +60,7 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in MainView.OnLoaded: {ex}");
+            Logger.LogError(ex, "Error in MainView.OnLoaded");
         }
     }
 
@@ -71,9 +74,9 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
                 launcher.LaunchUriAsync(new(message.Uri));
             }
         }
-        catch //(Exception ex)
+        catch (Exception ex)
         {
-            // Logger.LogError(ex, "Failed to launch URI");
+            Logger.LogError(ex, "Failed to launch URI {Uri}", message.Uri);
         }
     }
 

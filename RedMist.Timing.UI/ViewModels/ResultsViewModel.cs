@@ -54,6 +54,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
     private readonly IConfiguration configuration;
     private readonly OrganizationIconCacheService iconCacheService;
     private readonly SponsorRotatorViewModel sponsorRotator;
+    private ILogger Logger { get; }
 
     public Bitmap? OrganizationLogo
     {
@@ -95,6 +96,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         this.configuration = configuration;
         this.iconCacheService = iconCacheService;
         this.sponsorRotator = sponsorRotator;
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
 
         InitializeSessions(eventModel.Sessions);
@@ -110,9 +112,9 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                     // Notify that the logo may have changed
                     Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Ignore errors loading icon
+                    Logger.LogWarning(ex, "Error refreshing the organization logo for {OrganizationId}", EventModel.OrganizationId);
                 }
             });
         }
@@ -137,10 +139,12 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
 
     public async void Receive(ValueChangedMessage<RouterEvent> message)
     {
+        var router = message.Value;
+        var path = router?.Path;
         try
         {
             // Show live timing when session results are selected
-            if (message.Value.Path == "SessionResults" && message.Value.Data is Session session)
+            if (path == "SessionResults" && router?.Data is Session session)
             {
                 SessionState? results = null;
                 try
@@ -148,9 +152,9 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                     eventContext.SetContext(EventModel.EventId, session.Id);
                     results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
                 }
-                catch //(Exception ex)
+                catch (Exception ex)
                 {
-                    //logger.LogError(ex, "Error loading session results");
+                    Logger.LogError(ex, "Error loading results for session {SessionId}", session.Id);
                 }
 
                 LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator) 
@@ -168,14 +172,14 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 }
                 IsLiveTimingVisible = true;
             }
-            else if (message.Value.Path == "SessionResultsList")
+            else if (path == "SessionResultsList")
             {
                 RefreshSessions();
                 IsLiveTimingVisible = false;
                 LiveTimingViewModel = null;
                 eventContext.ClearContext();
             }
-            else if (message.Value.Path == "ResultsTab" && message.Value.Data is bool isResultsTabVisible && isResultsTabVisible)
+            else if (path == "ResultsTab" && router?.Data is bool isResultsTabVisible && isResultsTabVisible)
             {
                 RefreshSessions();
                 IsLiveTimingVisible = false;
@@ -185,7 +189,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in router message handler for ResultsViewModel: {ex}");
+            Logger.LogError(ex, "Error handling router message for path {Path}", path);
         }
     }
 
@@ -198,9 +202,9 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                 var sessions = await eventClient.LoadSessionsAsync(EventModel.EventId);
                 Dispatcher.UIThread.InvokeOnUIThread(() => InitializeSessions([.. sessions]), DispatcherPriority.Background);
             }
-            catch //(Exception ex)
+            catch (Exception ex)
             {
-                //logger.LogError(ex, "Error loading sessions");
+                Logger.LogError(ex, "Error loading sessions for event {EventId}", EventModel.EventId);
             }
         });
     }

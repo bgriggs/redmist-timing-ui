@@ -211,6 +211,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     private IDisposable? searchDebounce;
 
+    private int logRefreshPending;
     private int logoClickCount = 0;
     private DateTime lastLogoClickTime = DateTime.MinValue;
 
@@ -238,7 +239,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (logProvider != null)
         {
             logProvider.LogAdded += OnLogAdded;
-            RefreshLogMessages();
         }
         // Flat
         var f = carCache.Connect()
@@ -319,7 +319,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogWarning(ex, "Failed to load organization icon");
+                        Logger.LogWarning(ex, "Error refreshing the organization logo for {OrganizationId}", EventModel.OrganizationId);
                     }
                 });
             }
@@ -435,7 +435,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         {
             Interlocked.Exchange(ref fullUpdateInterval, null)?.Dispose();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogDebug(ex, "Error disposing the periodic refresh subscription");
+        }
     }
 
     /// <summary>
@@ -1069,7 +1072,31 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     private void OnLogAdded(object? sender, LogEntry logEntry)
     {
-        Dispatcher.UIThread.InvokeOnUIThread(RefreshLogMessages, DispatcherPriority.ContextIdle);
+        // Only pay for rendering while the diagnostic display is actually open - entries arrive a
+        // couple of times a second during a live session. Post rather than invoking inline: this
+        // runs inside the logger call, which is usually itself inside a catch block.
+        if (!ShowLogDisplay)
+            return;
+
+        // Queue at most one pending render: entries arrive a couple of times a second and each
+        // render rebuilds the whole string, including any retained exception dumps.
+        if (Interlocked.Exchange(ref logRefreshPending, 1) == 1)
+            return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            // Cleared first so entries arriving mid-render queue a fresh pass.
+            Interlocked.Exchange(ref logRefreshPending, 0);
+            RefreshLogMessages();
+        }, DispatcherPriority.ContextIdle);
+    }
+
+    partial void OnShowLogDisplayChanged(bool value)
+    {
+        if (value)
+        {
+            Dispatcher.UIThread.InvokeOnUIThread(RefreshLogMessages, DispatcherPriority.ContextIdle);
+        }
     }
 
     private void RefreshLogMessages()
@@ -1077,8 +1104,22 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (logProvider == null)
             return;
 
-        var logs = logProvider.GetLogEntries().Take(25);
-        LogMessages = string.Join(Environment.NewLine, logs.Select(l => l.FormattedMessage));
+        // Show retained warnings/errors above the rolling activity log. Routine traffic would
+        // otherwise bury the one thing someone opening this display is looking for.
+        var problems = logProvider.GetProblemEntries().ToArray();
+        var problemSet = new HashSet<LogEntry>(problems);
+        var recent = logProvider.GetLogEntries().Where(l => !problemSet.Contains(l)).Take(25);
+
+        var sections = new List<string>();
+        if (problems.Length > 0)
+        {
+            sections.Add("--- Warnings and errors ---");
+            sections.AddRange(problems.Select(l => l.FormattedMessage));
+            sections.Add("--- Recent activity ---");
+        }
+        sections.AddRange(recent.Select(l => l.FormattedMessage));
+
+        LogMessages = string.Join(Environment.NewLine, sections);
     }
 
     #endregion

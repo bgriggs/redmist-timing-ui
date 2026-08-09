@@ -4,6 +4,7 @@ using BigMission.Avalonia.Utilities.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
@@ -19,6 +20,7 @@ public partial class EventInformationViewModel : ObservableObject
 {
     public Event EventModel { get; }
     private readonly OrganizationIconCacheService iconCacheService;
+    private ILogger Logger { get; }
 
     public string Name => string.IsNullOrEmpty(EventModel.EventName) && EventModel.IsPrivate
         ? "Private Event"
@@ -71,10 +73,11 @@ public partial class EventInformationViewModel : ObservableObject
     [ObservableProperty]
     private bool allowEventList = true;
 
-    public EventInformationViewModel(Event eventModel, OrganizationIconCacheService iconCacheService)
+    public EventInformationViewModel(Event eventModel, OrganizationIconCacheService iconCacheService, ILoggerFactory loggerFactory)
     {
         EventModel = eventModel;
         this.iconCacheService = iconCacheService;
+        Logger = loggerFactory.CreateLogger(GetType().Name);
 
         if (EventModel.Schedule != null)
         {
@@ -95,9 +98,9 @@ public partial class EventInformationViewModel : ObservableObject
                     // Notify that the logo may have changed
                     Dispatcher.UIThread.InvokeOnUIThread(() => OnPropertyChanged(nameof(OrganizationLogo)));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Ignore errors loading icon
+                    Logger.LogWarning(ex, "Error refreshing the organization logo for {OrganizationId}", EventModel.OrganizationId);
                 }
             });
         }

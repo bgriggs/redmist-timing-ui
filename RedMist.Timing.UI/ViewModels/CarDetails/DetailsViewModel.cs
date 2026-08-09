@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
@@ -28,6 +29,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     private readonly PitTracking pitTracking;
     private readonly IHttpClientFactory httpClientFactory;
     private readonly string archiveBaseUrl;
+    private ILogger Logger { get; }
 
     [ObservableProperty]
     private bool isLoading = false;
@@ -66,7 +68,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
 
 
     public DetailsViewModel(Event evt, int sessionId, string carNumber, EventClient serverClient, HubClient hubClient,
-        PitTracking pitTracking, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        PitTracking pitTracking, IHttpClientFactory httpClientFactory, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         this.evt = evt;
         this.sessionId = sessionId;
@@ -76,6 +78,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         this.pitTracking = pitTracking;
         this.httpClientFactory = httpClientFactory;
         archiveBaseUrl = (configuration["Cdn:ArchiveUrl"] ?? throw new ArgumentException("Cdn:ArchiveUrl is not configured.")).TrimEnd('/');
+        Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -109,7 +112,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error loading competitor metadata: {ex}");
+                    Logger.LogError(ex, "Error loading competitor metadata for car {CarNumber}", carNumber);
                 }
             });
 
@@ -141,9 +144,9 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
 
             //Debug.WriteLine($"Car positions loaded: {carPositions.Count}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Handle exceptions
+            Logger.LogError(ex, "Error loading details for car {CarNumber}", carNumber);
         }
         finally
         {
@@ -184,7 +187,10 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
                         ControlLog.Add(entry);
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error applying control log entries for car {CarNumber}", carNumber);
+                }
             });
         }
     }
@@ -200,7 +206,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in AppResumeNotification handler for DetailsViewModel: {ex}");
+            Logger.LogError(ex, "Error reloading car details after app resume");
         }
     }
 
@@ -226,12 +232,12 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             // Build the URL: {archiveBaseUrl}/event-{eventId}-session-{sessionId}-car-laps/car-{carNum}-laps.gz
             var url = $"{archiveBaseUrl}/event-laps/event-{eventId}-session-{sessionId}-car-laps/car-{carNumber}-laps.gz";
-            var laps = await ArchiveHelper.DownloadArchivedDataAsync<List<CarPosition>>(httpClientFactory, url);
+            var laps = await ArchiveHelper.DownloadArchivedDataAsync<List<CarPosition>>(httpClientFactory, url, Logger);
             return laps ?? [];
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading archived laps: {ex}");
+            Logger.LogError(ex, "Error loading archived laps for car {CarNumber}", carNumber);
             return [];
         }
     }
@@ -241,13 +247,13 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         try
         {
             var url = $"{archiveBaseUrl}/event-competitor-metadata/event-{eventId}-competitor-metadata.gz";
-            var eventMetadata = await ArchiveHelper.DownloadArchivedDataAsync<List<CompetitorMetadata>>(httpClientFactory, url);
+            var eventMetadata = await ArchiveHelper.DownloadArchivedDataAsync<List<CompetitorMetadata>>(httpClientFactory, url, Logger);
             var carMetadata = eventMetadata?.FirstOrDefault(cm => cm.CarNumber == carNumber);
             return carMetadata;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading archived laps: {ex}");
+            Logger.LogError(ex, "Error loading archived competitor metadata for car {CarNumber}", carNumber);
             return null;
         }
     }
@@ -259,7 +265,10 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             WeakReferenceMessenger.Default.UnregisterAll(this);
             _ = hubClient.UnsubscribeFromCarControlLogsAsync(evt.EventId, carNumber);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error releasing car details for {CarNumber}", carNumber);
+        }
         finally
         {
             GC.SuppressFinalize(this);

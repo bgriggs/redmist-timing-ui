@@ -7,7 +7,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 public class DesignFlagsViewModel : FlagsViewModel
 {
     public DesignFlagsViewModel() : base(new Event { EventName = "World Racing League - Barber 2025" }, 
-        new DesignEventClient(new DesignConfiguration()), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService())
+        new DesignEventClient(new DesignConfiguration()), new EventContext(), new DesignHttpClientFactory(), new DesignConfiguration(), new DesignOrganizationIconCacheService(), new DebugLoggerFactory())
     {
         var fg1 = new FlagDuration 
         { 
