@@ -63,7 +63,9 @@ jobs:
         shell: bash
         run: |
           security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
-          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
+          # -ut, not -lut: the -l in -lut enables lock-on-sleep, which relocks the
+          # keychain if the runner sleeps mid-build and fails codesign intermittently.
+          security set-keychain-settings -ut 21600 ~/Library/Keychains/login.keychain-db
           # The runner is a LaunchAgent, so codesign has no GUI session to authorize
           # key access and fails with errSecInternalComponent. Grant it explicitly.
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s \
