@@ -23,12 +23,27 @@ public class SponsorsService
     }
 
 
-    public async Task InitializeAsync()
+    /// <summary>
+    /// Loads the sponsors to display. Pass the event being viewed so sponsors excluded by the organization
+    /// running it are left out; pass nothing for contexts with no event, which get every active sponsor.
+    /// </summary>
+    public async Task InitializeAsync(string eventId = "")
     {
         try
         {
-            Sponsors = await sponsorClient.GetSponsorsAsync();
+            Sponsors = await sponsorClient.GetSponsorsAsync(eventId);
+        }
+        catch (Exception ex)
+        {
+            // Drop the previous event's list rather than leave it to be displayed under this one:
+            // it may hold sponsors this event's organization excludes.
+            Sponsors = [];
+            logger.LogWarning(ex, "Failed to load sponsors for event {EventId}", eventId);
+            return;
+        }
 
+        try
+        {
             // Load sponsor images into cache
             var tasks = new List<Task>(Sponsors.Count);
             foreach (var sponsor in Sponsors)
@@ -44,7 +59,9 @@ public class SponsorsService
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to initialize sponsors");
+            // The rotation skips sponsors with no cached image, so a caching failure is not
+            // a reason to throw the loaded list away.
+            logger.LogWarning(ex, "Failed to cache sponsor images");
         }
     }
 }
