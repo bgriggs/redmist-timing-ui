@@ -60,7 +60,6 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
-		<PackageReference Include="Microsoft.Maui.Essentials" />
 		<PackageReference Include="RestSharp" />
 	</ItemGroup>
 </Project>

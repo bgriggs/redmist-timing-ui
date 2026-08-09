@@ -80,9 +80,18 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
 
     public async Task InitializeAsync()
     {
+        // Most callers kick this off from a background task. Hop to the UI thread once up front so
+        // every bound property write below lands there; the awaits are I/O and resume on the UI
+        // thread through the dispatcher's synchronization context.
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            await Dispatcher.UIThread.InvokeAsync(InitializeAsync);
+            return;
+        }
+
         Message = string.Empty;
         IsLoading = true;
-        Dispatcher.UIThread.InvokeOnUIThread(Events.Clear);
+        Events.Clear();
         try
         {
             List<EventListSummary>? events;
@@ -143,7 +152,7 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
                     }
 
                     // Display events immediately
-                    Dispatcher.UIThread.InvokeOnUIThread(() => Events.SetRange(vms));
+                    Events.SetRange(vms);
 
                     // Load icons asynchronously in the background using the cache service
                     var orgIds = events.Select(e => e.OrganizationId).Distinct().ToArray();

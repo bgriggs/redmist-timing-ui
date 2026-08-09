@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using RedMist.Timing.UI.ViewModels;
+using System;
 
 namespace RedMist.Timing.UI.Views;
 
@@ -14,9 +15,16 @@ public partial class EventsListView : UserControl
     protected override async void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
-        if (DataContext is EventsListViewModel vm)
+        try
         {
-            await vm.InitializeAsync();
+            if (DataContext is EventsListViewModel vm)
+            {
+                await vm.InitializeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading events list: {ex}");
         }
     }
 
@@ -24,13 +32,23 @@ public partial class EventsListView : UserControl
     {
         var deferral = e.GetDeferral();
 
-        // Refresh List Box Items
-        if (DataContext is EventsListViewModel vm)
+        try
         {
-            await vm.InitializeAsync();
+            // Refresh List Box Items
+            if (DataContext is EventsListViewModel vm)
+            {
+                await vm.InitializeAsync();
+            }
         }
-
-        // Notify the Refresh Container that the refresh is complete.
-        deferral.Complete();
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error refreshing events list: {ex}");
+        }
+        finally
+        {
+            // Notify the Refresh Container that the refresh is complete. Skipping this on failure
+            // leaves the pull-to-refresh spinner stuck open.
+            deferral.Complete();
+        }
     }
 }

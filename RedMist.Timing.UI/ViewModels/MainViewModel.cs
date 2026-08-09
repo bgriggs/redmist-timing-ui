@@ -307,7 +307,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     return;
                 }
 
-                await SetupForEventAsync(eventModel, organizationName);
+                await SetupForEventAsync(eventModel);
             }
             else if (router.Path == "EventsList")
             {
@@ -352,6 +352,12 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
                 IsTimingTabStripVisible = false;
                 IsDriverModeVisible = false;
+
+                // Leaving driver mode: release the hub subscription and the screen wake lock now
+                // rather than waiting for the next trip into driver mode to replace it.
+                InCarSettingsViewModel?.Dispose();
+                InCarSettingsViewModel = null;
+
                 IsAccessCodePromptVisible = false;
                 AccessCodePromptViewModel = null;
                 currentEvent = null;
@@ -359,7 +365,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             }
             else if (router.Path == "InCarDriverSettings")
             {
-                InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient, accessCodeStore);
+                // Release the previous one's hub subscription before dropping it.
+                InCarSettingsViewModel?.Dispose();
+                InCarSettingsViewModel = new InCarSettingsViewModel(eventClient, hubClient, accessCodeStore,
+                    preferencesService, screenWakeService);
                 
                 _ = Task.Run(async () =>
                 {
@@ -412,7 +421,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 }
                 else
                 {
-                    await SetupForEventAsync(eventModel, orgName);
+                    await SetupForEventAsync(eventModel);
                 }
             },
             onCancel: () =>
@@ -431,7 +440,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         IsAccessCodePromptVisible = true;
     }
 
-    private async Task SetupForEventAsync(Event eventModel, string organizationName)
+    private async Task SetupForEventAsync(Event eventModel)
     {
         if (eventModel.IsLive)
         {
@@ -439,13 +448,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             {
                 try
                 {
+                    // Note: InitializeLiveAsync swallows its own exceptions, so an access-denied
+                    // response never surfaces here. The re-prompt happens through
+                    // EventAccessDeniedNotification, which EventClient raises on any 401.
                     await LiveTimingViewModel.InitializeLiveAsync(eventModel);
-                }
-                catch (EventAccessDeniedException)
-                {
-                    Logger.LogWarning("Access denied subscribing to event {EventId} — re-prompting", eventModel.EventId);
-                    accessCodeStore.Clear(eventModel.EventId);
-                    ShowAccessCodePrompt(eventModel, organizationName);
                 }
                 catch (Exception ex)
                 {
@@ -483,13 +489,28 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         {
             return false; // There is nothing to go back to, so do not handle the back button
         }
+        else if (IsDriverModeVisible)
+        {
+            // Driver mode selects no tab, so it has to be handled before the tab checks below -
+            // otherwise every flag is false and back backgrounds the app instead of navigating.
+            if (InCarSettingsViewModel is { IsPositionsVisible: true } positions)
+            {
+                positions.BackToSettings();
+            }
+            else
+            {
+                InCarSettingsViewModel?.Back();
+            }
+
+            return true;
+        }
         else // The main tab strip is visible
         {
             if (IsLiveTimingTabSelected)
             {
                 LiveTimingViewModel.Back();
             }
-            if (IsResultsTabSelected) // Session Results Tab
+            else if (IsResultsTabSelected) // Session Results Tab
             {
                 ResultsViewModel?.Back();
             }

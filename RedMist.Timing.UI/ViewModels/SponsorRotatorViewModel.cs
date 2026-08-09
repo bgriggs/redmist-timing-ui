@@ -105,6 +105,24 @@ public partial class SponsorRotatorViewModel : ObservableObject, IDisposable
 
     private async Task RotateAsync(CancellationToken ct)
     {
+        // Nothing awaits this task, so an escaping exception would silently stop rotation for the
+        // rest of the session with no trace of why.
+        try
+        {
+            await RotateLoopAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on Stop().
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Sponsor rotation stopped unexpectedly");
+        }
+    }
+
+    private async Task RotateLoopAsync(CancellationToken ct)
+    {
         while (!ct.IsCancellationRequested)
         {
             var (sponsor, image) = GetNextSponsorWithImage();
@@ -162,14 +180,17 @@ public partial class SponsorRotatorViewModel : ObservableObject, IDisposable
 
     private (SponsorInfo? sponsor, Bitmap? image) GetNextSponsorWithImage()
     {
-        if (sortedSponsors.Count == 0)
+        // Snapshot the field: Stop() replaces it from another thread, so re-reading it part way
+        // through would let the count go to zero between the guard and the modulus below.
+        var sponsors = sortedSponsors;
+        if (sponsors.Count == 0)
             return (null, null);
 
         // Try each sponsor starting from the next index
-        for (int i = 0; i < sortedSponsors.Count; i++)
+        for (int i = 0; i < sponsors.Count; i++)
         {
-            currentIndex = (currentIndex + 1) % sortedSponsors.Count;
-            var sponsor = sortedSponsors[currentIndex];
+            currentIndex = (currentIndex + 1) % sponsors.Count;
+            var sponsor = sponsors[currentIndex];
 
             if (string.IsNullOrEmpty(sponsor.ImageUrl))
                 continue;

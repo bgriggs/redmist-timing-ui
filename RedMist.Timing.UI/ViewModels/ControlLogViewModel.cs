@@ -13,6 +13,7 @@ using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -168,13 +169,13 @@ public partial class ControlLogViewModel : ObservableObject, IRecipient<ControlL
                     }
                 }
 
-                // Remove logs not in entries
-                foreach (var k in logCache.Keys)
+                // Remove logs not in entries. Snapshot the keys first - removing while enumerating
+                // the live key collection throws and would abort the rest of this update.
+                var currentKeys = new HashSet<string>(message.Value.ControlLogEntries.Select(ToKey));
+                var staleKeys = logCache.Keys.Where(k => !currentKeys.Contains(k)).ToArray();
+                foreach (var k in staleKeys)
                 {
-                    if (!message.Value.ControlLogEntries.Any(e => ToKey(e) == k))
-                    {
-                        logCache.RemoveKey(k);
-                    }
+                    logCache.RemoveKey(k);
                 }
             }
             catch { }
