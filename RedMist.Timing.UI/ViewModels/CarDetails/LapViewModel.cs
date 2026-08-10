@@ -49,8 +49,8 @@ public partial class LapViewModel : ObservableObject
         get
         {
             if (IsBestLap)
-                return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, CarViewModel.CARROWLAPTEXTFOREGROUND_BEST_BRUSH) ?? Brushes.Black;
-            return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, CarViewModel.CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH) ?? Brushes.Black;
+                return Application.Current?.FindResource(Application.Current.ActualThemeVariant, CarViewModel.CARROWLAPTEXTFOREGROUND_BEST_BRUSH) as IBrush ?? Brushes.Black;
+            return Application.Current?.FindResource(Application.Current.ActualThemeVariant, CarViewModel.CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH) as IBrush ?? Brushes.Black;
         }
     }
 

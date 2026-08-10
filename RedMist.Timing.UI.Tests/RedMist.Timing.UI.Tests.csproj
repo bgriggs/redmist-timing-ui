@@ -19,6 +19,8 @@
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
     <PackageReference Include="MSTest" />
+    <!-- There is no Avalonia.Headless.MSTest adapter, so the session is driven directly. -->
+    <PackageReference Include="Avalonia.Headless" />
   </ItemGroup>
 
   <ItemGroup>

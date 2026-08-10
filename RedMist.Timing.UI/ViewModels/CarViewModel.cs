@@ -379,19 +379,22 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RowBackground))]
     private string rowBackgroundKey = CARROW_NORMAL_BACKGROUNDBRUSH;
-    public Color RowBackground => (Color?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, RowBackgroundKey) ?? Colors.Transparent;
+    // Pattern match rather than cast: a missed lookup returns AvaloniaProperty.UnsetValue, not null,
+    // so a cast throws InvalidCastException and never reaches the fallback. These getters are
+    // evaluated by the renderer, where that surfaces as a crash rather than a wrong color.
+    public Color RowBackground => Application.Current?.FindResource(Application.Current.ActualThemeVariant, RowBackgroundKey) is Color color ? color : Colors.Transparent;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LapDataColor))]
     private string lapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
-    public IBrush LapDataColor => (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, LapDataBrushKey) ?? Brushes.Black;
+    public IBrush LapDataColor => Application.Current?.FindResource(Application.Current.ActualThemeVariant, LapDataBrushKey) as IBrush ?? Brushes.Black;
     [ObservableProperty]
     private FontWeight lapDataFontWeight = FontWeight.Normal;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BestLapDataColor))]
     private string bestLapDataBrushKey = CARROWLAPTEXTFOREGROUND_NORMAL_BRUSH;
-    public IBrush BestLapDataColor => (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, BestLapDataBrushKey) ?? Brushes.Black;
+    public IBrush BestLapDataColor => Application.Current?.FindResource(Application.Current.ActualThemeVariant, BestLapDataBrushKey) as IBrush ?? Brushes.Black;
     [ObservableProperty]
     private FontWeight bestLapDataFontWeight = FontWeight.Normal;
 

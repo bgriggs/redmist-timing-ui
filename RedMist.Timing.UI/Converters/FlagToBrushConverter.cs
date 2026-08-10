@@ -61,6 +61,6 @@ public class FlagToBrushConverter : IValueConverter
 
     private static IBrush GetResource(string key)
     {
-        return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, key) ?? Brushes.Transparent;
+        return Application.Current?.FindResource(Application.Current.ActualThemeVariant, key) as IBrush ?? Brushes.Transparent;
     }
 }
