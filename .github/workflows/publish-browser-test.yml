@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -78,7 +78,7 @@ jobs:
           @{ version = $version } | ConvertTo-Json | Set-Content "${{ github.workspace }}\publish-output\wwwroot\version.json" -Encoding UTF8
 
       - name: Upload published app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: clickonce-artifacts
           path: ${{ github.workspace }}\publish-output
