@@ -1,4 +1,4 @@
-﻿using Avalonia.Media.Imaging;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using BigMission.Avalonia.Utilities.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -33,9 +33,14 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     private readonly string archiveBaseUrl;
     private ILogger Logger { get; }
 
+    /// <summary>
+    /// Accepted shapes of <see cref="SessionStatePatch.LocalTimeOfDay"/>, the track's wall clock.
+    /// </summary>
+    private static readonly string[] TimeOfDayFormats = [@"hh\:mm\:ss", @"h\:mm\:ss"];
+
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
     private List<FlagDuration> lastFlagDurations = [];
-    private DateTime lastTimeOfDay;
+    private TimeSpan? lastTimeOfDay;
     public bool HasNoFlags => Flags.Count == 0;
     public bool ShowNoFlagsMessage => !IsLoading && HasNoFlags;
     public string Name => eventModel.EventName ?? string.Empty;
@@ -155,9 +160,12 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     {
         try
         {
+            // Kept as a time of day rather than a DateTime: the feed sends the track's wall clock
+            // with no date, and stamping it with the viewing device's calendar date puts the two
+            // sides of the duration subtraction on different days for anyone in another time zone.
             var tod = lastTimeOfDay;
             if (session.LocalTimeOfDay != null &&
-                DateTime.TryParseExact(session.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var parsedTod))
+                TimeSpan.TryParseExact(session.LocalTimeOfDay, TimeOfDayFormats, CultureInfo.InvariantCulture, out var parsedTod))
             {
                 tod = parsedTod;
                 lastTimeOfDay = parsedTod;
@@ -232,7 +240,16 @@ public partial class FlagViewModel : ObservableObject
     [ObservableProperty]
     private Flags flag;
 
-    public void Update(FlagDuration flagDuration, DateTime timeOfDay, bool setMovingDuration = false)
+    /// <summary>
+    /// Points this row at a flag.
+    /// </summary>
+    /// <param name="flagDuration">The flag to show. Its times are the track's local times.</param>
+    /// <param name="trackTimeOfDay">
+    /// The track's current wall clock, or null if the session hasn't reported one yet. Used only
+    /// for the flag that is still running.
+    /// </param>
+    /// <param name="setMovingDuration">True for the newest flag, whose duration is still growing.</param>
+    public void Update(FlagDuration flagDuration, TimeSpan? trackTimeOfDay, bool setMovingDuration = false)
     {
         StartTime = flagDuration.StartTime.ToString("h:mm tt");
         EndTime = flagDuration.EndTime?.ToString("h:mm tt") ?? string.Empty;
@@ -242,10 +259,19 @@ public partial class FlagViewModel : ObservableObject
             var durTs = flagDuration.EndTime - flagDuration.StartTime;
             SetDurationStr(durTs.Value);
         }
-        else if (setMovingDuration && timeOfDay != default)
+        else if (setMovingDuration && trackTimeOfDay is { } clock)
         {
-            var dts = timeOfDay - flagDuration.StartTime;
-            SetDurationStr(dts);
+            // Anchor the track's clock to the day the flag started rather than to the viewing
+            // device's calendar date - otherwise a viewer whose local date differs from the
+            // track's measures the duration across a phantom day boundary. Roll forward once when
+            // the session has passed midnight at the track.
+            var nowAtTrack = flagDuration.StartTime.Date + clock;
+            if (nowAtTrack < flagDuration.StartTime)
+            {
+                nowAtTrack = nowAtTrack.AddDays(1);
+            }
+
+            SetDurationStr(nowAtTrack - flagDuration.StartTime);
         }
         else
         {
