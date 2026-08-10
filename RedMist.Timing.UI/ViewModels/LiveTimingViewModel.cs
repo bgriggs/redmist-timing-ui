@@ -649,8 +649,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
         if (!isDeltaUpdate)
         {
-            // Remove cars not in entries. Snapshot the keys first - removing while enumerating the
-            // live key collection throws, and the caller's catch would swallow the rest of the update.
+            // Remove cars that are no longer entered. The ToArray below materializes the matches
+            // before any removal; SourceCache.Keys already hands back a snapshot array, so this is
+            // belt and braces against a future change rather than a fix for a live failure.
             var entryNumbers = new HashSet<string>(entries.Select(e => e.Number));
             var staleNumbers = carCache.Keys.Where(num => !entryNumbers.Contains(num)).ToArray();
             foreach (var num in staleNumbers)
