@@ -35,6 +35,7 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
 
     public ObservableCollection<FlagViewModel> Flags { get; } = [];
     private List<FlagDuration> lastFlagDurations = [];
+    private DateTime lastTimeOfDay;
     public bool HasNoFlags => Flags.Count == 0;
     public bool ShowNoFlagsMessage => !IsLoading && HasNoFlags;
     public string Name => eventModel.EventName ?? string.Empty;
@@ -154,10 +155,12 @@ public partial class FlagsViewModel : ObservableObject, IRecipient<SessionStatus
     {
         try
         {
-            DateTime tod = default;
-            if (session.LocalTimeOfDay != null)
+            var tod = lastTimeOfDay;
+            if (session.LocalTimeOfDay != null &&
+                DateTime.TryParseExact(session.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out var parsedTod))
             {
-                DateTime.TryParseExact(session.LocalTimeOfDay, "HH:mm:ss", null, DateTimeStyles.None, out tod);
+                tod = parsedTod;
+                lastTimeOfDay = parsedTod;
             }
 
             var fds = lastFlagDurations;
@@ -244,6 +247,12 @@ public partial class FlagViewModel : ObservableObject
             var dts = timeOfDay - flagDuration.StartTime;
             SetDurationStr(dts);
         }
+        else
+        {
+            // These view models are pooled and re-pointed at whichever flag now occupies the row.
+            // Without this the row would keep showing the previous flag's duration.
+            Duration = string.Empty;
+        }
 
         FlagStr = flagDuration.Flag != Flags.Unknown ? flagDuration.Flag.ToString() : string.Empty;
         Flag = flagDuration.Flag;
@@ -266,10 +275,13 @@ public partial class FlagViewModel : ObservableObject
         if (timeSpan.TotalSeconds < 1)
             return "0s";
 
+        // Total hours, not TimeSpan.Hours: the latter wraps at 24 and would render a day-long
+        // green flag as a few minutes.
+        var totalHours = (int)timeSpan.TotalHours;
         var parts = new[]
         {
-            timeSpan.Hours > 0 ? $"{timeSpan.Hours}h" : null,
-            timeSpan.Minutes > 0 || timeSpan.Hours > 0 ? $"{timeSpan.Minutes}m" : null,
+            totalHours > 0 ? $"{totalHours}h" : null,
+            timeSpan.Minutes > 0 || totalHours > 0 ? $"{timeSpan.Minutes}m" : null,
             $"{timeSpan.Seconds}s"
         };
 

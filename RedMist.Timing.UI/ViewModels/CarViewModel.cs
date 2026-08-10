@@ -541,7 +541,7 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
 
         // Record the pit stop
-        if (p.IsInPit ?? false && !string.IsNullOrEmpty(p.Number))
+        if (p.IsInPit ?? false)
             pitTracking.AddPitStop(Number, LastLap);
 
         // Change to stale color to show car has not updated in a while

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RedMist.Timing.UI.Converters;
+using RedMist.Timing.UI.Utilities;
 using RedMist.TimingCommon.Models;
 using System;
 using System.Globalization;
@@ -111,43 +112,5 @@ public partial class LapViewModel : ObservableObject
     /// Parses times greater than 24 hours in the format "HH:MM:SS.fff".
     /// </summary>
     private static bool TryParseExtendedTime(string? input, out TimeSpan result)
-    {
-        result = default;
-
-        if (string.IsNullOrWhiteSpace(input))
-            return false;
-
-        var span = input.AsSpan();
-
-        var firstColon = span.IndexOf(':');
-        if (firstColon < 0)
-            return false;
-
-        var rest = span[(firstColon + 1)..];
-        var secondColon = rest.IndexOf(':');
-        if (secondColon < 0)
-            return false;
-
-        if (!int.TryParse(span[..firstColon], out int hours))
-            return false;
-
-        if (!int.TryParse(rest[..secondColon], out int minutes))
-            return false;
-
-        if (!double.TryParse(rest[(secondColon + 1)..], NumberStyles.Float, CultureInfo.InvariantCulture, out double seconds))
-            return false;
-
-        int wholeSeconds = (int)Math.Floor(seconds);
-        int milliseconds = (int)Math.Round((seconds - wholeSeconds) * 1000);
-
-        try
-        {
-            result = new TimeSpan(0, hours, minutes, wholeSeconds, milliseconds);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+        => RaceTimeParser.TryParse(input, out result);
 }

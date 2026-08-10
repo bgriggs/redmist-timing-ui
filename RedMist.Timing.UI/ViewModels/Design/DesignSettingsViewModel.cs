@@ -1,4 +1,4 @@
-﻿using RedMist.Timing.UI.Services;
+using RedMist.Timing.UI.Services;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
