@@ -196,26 +196,38 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private PitStates pitState;
     [ObservableProperty]
     private Size pageSize;
+    /// <summary>
+    /// Progress around the current lap, where 1.0 is a full lap. Comes from the car's measured
+    /// track position when there is one, and otherwise from the time projection, which may overrun
+    /// up to 1.3.
+    /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LapProgressNormalFraction))]
     [NotifyPropertyChangedFor(nameof(LapProgressOverrunFraction))]
     [NotifyPropertyChangedFor(nameof(IsLapProgressOverrun))]
-    private double projectedLapTimePercent;
+    private double lapProgressFraction;
+
+    /// <summary>
+    /// Whether <see cref="LapProgressFraction"/> came from the car's measured track position rather
+    /// than the time projection.
+    /// </summary>
+    [ObservableProperty]
+    private bool isLapProgressMeasured;
 
     /// <summary>
     /// Fraction of total bar width (1.3) representing the normal portion (0 to 1.0).
     /// </summary>
-    public double LapProgressNormalFraction => Math.Min(Math.Max(ProjectedLapTimePercent, 0), 1.0) / 1.3;
+    public double LapProgressNormalFraction => Math.Min(Math.Max(LapProgressFraction, 0), 1.0) / 1.3;
 
     /// <summary>
     /// Fraction of total bar width (1.3) representing the overrun portion (past 1.0).
     /// </summary>
-    public double LapProgressOverrunFraction => Math.Max(0, Math.Min(ProjectedLapTimePercent, 1.3) - 1.0) / 1.3;
+    public double LapProgressOverrunFraction => Math.Max(0, Math.Min(LapProgressFraction, 1.3) - 1.0) / 1.3;
 
     /// <summary>
-    /// Whether the projected lap time has exceeded the expected lap time.
+    /// Whether the lap has run past the time it was projected to take.
     /// </summary>
-    public bool IsLapProgressOverrun => ProjectedLapTimePercent > 1.0;
+    public bool IsLapProgressOverrun => LapProgressFraction > 1.0;
 
     #endregion
 
@@ -775,13 +787,57 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
-    public void UpdateProjectedLapTimeProgression(TimeSpan raceTime)
+    /// <summary>
+    /// Recomputes the lap progress bar from the two sources available: where the server says the car
+    /// physically is, and how long its current lap has been running.
+    /// </summary>
+    public void UpdateLapProgress(TimeSpan raceTime)
+    {
+        var projected = ProjectLapProgress(raceTime);
+        var measured = GetMeasuredLapProgress();
+
+        // A measurement says where the car actually is, so it normally wins - and unlike the
+        // projection it needs no prior lap, so it works from the opening lap onwards. It cannot
+        // report an overrun though: a car stopped on track keeps a healthy fix and a frozen
+        // percentage, so only the projection can still show that the lap is badly overdue.
+        var isOverdue = projected is double p && p > 1.0;
+        var useMeasured = measured != null && !isOverdue;
+
+        LapProgressFraction = useMeasured ? measured!.Value : projected ?? 0;
+        IsLapProgressMeasured = useMeasured;
+    }
+
+    /// <summary>
+    /// Reduces the server's measured lap position - where the car is around the lap, from snapping
+    /// its GPS onto the learned track map - to a fraction of a lap, or null when there is nothing
+    /// usable. Covers the invalid sentinel, timing systems that do not report it at all, and
+    /// anything out of range.
+    /// </summary>
+    /// <remarks>
+    /// The sentinel is sent rather than the value being withheld because a patch carries "no change"
+    /// as null, so a stale percentage would otherwise stay on screen forever. It stands for anything
+    /// that makes the measurement untrustworthy: in the pits, off the racing surface, poor signal,
+    /// a stale fix, or start/finish not yet calibrated.
+    /// </remarks>
+    private double? GetMeasuredLapProgress()
+    {
+        var percent = LastCarPosition?.LapPositionPercent;
+        if (percent == null || percent == CarPosition.InvalidTrackPosition)
+            return null;
+        if (percent < 0 || percent > 100)
+            return null;
+        return percent.Value / 100.0;
+    }
+
+    /// <summary>
+    /// Estimates how far around the lap the car should be, from elapsed time against its projected
+    /// lap time. Returns null when there is not enough history to estimate from. May exceed 1.0, up
+    /// to 1.3, when the lap is running long.
+    /// </summary>
+    private double? ProjectLapProgress(TimeSpan raceTime)
     {
         if (LastCarPosition == null || LastCarPosition.LastLapCompleted <= 0 || string.IsNullOrEmpty(LastCarPosition.TotalTime))
-        {
-            ProjectedLapTimePercent = 0;
-            return;
-        }
+            return null;
 
         double projectedMs = LastCarPosition.ProjectedLapTimeMs;
 
@@ -799,17 +855,14 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
                 }
             }
             if (projectedMs <= 0)
-            {
-                ProjectedLapTimePercent = 0;
-                return;
-            }
+                return null;
         }
 
         var lapStart = LiveTimingViewModel.ParseRMTime(LastCarPosition.TotalTime);
         var projectedEndTime = lapStart.Add(TimeSpan.FromMilliseconds(projectedMs));
         var msToGo = projectedEndTime.TotalMilliseconds - raceTime.TotalMilliseconds;
         var percent = 1 - (msToGo / projectedMs);
-        ProjectedLapTimePercent = Math.Clamp(percent, 0, 1.3);
+        return Math.Clamp(percent, 0, 1.3);
     }
 
     private static double ParseTimeToMs(string? time)

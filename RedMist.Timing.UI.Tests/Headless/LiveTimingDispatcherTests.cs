@@ -256,7 +256,7 @@ public sealed class LiveTimingDispatcherTests
             ],
         }));
         var car = vm.Cars.Single();
-        Assert.AreEqual(0, car.ProjectedLapTimePercent, 1e-9, "Sanity check - no race time yet.");
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9, "Sanity check - no race time yet.");
 
         vm.ApplySessionUpdate(new SessionStatusNotification(new SessionStatePatch
         {
@@ -264,7 +264,41 @@ public sealed class LiveTimingDispatcherTests
         }));
         Dispatcher.UIThread.RunJobs();
 
-        Assert.AreEqual(0.5, car.ProjectedLapTimePercent, 1e-9,
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9,
             "A minute into a two minute projected lap puts the bar half way.");
+    });
+
+    /// <summary>
+    /// The measured track position arrives with the car patches rather than with the race clock, so
+    /// the bars have to be redrawn on that path too instead of waiting for the next clock tick.
+    /// </summary>
+    [TestMethod]
+    public Task MeasuredTrackPosition_ReachesTheLapProgressBarsWithoutAClockTick() => HeadlessTest.OnDispatcher(() =>
+    {
+        var vm = CreateLive();
+        vm.ApplySessionUpdate(new SessionStatusNotification(new SessionStatePatch
+        {
+            EventEntries = [Entry("1")],
+            RunningRaceTime = "00:11:00.000",
+            CarPositions =
+            [
+                new CarPosition
+                {
+                    Number = "1",
+                    LastLapCompleted = 4,
+                    TotalTime = "00:10:00.000",
+                    ProjectedLapTimeMs = 120_000,
+                },
+            ],
+        }));
+        Dispatcher.UIThread.RunJobs();
+        var car = vm.Cars.Single();
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9, "Sanity check - the projection is driving it.");
+
+        vm.Receive(new CarStatusNotification([new CarPositionPatch { Number = "1", LapPositionPercent = 25 }]));
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.AreEqual(0.25, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
     });
 }

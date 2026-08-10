@@ -405,7 +405,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             var patch = SessionStateMapper.CreatePatch(new SessionState(), sessionStatus);
             Receive(new SessionStatusNotification(patch));
 
-            var carPatches = sessionStatus.CarPositions.Select(c => CarPositionMapper.CreatePatch(new CarPosition(), c)).ToArray();
+            var carPatches = sessionStatus.CarPositions.Select(c => ToFullPatch(CarPositionMapper.CreatePatch(new CarPosition(), c))).ToArray();
             Receive(new CarStatusNotification(carPatches));
             Logger.LogInformation("Full update in {t}ms", sw.ElapsedMilliseconds);
         }
@@ -518,7 +518,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             if (message.Value.RunningRaceTime != null)
             {
                 RaceTime = message.Value.RunningRaceTime;
-                Dispatcher.UIThread.Post(UpdateProjectedLapTimeProgression, DispatcherPriority.Background);
+                Dispatcher.UIThread.Post(UpdateLapProgress, DispatcherPriority.Background);
             }
 
             if (message.Value.LocalTimeOfDay != null &&
@@ -562,7 +562,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             {
                 var patches = message.Value.CarPositions
                     .Where(c => c.Number != null)
-                    .Select(CarPositionMapper.ToPatch)
+                    .Select(c => ToFullPatch(CarPositionMapper.ToPatch(c)))
                     .ToArray();
                 ApplyCarUpdate(new CarStatusNotification(patches));
             }
@@ -588,6 +588,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     {
         // Apply car position updates
         UpdateCars(message.Value);
+
+        // The measured track position arrives with the car patches, so the bars have to be redrawn
+        // here as well as on the race clock rather than waiting for the next clock tick.
+        UpdateLapProgress();
 
         if (carCache.Count > 0)
         {
@@ -745,12 +749,29 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
-    private void UpdateProjectedLapTimeProgression()
+    /// <summary>
+    /// Adjusts a patch built from a complete car state so that absent fields read as "there is none"
+    /// rather than "no change".
+    /// </summary>
+    /// <remarks>
+    /// A patch carries "no change" as null, which a full state has no way to mean - everything it
+    /// leaves out, it genuinely does not have. That only matters for the measured track position,
+    /// where the difference is visible: the server normally says "no usable measurement" with the
+    /// <see cref="CarPosition.InvalidTrackPosition"/> sentinel, but a timing system that stops
+    /// reporting the field altogether would otherwise leave the last measurement on screen forever.
+    /// </remarks>
+    private static CarPositionPatch ToFullPatch(CarPositionPatch patch)
+    {
+        patch.LapPositionPercent ??= CarPosition.InvalidTrackPosition;
+        return patch;
+    }
+
+    private void UpdateLapProgress()
     {
         var raceTime = ParseRMTime(RaceTime);
         foreach (var carVm in carCache.Items)
         {
-            carVm.UpdateProjectedLapTimeProgression(raceTime);
+            carVm.UpdateLapProgress(raceTime);
         }
     }
 

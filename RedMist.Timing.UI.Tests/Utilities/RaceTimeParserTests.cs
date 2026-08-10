@@ -80,7 +80,7 @@ public sealed class RaceTimeParserTests
     [TestMethod]
     public void ParseRMTime_DelegatesToTheSharedParser()
     {
-        // CarViewModel.UpdateProjectedLapTimeProgression drives the lap-progress bar from this.
+        // CarViewModel.UpdateLapProgress drives the lap-progress bar from this.
         Assert.AreEqual(RaceTimeParser.Parse("30:00:00.000"), LiveTimingViewModel.ParseRMTime("30:00:00.000"));
         Assert.AreEqual(new TimeSpan(30, 0, 0), LiveTimingViewModel.ParseRMTime("30:00:00.000"));
     }
