@@ -105,6 +105,34 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Difference))]
     private string inClassDifference = string.Empty;
+    // The fast-time gaps stay null until the server sends one. Null means "the server never
+    // published this" - stored results from before the server computed these fields - and falls
+    // back to the race value. Empty means the server did publish it and the cell is meant to be
+    // blank, which is the case for the car holding the best lap and for cars with no lap time.
+    /// <summary>
+    /// Time to the next car overall when the cars are ordered by their best lap time.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Gap))]
+    private string? overallGapByFastTime;
+    /// <summary>
+    /// Time to the car holding the best lap time overall.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Difference))]
+    private string? overallDifferenceByFastTime;
+    /// <summary>
+    /// Time to the next car in class when the cars are ordered by their best lap time.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Gap))]
+    private string? inClassGapByFastTime;
+    /// <summary>
+    /// Time to the car holding the best lap time in class.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Difference))]
+    private string? inClassDifferenceByFastTime;
     [ObservableProperty]
     private string totalTime = string.Empty;
     [ObservableProperty]
@@ -234,10 +262,26 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
+    /// <summary>
+    /// Gap to the car ahead. Sorting by fastest time reorders the field by best lap, so the
+    /// position-based gaps no longer describe neighboring rows - use the fast-time gaps instead.
+    /// </summary>
     public string Gap
     {
         get
         {
+            if (CurrentSortMode == SortMode.Fastest)
+            {
+                if (CurrentGroupMode == GroupMode.Overall)
+                {
+                    return OverallGapByFastTime ?? OverallGap;
+                }
+                else
+                {
+                    return InClassGapByFastTime ?? InClassGap;
+                }
+            }
+
             if (CurrentGroupMode == GroupMode.Overall)
             {
                 return OverallGap;
@@ -249,10 +293,25 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         }
     }
 
+    /// <summary>
+    /// Time to the leader, or to the car holding the best lap time when sorting by fastest.
+    /// </summary>
     public string Difference
     {
         get
         {
+            if (CurrentSortMode == SortMode.Fastest)
+            {
+                if (CurrentGroupMode == GroupMode.Overall)
+                {
+                    return OverallDifferenceByFastTime ?? OverallDifference;
+                }
+                else
+                {
+                    return InClassDifferenceByFastTime ?? InClassDifference;
+                }
+            }
+
             if (CurrentGroupMode == GroupMode.Overall)
             {
                 return OverallDifference;
@@ -351,6 +410,21 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
                 OnPropertyChanged(nameof(IsBestTime));
                 OnPropertyChanged(nameof(PositionsGainedLost));
                 OnPropertyChanged(nameof(IsMostPositionsGained));
+            }
+        }
+    }
+
+    private SortMode currentSortMode = SortMode.Position;
+    public SortMode CurrentSortMode
+    {
+        get { return currentSortMode; }
+        set
+        {
+            if (value != currentSortMode)
+            {
+                currentSortMode = value;
+                OnPropertyChanged(nameof(Gap));
+                OnPropertyChanged(nameof(Difference));
             }
         }
     }
@@ -463,6 +537,14 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             InClassGap = p.InClassGap;
         if (p.InClassDifference != null)
             InClassDifference = p.InClassDifference;
+        if (p.OverallGapByFastTime != null)
+            OverallGapByFastTime = p.OverallGapByFastTime;
+        if (p.OverallDifferenceByFastTime != null)
+            OverallDifferenceByFastTime = p.OverallDifferenceByFastTime;
+        if (p.InClassGapByFastTime != null)
+            InClassGapByFastTime = p.InClassGapByFastTime;
+        if (p.InClassDifferenceByFastTime != null)
+            InClassDifferenceByFastTime = p.InClassDifferenceByFastTime;
         if (p.TotalTime != null)
             TotalTime = p.TotalTime;
         if (p.LastLapTime != null)

@@ -119,6 +119,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SortToggleText))]
     private SortMode currentSortMode = SortMode.Position;
+    /// <summary>
+    /// The gap and difference columns are sourced from the fast-time fields when sorting by
+    /// fastest, so every row has to be told which sort is in effect.
+    /// </summary>
+    partial void OnCurrentSortModeChanged(SortMode value)
+    {
+        foreach (var car in carCache.Items)
+        {
+            car.CurrentSortMode = value;
+        }
+    }
     public string SortToggleText
     {
         get
@@ -621,7 +632,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             var carVm = carCache.Lookup(entry.Number);
             if (!carVm.HasValue && !isDeltaUpdate)
             {
-                var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory) { CurrentGroupMode = CurrentGrouping };
+                var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory) { CurrentGroupMode = CurrentGrouping, CurrentSortMode = this.CurrentSortMode };
                 vm.ApplyEntry(entry, classColor);
                 carCache.AddOrUpdate(vm);
 
