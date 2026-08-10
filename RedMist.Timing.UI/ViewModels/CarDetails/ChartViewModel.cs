@@ -270,13 +270,16 @@ public partial class ChartViewModel : ObservableObject
             }
         }
 
+        // Unlike the three lap series, which are handed the live dictionary, this one is a fresh
+        // snapshot - so it has to be republished even when the lap count is unchanged.
+        Series[3].Values = pitLaps;
+
         if (lastSeriesValueCount != laps.Count)
         {
             lastSeriesValueCount = laps.Count;
             Series[0].Values = laps.Values;
             Series[1].Values = laps.Values;
             Series[2].Values = laps.Values;
-            Series[3].Values = pitLaps;
 
             // Scroll the visible area to keep the latest lap in view
             var maxLap = laps.Keys.Last();

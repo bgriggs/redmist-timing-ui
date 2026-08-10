@@ -15,6 +15,7 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
+using RedMist.Timing.UI.Utilities;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.Mappers;
 using System;
@@ -791,14 +792,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
-    public static TimeSpan ParseRMTime(string time)
-    {
-        if (TimeSpan.TryParseExact(time, @"hh\:mm\:ss\.fff", null, TimeSpanStyles.None, out var result))
-            return result;
-        if (TimeSpan.TryParseExact(time, @"hh\:mm\:ss", null, TimeSpanStyles.None, out result))
-            return result;
-        return TimeSpan.Zero;
-    }
+    /// <summary>
+    /// Parses a race clock string. Hours are unbounded - see <see cref="RaceTimeParser"/>.
+    /// </summary>
+    public static TimeSpan ParseRMTime(string time) => RaceTimeParser.Parse(time);
 
     #region Consistency Check
 
