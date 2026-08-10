@@ -91,9 +91,9 @@ public partial class CarViewModel : ObservableObject
         {
             if (!string.IsNullOrEmpty(rowBackgroundOverrideKey))
             {
-                return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, rowBackgroundOverrideKey) ?? Brushes.Transparent;
+                return Application.Current?.FindResource(Application.Current.ActualThemeVariant, rowBackgroundOverrideKey) as IBrush ?? Brushes.Transparent;
             }
-            return (IBrush?)Application.Current?.FindResource(Application.Current.ActualThemeVariant, RowBackgroundKey) ?? Brushes.Transparent;
+            return Application.Current?.FindResource(Application.Current.ActualThemeVariant, RowBackgroundKey) as IBrush ?? Brushes.Transparent;
         }
     }
     private string rowBackgroundOverrideKey = string.Empty;
