@@ -307,7 +307,7 @@ public sealed class CarViewModelDisplayTests
     {
         var car = CreateCar();
 
-        car.ProjectedLapTimePercent = 0.5;
+        car.LapProgressFraction = 0.5;
 
         Assert.AreEqual(0.5 / 1.3, car.LapProgressNormalFraction, 1e-9);
         Assert.AreEqual(0, car.LapProgressOverrunFraction, 1e-9);
@@ -319,7 +319,7 @@ public sealed class CarViewModelDisplayTests
     {
         var car = CreateCar();
 
-        car.ProjectedLapTimePercent = 1.0;
+        car.LapProgressFraction = 1.0;
 
         Assert.AreEqual(1.0 / 1.3, car.LapProgressNormalFraction, 1e-9);
         Assert.AreEqual(0, car.LapProgressOverrunFraction, 1e-9);
@@ -331,7 +331,7 @@ public sealed class CarViewModelDisplayTests
     {
         var car = CreateCar();
 
-        car.ProjectedLapTimePercent = 1.15;
+        car.LapProgressFraction = 1.15;
 
         Assert.AreEqual(1.0 / 1.3, car.LapProgressNormalFraction, 1e-9, "The normal portion stays full.");
         Assert.AreEqual(0.15 / 1.3, car.LapProgressOverrunFraction, 1e-9);
@@ -343,7 +343,7 @@ public sealed class CarViewModelDisplayTests
     {
         var car = CreateCar();
 
-        car.ProjectedLapTimePercent = 5.0;
+        car.LapProgressFraction = 5.0;
 
         Assert.AreEqual(1.0 / 1.3, car.LapProgressNormalFraction, 1e-9);
         Assert.AreEqual(0.3 / 1.3, car.LapProgressOverrunFraction, 1e-9);
@@ -354,7 +354,7 @@ public sealed class CarViewModelDisplayTests
     {
         var car = CreateCar();
 
-        car.ProjectedLapTimePercent = -0.4;
+        car.LapProgressFraction = -0.4;
 
         Assert.AreEqual(0, car.LapProgressNormalFraction, 1e-9);
         Assert.AreEqual(0, car.LapProgressOverrunFraction, 1e-9);
@@ -362,10 +362,11 @@ public sealed class CarViewModelDisplayTests
 
     #endregion
 
-    #region Projected lap time progression
+    #region Lap progress from the time projection
 
     private static CarViewModel CarOnLap(string totalTime, int projectedLapTimeMs = 0,
-        string? lastLapTime = null, string? bestTime = null, int lastLapCompleted = 3)
+        string? lastLapTime = null, string? bestTime = null, int lastLapCompleted = 3,
+        int? lapPositionPercent = null)
     {
         var car = CreateCar();
         car.ApplyPatch(new CarPositionPatch
@@ -376,49 +377,50 @@ public sealed class CarViewModelDisplayTests
             ProjectedLapTimeMs = projectedLapTimeMs,
             LastLapTime = lastLapTime,
             BestTime = bestTime,
+            LapPositionPercent = lapPositionPercent,
         });
         return car;
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_HalfWayThroughTheProjectedLap_IsHalf()
+    public void UpdateLapProgress_HalfWayThroughTheProjectedLap_IsHalf()
     {
         // Crossed start/finish at 10 minutes, projected a 2 minute lap, and it is now 11 minutes.
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000);
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
 
-        Assert.AreEqual(0.5, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_JustCrossedTheLine_IsZero()
+    public void UpdateLapProgress_JustCrossedTheLine_IsZero()
     {
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000);
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(10));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(10));
 
-        Assert.AreEqual(0, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_RunningLongerThanProjected_ClampsToTheBarWidth()
+    public void UpdateLapProgress_RunningLongerThanProjected_ClampsToTheBarWidth()
     {
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000);
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(20));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(20));
 
-        Assert.AreEqual(1.3, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(1.3, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_RaceTimeBehindTheLapStart_ClampsToZero()
+    public void UpdateLapProgress_RaceTimeBehindTheLapStart_ClampsToZero()
     {
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000);
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(9));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(9));
 
-        Assert.AreEqual(0, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9);
     }
 
     /// <summary>
@@ -426,13 +428,13 @@ public sealed class CarViewModelDisplayTests
     /// time reads as a lap that started at zero, which pins every bar at the end of a 24 hour race.
     /// </summary>
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_PastTwentyFourHours_StillTracksTheLap()
+    public void UpdateLapProgress_PastTwentyFourHours_StillTracksTheLap()
     {
         var car = CarOnLap("25:10:00.000", projectedLapTimeMs: 120_000);
 
-        car.UpdateProjectedLapTimeProgression(new TimeSpan(25, 11, 0));
+        car.UpdateLapProgress(new TimeSpan(25, 11, 0));
 
-        Assert.AreEqual(0.5, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
     }
 
     /// <summary>
@@ -443,79 +445,260 @@ public sealed class CarViewModelDisplayTests
     /// given its own empty-bar handling, change this test to match; it is not a requirement.
     /// </summary>
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_UnreadableTotalTime_PinsTheBarAtTheEnd()
+    public void UpdateLapProgress_UnreadableTotalTime_PinsTheBarAtTheEnd()
     {
         var car = CarOnLap("garbage", projectedLapTimeMs: 120_000);
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
 
-        Assert.AreEqual(1.3, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(1.3, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_NoProjection_FallsBackToTheLastLapTime()
+    public void UpdateLapProgress_NoProjection_FallsBackToTheLastLapTime()
     {
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 0, lastLapTime: "00:02:00.000");
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
 
-        Assert.AreEqual(0.5, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_NoLastLapTime_FallsBackToTheBestTimePlusMargin()
+    public void UpdateLapProgress_NoLastLapTime_FallsBackToTheBestTimePlusMargin()
     {
         // The car has never completed a timed lap this stint, so the best time stands in with a 5%
         // margin: 120s becomes 126s, and 63s elapsed is half of that.
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 0, lastLapTime: null, bestTime: "00:02:00.000");
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(63));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(63));
 
-        Assert.AreEqual(0.5, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_NothingToProjectFrom_IsEmpty()
+    public void UpdateLapProgress_NothingToProjectFrom_IsEmpty()
     {
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 0);
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
 
-        Assert.AreEqual(0, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_BeforeTheFirstLap_IsEmpty()
+    public void UpdateLapProgress_BeforeTheFirstLap_IsEmpty()
     {
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lastLapCompleted: 0);
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
 
-        Assert.AreEqual(0, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_NoCarPositionYet_IsEmpty()
+    public void UpdateLapProgress_NoCarPositionYet_IsEmpty()
     {
         var car = CreateCar();
 
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
 
-        Assert.AreEqual(0, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9);
     }
 
     [TestMethod]
-    public void UpdateProjectedLapTimeProgression_ResetsAStalePercentWhenTheDataGoesAway()
+    public void UpdateLapProgress_ResetsAStalePercentWhenTheDataGoesAway()
     {
         var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000);
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
-        Assert.AreEqual(0.5, car.ProjectedLapTimePercent, 1e-9, "Sanity check.");
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9, "Sanity check.");
 
         // The session resets and the lap count goes back to zero. The half-full bar has to clear.
         car.ApplyPatch(new CarPositionPatch { Number = CarNumber, LastLapCompleted = 0 });
-        car.UpdateProjectedLapTimeProgression(TimeSpan.FromMinutes(11));
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
 
-        Assert.AreEqual(0, car.ProjectedLapTimePercent, 1e-9);
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9);
+    }
+
+    #endregion
+
+    #region Lap progress from the measured track position
+
+    // The server reports where the car physically is around the lap, measured by snapping its GPS
+    // onto the learned track map. That measurement drives the bar whenever it can be trusted.
+
+    [TestMethod]
+    public void UpdateLapProgress_MeasuredPosition_TakesPrecedenceOverTheProjection()
+    {
+        // The clock says the car should be half way round; the GPS says it is only a quarter of the
+        // way. The car is where it is.
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 25);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0.25, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
+    }
+
+    [TestMethod]
+    public void UpdateLapProgress_MeasuredPosition_NeedsNoCompletedLap()
+    {
+        // Nothing to project from on the opening lap, but the measurement stands on its own.
+        var car = CarOnLap("00:10:00.000", lastLapCompleted: 0, lapPositionPercent: 40);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0.4, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
+    }
+
+    [TestMethod]
+    public void UpdateLapProgress_JustCrossedStartFinish_MeasuresAnEmptyBar()
+    {
+        // Zero is a real measurement, not a missing one: the car is at the line.
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 0);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
+    }
+
+    [TestMethod]
+    public void UpdateLapProgress_MeasuredAtAFullLap_FillsTheBarWithoutOverrunning()
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 100);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(1.0, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
+        Assert.IsFalse(car.IsLapProgressOverrun);
+    }
+
+    /// <summary>
+    /// The handover to the overrun is on the projection passing a full lap, not reaching it, so a
+    /// lap running exactly to its projection still shows where the car is.
+    /// </summary>
+    [TestMethod]
+    public void UpdateLapProgress_LapExactlyOnItsProjection_StillUsesTheMeasurement()
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 90);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(12));
+
+        Assert.AreEqual(0.9, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
+    }
+
+    [TestMethod]
+    public void UpdateLapProgress_InvalidTrackPositionSentinel_FallsBackToTheProjection()
+    {
+        // Sent whenever the measurement cannot be trusted - in the pits, off the racing surface,
+        // poor signal, a stale fix, or start/finish not yet calibrated.
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000,
+            lapPositionPercent: CarPosition.InvalidTrackPosition);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
+        Assert.IsFalse(car.IsLapProgressMeasured);
+    }
+
+    [TestMethod]
+    public void UpdateLapProgress_TimingSystemDoesNotMeasurePosition_FallsBackToTheProjection()
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: null);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
+        Assert.IsFalse(car.IsLapProgressMeasured);
+    }
+
+    [TestMethod]
+    [DataRow(150, DisplayName = "Past a full lap")]
+    [DataRow(-5, DisplayName = "Negative, but not the sentinel")]
+    public void UpdateLapProgress_MeasurementOutOfRange_FallsBackToTheProjection(int lapPositionPercent)
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: lapPositionPercent);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
+        Assert.IsFalse(car.IsLapProgressMeasured);
+    }
+
+    /// <summary>
+    /// A measurement cannot report an overrun: a car stopped on track keeps a healthy fix and a
+    /// frozen percentage, so only elapsed time can still show that the lap is badly overdue.
+    /// </summary>
+    [TestMethod]
+    public void UpdateLapProgress_LapBadlyOverdue_TheOverrunTakesOverFromTheMeasurement()
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 20);
+
+        car.UpdateLapProgress(TimeSpan.FromMinutes(20));
+
+        Assert.AreEqual(1.3, car.LapProgressFraction, 1e-9);
+        Assert.IsFalse(car.IsLapProgressMeasured);
+        Assert.IsTrue(car.IsLapProgressOverrun);
+    }
+
+    [TestMethod]
+    public void UpdateLapProgress_FreshLapAfterAnOverrun_GoesBackToTheMeasurement()
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 20);
+        car.UpdateLapProgress(TimeSpan.FromMinutes(20));
+        Assert.IsFalse(car.IsLapProgressMeasured, "Sanity check - the overrun has the bar.");
+
+        // The car finally crosses the line, which restarts the projection from the new lap.
+        car.ApplyPatch(new CarPositionPatch
+        {
+            Number = CarNumber,
+            LastLapCompleted = 4,
+            TotalTime = "00:20:00.000",
+            LapPositionPercent = 15,
+        });
+        car.UpdateLapProgress(TimeSpan.FromMinutes(21));
+
+        Assert.AreEqual(0.15, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
+    }
+
+    [TestMethod]
+    public void UpdateLapProgress_MeasurementDropsOut_TheBarStopsUsingIt()
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 25);
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+        Assert.AreEqual(0.25, car.LapProgressFraction, 1e-9, "Sanity check.");
+
+        // The car pits, and the sentinel arrives to say the measurement is no longer trustworthy.
+        car.ApplyPatch(new CarPositionPatch
+        {
+            Number = CarNumber,
+            LapPositionPercent = CarPosition.InvalidTrackPosition,
+        });
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9);
+        Assert.IsFalse(car.IsLapProgressMeasured);
+    }
+
+    /// <summary>
+    /// A patch carries "no change" as null, which is why the server sends the sentinel rather than
+    /// withholding the value. An empty patch must leave the last measurement in place.
+    /// </summary>
+    [TestMethod]
+    public void UpdateLapProgress_PatchWithoutAPosition_KeepsTheLastMeasurement()
+    {
+        var car = CarOnLap("00:10:00.000", projectedLapTimeMs: 120_000, lapPositionPercent: 25);
+
+        car.ApplyPatch(new CarPositionPatch { Number = CarNumber, LastLapCompleted = 4 });
+        car.UpdateLapProgress(TimeSpan.FromMinutes(11));
+
+        Assert.AreEqual(0.25, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
     }
 
     #endregion

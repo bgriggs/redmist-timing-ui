@@ -426,4 +426,58 @@ public sealed class LiveTimingViewModelEntriesTests
     }
 
     #endregion
+
+    #region Measured track position through a full update
+
+    // Full car states reach the rows as patches, and a patch carries "no change" as null. These
+    // cover the field where that difference is visible on screen: the measured lap position.
+
+    private static SessionStatePatch FullUpdate(int? lapPositionPercent) => new()
+    {
+        EventEntries = [Entry("1")],
+        RunningRaceTime = "00:11:00.000",
+        CarPositions =
+        [
+            new CarPosition
+            {
+                Number = "1",
+                LastLapCompleted = 4,
+                TotalTime = "00:10:00.000",
+                ProjectedLapTimeMs = 120_000,
+                LapPositionPercent = lapPositionPercent,
+            },
+        ],
+    };
+
+    [TestMethod]
+    public void FullUpdate_CarriesTheMeasuredPositionOntoTheBar()
+    {
+        var vm = TestViewModelFactory.CreateLiveTiming();
+
+        vm.ApplySessionUpdate(Update(FullUpdate(lapPositionPercent: 25)));
+
+        var car = vm.Cars.Single();
+        Assert.AreEqual(0.25, car.LapProgressFraction, 1e-9);
+        Assert.IsTrue(car.IsLapProgressMeasured);
+    }
+
+    /// <summary>
+    /// A full state that leaves the field out does not mean "unchanged" - it means the timing system
+    /// has none. Without that distinction the last measurement would stay on the bar forever.
+    /// </summary>
+    [TestMethod]
+    public void FullUpdate_WithoutAMeasuredPosition_ClearsAStaleOne()
+    {
+        var vm = TestViewModelFactory.CreateLiveTiming();
+        vm.ApplySessionUpdate(Update(FullUpdate(lapPositionPercent: 25)));
+        Assert.AreEqual(0.25, vm.Cars.Single().LapProgressFraction, 1e-9, "Sanity check.");
+
+        vm.ApplySessionUpdate(Update(FullUpdate(lapPositionPercent: null)));
+
+        var car = vm.Cars.Single();
+        Assert.AreEqual(0.5, car.LapProgressFraction, 1e-9, "The bar falls back to the time projection.");
+        Assert.IsFalse(car.IsLapProgressMeasured);
+    }
+
+    #endregion
 }
