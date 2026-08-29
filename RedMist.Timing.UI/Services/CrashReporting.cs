@@ -119,7 +119,9 @@ public static class CrashReporting
                 // InitCacheFlushTimeout is deliberately left at its default: making startup block
                 // on delivering last run's cache would trade app-start latency on a phone at a
                 // track for something the background transport does anyway.
-                options.CacheDirectoryPath = GetCacheDirectory();
+                // Heads whose platform needs a different root, or no cache at all, override this
+                // through configurePlatform below.
+                options.CacheDirectoryPath = BuildCacheDirectory(Environment.SpecialFolder.LocalApplicationData);
 
                 options.SetBeforeSend(static (SentryEvent e) => ThrottleConnectivityNoise(e));
 
@@ -268,20 +270,29 @@ public static class CrashReporting
            && exception is not TaskCanceledException { InnerException: TimeoutException };
 
     /// <summary>
-    /// Directory Sentry writes undelivered envelopes to. Null when no writable location is
-    /// available, which turns caching off rather than failing initialization.
+    /// Builds the directory Sentry writes undelivered envelopes to, under the given root.
     /// </summary>
-    private static string? GetCacheDirectory()
+    /// <remarks>
+    /// Public so a platform head can supply a different root. iOS needs one: there
+    /// <see cref="Environment.SpecialFolder.LocalApplicationData"/> resolves to Documents, which is
+    /// iCloud-backed, user-visible, and reserved by Apple's data storage guidelines for data that
+    /// cannot be regenerated - putting a cache there is a documented App Store rejection.
+    /// <see cref="Environment.SpecialFolder.InternetCache"/> resolves to Library/Caches, which is
+    /// excluded from backup and purgeable, and is the right home for a delivery queue.
+    /// </remarks>
+    /// <returns>The directory, or null when no writable location is available - which turns caching
+    /// off rather than failing initialization.</returns>
+    public static string? BuildCacheDirectory(Environment.SpecialFolder root)
     {
         try
         {
-            var root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (string.IsNullOrWhiteSpace(root))
+            var path = Environment.GetFolderPath(root);
+            if (string.IsNullOrWhiteSpace(path))
             {
                 return null;
             }
 
-            var path = Path.Combine(root, "RedMist", "sentry");
+            path = Path.Combine(path, "RedMist", "sentry");
             Directory.CreateDirectory(path);
             return path;
         }

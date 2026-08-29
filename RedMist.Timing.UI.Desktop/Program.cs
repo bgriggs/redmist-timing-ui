@@ -13,7 +13,16 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        CrashReporting.Init("desktop", o => o.DisableAppDomainUnhandledExceptionCapture());
+        CrashReporting.Init("desktop", o =>
+        {
+            o.DisableAppDomainUnhandledExceptionCapture();
+
+            // No offline cache here. Sentry's cache is a file-backed queue with no documented
+            // multi-process guarantee, and this head is launched once per event (see the event id
+            // read from Args below), so two instances would race the same envelope files. Desktop
+            // is a development target on a reliable network, which is where the cache buys least.
+            o.CacheDirectoryPath = null;
+        });
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
