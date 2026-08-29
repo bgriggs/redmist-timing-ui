@@ -28,12 +28,6 @@
 		<SentryUploadSources>false</SentryUploadSources>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net9.0-ios'">
-		<EnableAssemblyILStripping>False</EnableAssemblyILStripping>
-		<!-- Ensure MessagePack types are preserved -->
-		<TrimMode>partial</TrimMode>
-	</PropertyGroup>
-	
 	<ItemGroup>
 		<!-- Preserve MessagePack assemblies from trimming -->
 		<TrimmerRootAssembly Include="MessagePack" />
