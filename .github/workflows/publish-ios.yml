@@ -27,6 +27,9 @@ jobs:
               "Realm": "${{ vars.KEYCLOAKREALM }}",
               "ClientId": "${{ secrets.KC_IOS_CLIENT_ID }}",
               "ClientSecret": "${{ secrets.KC_IOS_CLIENT_SECRET }}"
+            },
+            "Sentry": {
+              "Dsn": "${{ secrets.SENTRY_DSN }}"
             }
           }
           EOF
@@ -75,4 +78,10 @@ jobs:
         run: dotnet clean RedMist.Timing.UI.iOS/RedMist.Timing.UI.iOS.csproj -c Release
 
       - name: Build
+        # Symbol upload is skipped when SENTRY_AUTH_TOKEN is not set, so this stays a no-op until
+        # the secret is provisioned. iOS uploads dSYMs alongside the managed PDBs.
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: dotnet build RedMist.Timing.UI.iOS/RedMist.Timing.UI.iOS.csproj -f net10.0-ios -c Release -p:ArchiveOnBuild=true -p:RuntimeIdentifier=ios-arm64 -p:CodesignKey="${{ secrets.APPLE_CODESIGNKEY }}" -p:CodesignProvision="RedMist"

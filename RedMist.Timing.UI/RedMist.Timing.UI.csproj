@@ -42,6 +42,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- Exposes the configuration seam in CrashReporting so its decisions can be tested
+		     against a supplied configuration rather than the dev machine's own settings. -->
+		<InternalsVisibleTo Include="RedMist.Timing.UI.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Avalonia" />
 		<PackageReference Include="Avalonia.Themes.Fluent" />
 		<PackageReference Include="Avalonia.Fonts.Inter" />
@@ -61,5 +67,7 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="RestSharp" />
+		<PackageReference Include="Sentry" />
+		<PackageReference Include="Sentry.Extensions.Logging" />
 	</ItemGroup>
 </Project>

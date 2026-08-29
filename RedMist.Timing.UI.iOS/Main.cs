@@ -1,7 +1,14 @@
-﻿using UIKit;
+﻿using Sentry;
+using UIKit;
 using RedMist.Timing.UI.iOS;
 
 // This is the main entry point of the application.
 // If you want to use a different Application Delegate class from "AppDelegate"
 // you can specify it here.
+// Before UIApplication.Main so startup faults are reported too.
+// The iOS build of the SDK has no DisableAppDomainUnhandledExceptionCapture; this is its
+// equivalent. Set here because only this head compiles against the iOS Sentry assembly.
+RedMist.Timing.UI.Services.CrashReporting.Init("ios",
+    o => o.DisableRuntimeMarshalManagedExceptionCapture());
+
 UIApplication.Main(args, null, typeof(AppDelegate));

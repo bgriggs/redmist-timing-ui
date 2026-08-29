@@ -518,7 +518,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             if (message.Value.RunningRaceTime != null)
             {
                 RaceTime = message.Value.RunningRaceTime;
-                Dispatcher.UIThread.Post(UpdateLapProgress, DispatcherPriority.Background);
+                Dispatcher.UIThread.PostSafe(UpdateLapProgress, Logger, DispatcherPriority.Background);
             }
 
             if (message.Value.LocalTimeOfDay != null &&
@@ -1113,12 +1113,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         if (Interlocked.Exchange(ref logRefreshPending, 1) == 1)
             return;
 
-        Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.PostSafe(() =>
         {
             // Cleared first so entries arriving mid-render queue a fresh pass.
             Interlocked.Exchange(ref logRefreshPending, 0);
             RefreshLogMessages();
-        }, DispatcherPriority.ContextIdle);
+        }, Logger, DispatcherPriority.ContextIdle);
     }
 
     partial void OnShowLogDisplayChanged(bool value)

@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels.InCarDriverMode;
@@ -706,8 +707,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     public void Receive(AccessCodeRequestNotification message)
     {
         var req = message.Value;
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            ShowAccessCodePrompt(req.EventModel, req.OrganizationName, req.OnSuccess, req.OnCancel));
+        Avalonia.Threading.Dispatcher.UIThread.PostSafe(() =>
+            ShowAccessCodePrompt(req.EventModel, req.OrganizationName, req.OnSuccess, req.OnCancel), Logger);
     }
 
     /// <summary>
@@ -723,6 +724,6 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             return;
 
         accessCodeStore.Clear(eventId);
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => ShowAccessCodePrompt(currentEvent, currentEventOrganizationName));
+        Avalonia.Threading.Dispatcher.UIThread.PostSafe(() => ShowAccessCodePrompt(currentEvent, currentEventOrganizationName), Logger);
     }
 }
