@@ -4,6 +4,7 @@ using Android.OS;
 using AndroidX.Activity;
 using Avalonia;
 using Avalonia.Android;
+using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
 
 namespace RedMist.Timing.UI.Android;
@@ -27,6 +28,11 @@ public class MainActivity : AvaloniaMainActivity<App>
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
+        // Before base.OnCreate, which is where Avalonia starts: initializing here means the Android
+        // SDK's native crash and tombstone capture is armed for the whole of startup, which is
+        // where the unattributable libmonosgen crashes were happening.
+        CrashReporting.Init("android", o => o.DisableAppDomainUnhandledExceptionCapture());
+
         base.OnCreate(savedInstanceState);
 
         // Use the modern OnBackPressedDispatcher API for Android 13+

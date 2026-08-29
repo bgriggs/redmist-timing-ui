@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
+using RedMist.Timing.UI.Extensions;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon.Models;
 using RedMist.TimingCommon.Models.InCarDriverMode;
@@ -72,11 +73,11 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
 
     private void HubClient_ConnectionStatusChanged(HubConnectionState c)
     {
-        Dispatcher.UIThread.Post(() => ConnectionStatus = c.ToString());
+        Dispatcher.UIThread.PostSafe(() => ConnectionStatus = c.ToString(), Logger);
 
         if (lastHubConnectionState != HubConnectionState.Connected && c == HubConnectionState.Connected)
         {
-            Dispatcher.UIThread.Post(async () => await LoadPayload(eventId, carNumber));
+            Dispatcher.UIThread.PostSafe(async () => await LoadPayload(eventId, carNumber), Logger);
         }
 
         lastHubConnectionState = c;
@@ -88,7 +89,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
         this.carNumber = carNumber;
         ShowInClassOnly = showInClassOnly;
 
-        Dispatcher.UIThread.Post(async () =>
+        Dispatcher.UIThread.PostSafe(async () =>
         {
             Message = "Connecting to event...";
             try
@@ -103,7 +104,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
                 Logger.LogError(ex, "Failed to connect to event {EventId} for car {CarNumber}", eventId, carNumber);
                 Message = "Failed to connect to event: " + ex.Message;
             }
-        });
+        }, Logger);
     }
 
     private async Task LoadPayload(int eventId, string carNumber)
@@ -171,7 +172,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
 
     public void Receive(InCarPositionUpdate message)
     {
-        Dispatcher.UIThread.Post(() => ProcessInCarPayload(message.Value));
+        Dispatcher.UIThread.PostSafe(() => ProcessInCarPayload(message.Value), Logger);
     }
 
     private void ProcessInCarPayload(InCarPayload payload)

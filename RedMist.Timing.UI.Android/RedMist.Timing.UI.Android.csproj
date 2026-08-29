@@ -15,9 +15,25 @@
 		<UserSecretsId>8c31261b-5551-40d9-a50a-bfb280d7f018</UserSecretsId>
 	</PropertyGroup>
 
+	<!-- Debug symbol upload. Turns itself on only when CI supplies SENTRY_AUTH_TOKEN, so local and
+	     PR builds are untouched. sentry-cli reads the token, org and project from the environment
+	     rather than MSBuild properties, keeping the token off the command line. A bad token or an
+	     unreachable server downgrades to a build warning and skips the upload, so a Sentry outage
+	     cannot fail a release. -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(SENTRY_AUTH_TOKEN)' != ''">
+		<SentryUploadSymbols>true</SentryUploadSymbols>
+		<!-- Symbols only. SentryUploadSources would also bundle and upload the source itself, which
+		     is not needed for readable frames and is a disclosure decision rather than a build one. -->
+		<SentryUploadSources>false</SentryUploadSources>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Android" />
 		<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+
+		<!-- Explicit on the Android head so the android-specific Sentry assets (the Android SDK
+		     bindings that capture native crashes and tombstones) are unambiguously selected. -->
+		<PackageReference Include="Sentry" />
 
 		<!-- Add explicit SkiaSharp references for Android 16KB page size requirement -->
 		<PackageReference Include="SkiaSharp" />
@@ -26,6 +42,8 @@
 		<!-- Explicit AndroidX Lifecycle package versions to resolve dependency conflicts -->
 		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" />
 		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" />
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Common.Java8" />
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" />
 
 		<!-- AndroidX Activity for modern back press handling -->
 		<PackageReference Include="Xamarin.AndroidX.Activity" />

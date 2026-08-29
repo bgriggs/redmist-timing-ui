@@ -16,6 +16,7 @@ using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.Views;
+using Sentry;
 using System;
 using System.IO;
 using System.Reflection;
@@ -83,6 +84,22 @@ public partial class App : Application
         var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddDebug();
+
+            // Every catch block in the app reports through ILogger, so hanging Sentry off the
+            // logging pipeline captures all of them without touching the call sites. The SDK itself
+            // is started by the platform head, hence InitializeSdk = false - this provider only
+            // attaches to the existing hub.
+            //
+            // Breadcrumbs start at Warning rather than Information for the same reason
+            // InMemoryLogProvider keeps a separate problem buffer: HubClient logs a line per session
+            // patch, roughly once a second, which would fill the breadcrumb ring with routine
+            // traffic and push out the context that actually explains a crash.
+            builder.AddSentry(o =>
+            {
+                o.InitializeSdk = false;
+                o.MinimumEventLevel = LogLevel.Error;
+                o.MinimumBreadcrumbLevel = LogLevel.Warning;
+            });
         });
         services.AddSingleton(loggerFactory);
 
@@ -166,16 +183,53 @@ public partial class App : Application
         // AppDomain.CurrentDomain.FirstChanceException += OnFirstChanceException;
     }
 
+    /// <summary>
+    /// Handles an exception that reached the top of the Avalonia dispatcher loop.
+    /// </summary>
+    /// <remarks>
+    /// This used to set Handled = true unconditionally. That is why the native crashes were
+    /// unattributable: a fault that should have produced a managed stack trace was swallowed, the
+    /// app carried on with whatever state the aborted operation left behind, and the process
+    /// eventually died somewhere unrelated - by which point the tombstone showed nothing but
+    /// libmonosgen frames. Suppressing the crash did not avoid it, it only removed the evidence.
+    ///
+    /// The exception is now reported, the queue is flushed while the process is still alive, and
+    /// the fault is allowed to terminate the app so the report names the real cause. Set
+    /// Sentry:CrashOnUnhandledUiException to false to go back to suppressing, which still reports
+    /// first - the option exists so that a crash loop found at an event can be turned off in a
+    /// build without reworking this handler.
+    /// </remarks>
     private void OnUIThreadUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         try
         {
-            LogException("UI Thread Unhandled Exception", e.Exception);
+            // Gated on IsEnabled as well as the setting: with no DSN provisioned there is nothing
+            // to report the crash, so terminating would cost the user their session and produce no
+            // evidence in exchange - strictly worse than the suppression this replaced. A build
+            // without reporting therefore behaves as it always did.
+            var fatal = CrashReporting.IsEnabled && CrashReporting.CrashOnUnhandledUiException;
 
-            // Mark as handled to prevent crash
+            // On the fatal path the Sentry event comes from CaptureFatal, which marks it unhandled
+            // and ends the session as crashed. Logging at Error as well would report the same fault
+            // a second time, so it drops to Warning: still on the on-device display, still a
+            // breadcrumb, but not a duplicate event.
+            LogException("UI Thread Unhandled Exception", e.Exception,
+                fatal ? LogLevel.Warning : LogLevel.Error);
+
+            if (fatal)
+            {
+                CrashReporting.CaptureFatal(e.Exception, "Dispatcher.UnhandledException");
+
+                // The process is about to end, so the background queue will not get a chance to
+                // deliver on its own. Only worth blocking for on this path - in the suppress path
+                // below the app keeps running and a flush would just stall the UI thread.
+                CrashReporting.Flush(TimeSpan.FromSeconds(2));
+
+                // Leave Handled false: let it propagate and take the process down.
+                return;
+            }
+
             e.Handled = true;
-
-            // Optionally show user-friendly error message
             ShowErrorToUser("An unexpected error occurred. The application will continue running.", e.Exception);
         }
         catch (Exception ex)
@@ -192,12 +246,21 @@ public partial class App : Application
         {
             if (e.ExceptionObject is Exception exception)
             {
-                LogException("AppDomain Unhandled Exception", exception);
-
-                // If the process is terminating, we can't prevent it, but we can log it
+                // If the process is terminating, we can't prevent it, but we can report it. The
+                // event comes from CaptureFatal for the same reason as the dispatcher path, so the
+                // log drops to Warning rather than raising a duplicate. CaptureFatal is idempotent
+                // per exception instance, so a fault that already reported on the dispatcher on its
+                // way up is not counted twice here.
                 if (e.IsTerminating)
                 {
-                    LogException("Application is terminating due to unhandled exception", exception);
+                    LogException("Application is terminating due to unhandled exception", exception,
+                        LogLevel.Warning);
+                    CrashReporting.CaptureFatal(exception, "AppDomain.UnhandledException");
+                    CrashReporting.Flush(TimeSpan.FromSeconds(2));
+                }
+                else
+                {
+                    LogException("AppDomain Unhandled Exception", exception, LogLevel.Error);
                 }
             }
             else
@@ -217,7 +280,15 @@ public partial class App : Application
     {
         try
         {
-            LogException("Unobserved Task Exception", e.Exception);
+            // Cancellation is how the app shuts down background work, so reporting it as an error
+            // would bury the real faults under noise from every navigation away from a live event.
+            // Downgraded rather than dropped: it still reaches the on-device log, but sits below
+            // both the Sentry event and breadcrumb thresholds. Note that an HttpClient timeout is
+            // not cancellation - see CrashReporting.IsDeliberateCancellation.
+            LogException("Unobserved Task Exception", e.Exception,
+                CrashReporting.IsDeliberateCancellation(e.Exception)
+                    ? LogLevel.Information
+                    : LogLevel.Error);
 
             // Mark as observed to prevent crash
             e.SetObserved();
@@ -230,17 +301,34 @@ public partial class App : Application
         }
     }
 
-    private void LogException(string context, Exception exception)
+    /// <param name="level">Error raises a Sentry event through the logging provider. Warning does
+    /// not, and is used on paths where <see cref="CrashReporting.CaptureFatal"/> reports the event
+    /// itself - it still reaches the on-device display and rides along as a breadcrumb.</param>
+    private void LogException(string context, Exception exception, LogLevel level = LogLevel.Error)
     {
         try
         {
             if (_logger != null)
             {
-                _logger.LogError(exception, "Global Exception Handler: {Context}", context);
+                // Reaches Sentry through the logging provider registered in
+                // OnFrameworkInitializationCompleted.
+                _logger.Log(level, exception, "Global Exception Handler: {Context}", context);
             }
             else
             {
-                // Fallback to debug output if logger not available
+                // No host yet, so there is no logging pipeline to carry this to Sentry. Faults
+                // during startup are the ones least likely to be reproducible on a developer
+                // machine, so report them directly rather than losing them.
+                //
+                // Gated on the level for the same reason the logging path is: a terminal fault is
+                // reported by CaptureFatal, and capturing here as well would raise a second issue
+                // for one crash. It would also turn the Information-level cancellation downgrade
+                // into a full error event, which is precisely what that downgrade avoids.
+                if (level >= LogLevel.Error)
+                {
+                    SentrySdk.CaptureException(exception, scope => scope.SetTag("handler", context));
+                }
+
                 System.Diagnostics.Debug.WriteLine($"Global Exception Handler - {context}: {exception}");
                 Console.WriteLine($"Global Exception Handler - {context}: {exception}");
             }

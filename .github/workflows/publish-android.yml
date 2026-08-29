@@ -27,6 +27,9 @@ jobs:
           echo     "Realm": "${{ vars.KEYCLOAKREALM }}", >> secrets.release.json
           echo     "ClientId": "${{ secrets.KC_ANDROID_CLIENT_ID }}", >> secrets.release.json
           echo     "ClientSecret": "${{ secrets.KC_ANDROID_CLIENT_SECRET }}" >> secrets.release.json
+          echo   }, >> secrets.release.json
+          echo   "Sentry": { >> secrets.release.json
+          echo     "Dsn": "${{ secrets.SENTRY_DSN }}" >> secrets.release.json
           echo   } >> secrets.release.json
           echo } >> secrets.release.json
         shell: cmd
@@ -74,6 +77,13 @@ jobs:
           $xml.Save($manifestPath)
 
       - name: Build and sign AAB
+        # Symbol upload is skipped when SENTRY_AUTH_TOKEN is not set, so this stays a no-op until
+        # the secret is provisioned. Android uploads elf symbols for the native libs, which is what
+        # turns a libmonosgen-only tombstone into a readable frame.
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: dotnet publish RedMist.Timing.UI.Android/RedMist.Timing.UI.Android.csproj -c Release -f net10.0-android /p:AndroidPackageFormat=aab /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ github.workspace }}\release.keystore /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }} -o ${{ github.workspace }}\publish-output 
 
       - name: List publish-output contents
