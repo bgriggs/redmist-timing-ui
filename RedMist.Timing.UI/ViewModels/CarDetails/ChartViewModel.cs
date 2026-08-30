@@ -20,6 +20,7 @@ public partial class ChartViewModel : ObservableObject
     private static readonly double BarWidth = 13;
     private const int VisibleLapWindow = 23;
     private readonly SortedDictionary<int, LapViewModel> laps = [];
+    private readonly Dictionary<SKColor, SolidColorPaint> flagPaints = [];
     private int lastSeriesValueCount;
 
     private CartesianChart? chart;
@@ -161,8 +162,43 @@ public partial class ChartViewModel : ObservableObject
             {
                 skColor = SKColors.White;
             }
-            obj.Visual.Fill = new SolidColorPaint(skColor);
+            obj.Visual.Fill = GetFlagPaint(skColor);
         }
+    }
+
+    /// <summary>
+    /// A paint per distinct flag color, reused for every bar that needs it.
+    /// </summary>
+    /// <remarks>
+    /// This used to build a new SolidColorPaint per point, per measure pass - a six hour karting
+    /// enduro records 487 laps for a single car, and the chart pans and zooms, so measure runs over
+    /// that set again and again.
+    ///
+    /// On the pinned rc5.4 that costs managed garbage rather than native memory: the drawing context
+    /// disposes each geometry's paint after drawing it, so the native SKPaint behind one lived a
+    /// single draw call either way. It is worth doing anyway, and it stops being optional on 2.0.5,
+    /// where the paint keeps its SKPaint across frames - there the old code would strand one live
+    /// native paint per bar per measure. So the upgrade and this cache belong together: taking the
+    /// library forward without it would create a native leak that does not exist today.
+    ///
+    /// Sharing is safe because assigning Fill only stores the reference; the setter never disposes
+    /// what was there, and these paints are never registered as canvas draw tasks, so one can never
+    /// be both the active paint and a geometry's fill. The colors come from the track flag, so the
+    /// cache holds a handful of entries however long the race is.
+    ///
+    /// Deliberately not disposed. Drawing runs on the render thread under the canvas lock, and
+    /// disposal from the UI thread when a car row collapses could free the SKPaint mid-draw - the
+    /// crash this is meant to help avoid. The entries are tiny and go with the view model.
+    /// </remarks>
+    private SolidColorPaint GetFlagPaint(SKColor color)
+    {
+        if (!flagPaints.TryGetValue(color, out var paint))
+        {
+            paint = new SolidColorPaint(color);
+            flagPaints[color] = paint;
+        }
+
+        return paint;
     }
 
     private void ApplyThemeColors()
@@ -235,7 +271,13 @@ public partial class ChartViewModel : ObservableObject
             var maxLap = laps.Keys.Last();
             for (int i = 1; i <= maxLap; i++)
             {
-                laps.TryAdd(i, new LapViewModel(new CarPosition { LastLapCompleted = i }));
+                // ContainsKey first, rather than TryAdd. TryAdd still evaluates its argument, so a
+                // live update on a long race built and discarded a LapViewModel for every lap
+                // already present - 487 of them, each parsing a time - to add nothing.
+                if (!laps.ContainsKey(i))
+                {
+                    laps[i] = new LapViewModel(new CarPosition { LastLapCompleted = i });
+                }
             }
         }
 
