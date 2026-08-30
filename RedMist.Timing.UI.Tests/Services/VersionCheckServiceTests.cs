@@ -4,6 +4,7 @@ using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
 using RedMist.TimingCommon;
+using System.Diagnostics;
 
 namespace RedMist.Timing.UI.Tests.Services;
 
@@ -30,6 +31,9 @@ public sealed class VersionCheckServiceTests
     // Shared: each EventClient builds a RestClient with its own HttpMessageHandler that nothing
     // disposes. CheckVersion is pure, so one instance serves every test.
     private static readonly VersionCheckService Service = CreateService();
+
+    private static VersionCheckService CreateService(EventClient eventClient)
+        => new(eventClient, new UpdateMessageService(Configuration()), NullLogger<VersionCheckService>.Instance);
 
     private static VersionCheckService CreateService()
     {
@@ -215,5 +219,115 @@ public sealed class VersionCheckServiceTests
         Assert.AreEqual(UpdateRequirement.Mandatory, result.Requirement);
         Assert.IsFalse(string.IsNullOrWhiteSpace(result.Message));
         Assert.IsNull(result.ActionUrl);
+    }
+
+    /// <summary>
+    /// A version check that cannot reach the server has to come back as null rather than throw:
+    /// the caller treats null as "skip the check and carry on", and an exception escaping here
+    /// would take out startup over an optional call.
+    /// </summary>
+    [TestMethod]
+    public async Task AFailedRequestComesBackAsNull()
+    {
+        var service = CreateService(new StubEventClient(_ => throw new HttpRequestException("gateway timeout")));
+
+        Assert.IsNull(await service.GetVersionInfoAsync(timeoutSeconds: 5));
+    }
+
+    /// <summary>
+    /// The shape RestSharp actually throws when the request is canceled: not an
+    /// OperationCanceledException, but an HttpRequestException wrapping one.
+    /// </summary>
+    [TestMethod]
+    public async Task AWrappedCancellationComesBackAsNull()
+    {
+        var service = CreateService(new StubEventClient(_
+            => throw new HttpRequestException("Request aborted", new TaskCanceledException())));
+
+        Assert.IsNull(await service.GetVersionInfoAsync(timeoutSeconds: 5));
+    }
+
+    // Timeout guarded: if the cancellation stops reaching the request, the stub waits forever, and
+    // a regression should fail the run rather than hang it.
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task ARequestSlowerThanTheTimeoutComesBackAsNull()
+    {
+        var stub = new StubEventClient(async token =>
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, token);
+            return null;
+        });
+        var service = CreateService(stub);
+
+        Assert.IsNull(await service.GetVersionInfoAsync(timeoutSeconds: 1));
+
+        // The cancellation has to reach the request, or it is left running with nobody to await it
+        // and a late failure arrives at TaskScheduler.UnobservedTaskException to be reported as a
+        // crash. Awaited rather than sampled: the request sees the cancellation on its own turn,
+        // which can land just after the outer wait above has already given up.
+        await stub.Canceled.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    /// <summary>
+    /// The token does not reach RestSharp's authenticator, and the Keycloak token request behind
+    /// it takes none, so the request can ignore the deadline entirely. This has to be bounded
+    /// anyway: it runs before anything else in MainViewModel.Initialize, so an auth endpoint that
+    /// stalls would otherwise hold the user on the loading screen for HttpClient's 100 seconds.
+    /// </summary>
+    [TestMethod]
+    [Timeout(30000)]
+    public async Task ARequestThatIgnoresTheDeadlineIsStillGivenUpOn()
+    {
+        var service = CreateService(new StubEventClient(async _ =>
+        {
+            await Task.Delay(TimeSpan.FromSeconds(30), CancellationToken.None);
+            return null;
+        }));
+
+        var elapsed = Stopwatch.StartNew();
+        Assert.IsNull(await service.GetVersionInfoAsync(timeoutSeconds: 1));
+        elapsed.Stop();
+
+        Assert.IsTrue(elapsed.Elapsed < TimeSpan.FromSeconds(10),
+            $"should have given up near the 1 second deadline, took {elapsed.Elapsed}");
+    }
+
+    [TestMethod]
+    public async Task ASuccessfulRequestIsReturnedAsIs()
+    {
+        var info = AndroidInfo("1.0.0", "2.0.0", mandatory: false, recommend: false);
+        var service = CreateService(new StubEventClient(_ => Task.FromResult<UIVersionInfo?>(info)));
+
+        Assert.AreSame(info, await service.GetVersionInfoAsync(timeoutSeconds: 5));
+    }
+
+    /// <summary>
+    /// Stands in for the server so the timeout and failure paths can be exercised without one.
+    /// </summary>
+    private sealed class StubEventClient(Func<CancellationToken, Task<UIVersionInfo?>> respond)
+        : EventClient(Configuration(), NullLoggerFactory.Instance,
+            new EventAccessCodeStore(new MockPreferencesService()))
+    {
+        private readonly TaskCompletionSource canceled = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <summary>Completes once the request has seen its cancellation token fire.</summary>
+        public Task Canceled => canceled.Task;
+
+        public override async Task<UIVersionInfo?> LoadUIVersionInfoAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await respond(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    canceled.TrySetResult();
+                }
+                throw;
+            }
+        }
     }
 }

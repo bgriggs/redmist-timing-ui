@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
@@ -11,6 +11,7 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Clients;
@@ -179,10 +180,10 @@ public class EventClient : BaseRestClient
         return await GetAsync<List<FlagDuration>>(request, eventId) ?? [];
     }
 
-    public virtual async Task<UIVersionInfo?> LoadUIVersionInfoAsync()
+    public virtual async Task<UIVersionInfo?> LoadUIVersionInfoAsync(CancellationToken cancellationToken = default)
     {
         var request = new RestRequest("GetUIVersionInfo", Method.Get);
-        return await RestClient.GetAsync<UIVersionInfo>(request);
+        return await RestClient.GetAsync<UIVersionInfo>(request, cancellationToken);
     }
 
     private void AttachAccessCode(RestRequest request, int eventId)
