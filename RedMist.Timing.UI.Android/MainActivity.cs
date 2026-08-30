@@ -29,17 +29,42 @@ namespace RedMist.Timing.UI.Android;
 public class MainActivity : AvaloniaMainActivity<App>
 {
     /// <summary>
-    /// The most recently created activity, so <see cref="DetachMainViewFromPreviousActivity"/> can
-    /// finish a stale one. Weak because Android owns the activity's lifetime, not this class.
+    /// The activity most recently created or resumed, so <see cref="DetachMainViewFromPreviousActivity"/>
+    /// can finish a stale one and <see cref="Current"/> can hand the live one to process-wide
+    /// services. Resume counts as well as creation: tracking creation alone would leave this
+    /// pointing at an activity that has since been torn down and replaced.
+    /// Weak because Android owns the activity's lifetime, not this class.
     /// </summary>
     private static WeakReference<MainActivity>? _liveActivity;
+
+    /// <summary>
+    /// The activity currently standing in for the app, or null when there is not a usable one.
+    /// </summary>
+    /// <remarks>
+    /// For singletons that outlive any single activity and need whichever window is real now.
+    /// Finishing and destroyed activities are both excluded, because the weak reference goes on
+    /// resolving them for a while after Android has finished with them, and acting on a detached
+    /// window is the silent no-op this exists to avoid. Destroyed matters on its own: a
+    /// configuration change this activity does not declare tears it down without it ever being
+    /// marked finishing.
+    /// </remarks>
+    internal static MainActivity? Current
+        => _liveActivity is not null
+            && _liveActivity.TryGetTarget(out var activity)
+            && !activity.IsFinishing
+            && !activity.IsDestroyed
+                ? activity
+                : null;
 
     private OnBackPressedCallback? _backPressedCallback;
     private bool _systemBarFailureReported;
 
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
-        App.ScreenWakeServiceFactory = () => new AndroidScreenWakeService(this);
+        // Deliberately not capturing this activity. The delegate is static and the service it builds
+        // is a singleton, so capturing here rooted the first activity for the life of the process
+        // and pointed the screen wake flag at its window forever.
+        App.ScreenWakeServiceFactory = static () => new AndroidScreenWakeService(static () => Current);
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }
@@ -126,6 +151,22 @@ public class MainActivity : AvaloniaMainActivity<App>
         // first; the focus hook below covers a window that is recreated without being focused,
         // such as the unfocused half of a split screen.
         ApplySystemBarColors();
+
+        // Republished here, not just at creation: this is the activity the user is actually looking
+        // at, and it is the only signal that arrives when an earlier one was torn down without ever
+        // being marked finishing. SetTarget rather than a new reference to keep resume allocation free.
+        if (_liveActivity is null)
+        {
+            _liveActivity = new WeakReference<MainActivity>(this);
+        }
+        else
+        {
+            _liveActivity.SetTarget(this);
+        }
+
+        // The keep-screen-on flag lives on the window, so a replacement activity starts without it.
+        // Resume is where it goes back on, so driver mode cannot lose it to an activity handover.
+        AndroidScreenWakeService.ReapplyTo(this);
     }
 
     public override void OnWindowFocusChanged(bool hasFocus)
