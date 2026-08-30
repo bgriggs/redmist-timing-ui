@@ -36,20 +36,14 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
             var insetsManager = TopLevel.GetTopLevel(this)?.InsetsManager;
             if (insetsManager is not null)
             {
-                // Use dynamic to set DisplayEdgeToEdgePreference (enum value not directly accessible)
-                // This property replaces the obsolete DisplayEdgeToEdge boolean
-                try
-                {
-                    dynamic manager = insetsManager;
-                    manager.DisplayEdgeToEdgePreference = 1; // 1 = Always
-                }
-                catch
-                {
-                    // Fallback for versions without the new property
-#pragma warning disable CS0618 // Type or member is obsolete
-                    insetsManager.DisplayEdgeToEdge = true;
-#pragma warning restore CS0618 // Type or member is obsolete
-                }
+                // Same effect as before, said once. This went through dynamic to set
+                // DisplayEdgeToEdgePreference to 1, but that property is a bool, so the assignment
+                // threw every time and the catch below it did the actual work. DisplayEdgeToEdge
+                // sets the same preference, and dropping the dynamic also drops a dependency on the
+                // C# runtime binder, which is the kind of thing trimming removes.
+#pragma warning disable CS0618 // Obsolete in favor of the preference property, which is not on the interface.
+                insetsManager.DisplayEdgeToEdge = true;
+#pragma warning restore CS0618
             }
 
             if (DataContext is MainViewModel vm)
