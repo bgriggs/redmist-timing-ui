@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.TimingCommon;
@@ -94,29 +94,57 @@ public class VersionCheckService : IVersionCheckService
         }
     }
     
+    /// <summary>
+    /// Fetches the server's version rules, or null if they could not be had in time.
+    /// </summary>
+    /// <remarks>
+    /// Null is an ordinary answer here rather than a failure: the caller carries on without a
+    /// version check, which is the right behavior for an optional call made over a phone's
+    /// connection. Everything is therefore logged below the level that raises a crash report,
+    /// unexpected failures included - this runs during startup on whatever network the user has,
+    /// and a real defect in it shows up as the version check never working rather than as a crash.
+    ///
+    /// The timeout needs both halves below, because neither bounds this on its own. The token is
+    /// what actually cancels the request, so it is not left running with nobody to await it; a
+    /// late failure from an abandoned request arrives at TaskScheduler.UnobservedTaskException,
+    /// which does report at error level. But the token never reaches RestSharp's authenticator,
+    /// and the Keycloak token request behind it accepts none and so runs under HttpClient's 100
+    /// second default - on the call that gates app startup. WaitAsync is the bound over that.
+    /// </remarks>
     public async Task<UIVersionInfo?> GetVersionInfoAsync(int timeoutSeconds = 5)
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-        
+        var timeout = TimeSpan.FromSeconds(timeoutSeconds);
+        var cancellation = new CancellationTokenSource(timeout);
+        var deadline = cancellation.Token;
+        var request = _eventClient.LoadUIVersionInfoAsync(deadline);
+
+        // The request outlives this method whenever the wait below gives up on it, so it owns the
+        // source rather than a using block here. Reading the exception is what marks it observed.
+        _ = request.ContinueWith(static (task, state) =>
+            {
+                _ = task.Exception;
+                ((CancellationTokenSource)state!).Dispose();
+            },
+            cancellation,
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+
         try
         {
-            // Create timeout task
-            var versionTask = _eventClient.LoadUIVersionInfoAsync();
-            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds), cts.Token);
-            
-            var completedTask = await Task.WhenAny(versionTask, timeoutTask);
-            
-            if (completedTask == timeoutTask)
-            {
-                _logger.LogWarning("Version check timed out after {TimeoutSeconds} seconds", timeoutSeconds);
-                return null;
-            }
-            
-            return await versionTask;
+            return await request.WaitAsync(timeout);
+        }
+        catch (Exception ex) when (ex is TimeoutException || deadline.IsCancellationRequested)
+        {
+            // Matching on the exception type would not work: RestSharp reports a canceled request
+            // as an HttpRequestException wrapping the cancellation, not as one. The token is the
+            // reliable signal for whether this was us giving up.
+            _logger.LogWarning(ex, "Version check gave up after {TimeoutSeconds} seconds", timeoutSeconds);
+            return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve version information from server");
+            _logger.LogWarning(ex, "Failed to retrieve version information from server");
             return null;
         }
     }
