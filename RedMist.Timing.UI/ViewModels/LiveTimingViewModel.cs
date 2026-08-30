@@ -398,7 +398,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
             if (sessionStatus == null)
             {
-                Logger.LogWarning("No session status returned for event {EventId}", EventModel.EventId);
+                Logger.LogWarning("Session status was given up on for event {EventId}", EventModel.EventId);
                 return;
             }
 

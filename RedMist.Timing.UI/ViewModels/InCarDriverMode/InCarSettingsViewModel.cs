@@ -83,7 +83,11 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
         IsLoading = true;
         try
         {
-            var events = await eventClient.LoadRecentEventsAsync();
+            // Five attempts, matching the events list. This screen used to call the client directly,
+            // so driver mode was the one place that gave up on the first blip - on the phone most
+            // likely to be on trackside signal.
+            var events = await eventClient.ExecuteWithRetryAsync(eventClient.LoadRecentEventsAsync,
+                nameof(eventClient.LoadRecentEventsAsync), maxRetries: 5);
             if (events != null)
             {
                 if (events.Count == 0)
@@ -108,7 +112,10 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
             }
             else
             {
-                Message = "No events found - null";
+                // Null is the retry helper reporting that it gave up after every attempt, which is
+                // not the same as an empty schedule and must not read like one. It has already
+                // logged the reason at error level.
+                Message = "Could not load events. Check your connection and try again.";
             }
 
             TryLoadSettings();
@@ -116,7 +123,15 @@ public partial class InCarSettingsViewModel : ObservableValidator, IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading events for driver mode");
-            Message = $"Error loading events: {ex.Message}";
+
+            // This is the screen that was showing drivers "The given key was not present in the
+            // dictionary", straight out of ex.Message. Whatever the underlying exception says, it is
+            // written for whoever reads the log rather than for someone strapped into a car. The
+            // detail goes to the log and to Sentry on the line above.
+            Message = "Could not load events. Check your connection and try again.";
+#if DEBUG
+            Message += $"\n\nDebug info: {ex.Message}";
+#endif
         }
         finally
         {
