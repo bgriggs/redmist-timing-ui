@@ -108,7 +108,14 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
                     nameof(eventClient.LoadArchivedEventsAsync), maxRetries: 5);
 
                 // Check if there are more pages
-                if (events != null && events.Count > PageSize)
+                if (events is null)
+                {
+                    // Left as it was, on purpose. Null is the request being given up on, and reading
+                    // that as "there are no more pages" would take the Next button away on a network
+                    // blip - a failure mistaken for the end of the archive, which is the same error
+                    // as mistaking one for an empty schedule.
+                }
+                else if (events.Count > PageSize)
                 {
                     HasMorePages = true;
                     events.RemoveAt(events.Count - 1); // Remove the extra event
@@ -161,13 +168,25 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
             }
             else
             {
-                Message = "No events found - try to refresh in a moment.";
-                Logger.LogInformation(Message);
+                // Null is the retry helper reporting that it gave up, which is not the same thing as
+                // the schedule being empty and must not read like it. It has already logged the
+                // reason at error level, so this only has to be honest with the person holding the
+                // phone: something is wrong, and refreshing is worth a try.
+                Message = "Could not reach the timing server. Check your connection and try again.";
+                Logger.LogInformation("Events could not be loaded; the request was given up on.");
             }
         }
         catch (Exception ex)
         {
-            Message = $"Error loading events: {ex}";
+            // Was the whole exception, ToString and all, printed into the page - stack frames and
+            // any internal detail the message happened to carry. That belongs in the log, which is
+            // already getting it on the next line and forwarding it to Sentry.
+            Message = "Could not load events. Check your connection and try again.";
+#if DEBUG
+            // Otherwise unreachable on a device: a debug build has no Sentry DSN, so the detail only
+            // reaches the in-app log and adb.
+            Message += $"\n\nDebug info: {ex.Message}";
+#endif
             Logger.LogError(ex, "Error loading events");
         }
         finally

@@ -30,8 +30,30 @@ public class EventClient : BaseRestClient
     }
 
 
-    public async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, int maxRetries = 3)
+    /// <summary>
+    /// Runs an operation, retrying with a growing delay, and returns null once it has given up.
+    /// </summary>
+    /// <remarks>
+    /// Null means the operation failed every attempt, and is not the same answer as an empty result.
+    /// The distinction is the whole point of the nullable return: this used to hand back
+    /// <c>default!</c>, which callers were free to treat as "nothing came back", and the events list
+    /// duly reported a total failure to reach the server as "No events found". A real outage looked
+    /// like a quiet weekend.
+    ///
+    /// Constrained to reference types so that stays true. On a value type <c>default</c> is 0 or
+    /// false, which is indistinguishable from a real answer, and a failure would be silently
+    /// believed rather than merely misreported. The constraint is <c>class?</c> rather than
+    /// <c>class</c> only so operations that already return a nullable reference, such as
+    /// <see cref="LoadEventStatusAsync"/>, still fit; value types remain excluded either way.
+    /// </remarks>
+    public async Task<T?> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, int maxRetries = 3)
+        where T : class?
     {
+        // Without this a caller passing zero would skip the loop entirely and fall through to the
+        // "should never be reached" throw below, which is neither the documented null nor anything
+        // the caller could act on.
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxRetries);
+
         var retryDelay = TimeSpan.FromMilliseconds(500);
 
         for (int attempt = 1; attempt <= maxRetries; attempt++)
@@ -50,7 +72,7 @@ public class EventClient : BaseRestClient
                 if (attempt == maxRetries)
                 {
                     Logger.LogError(ex, "Failed to execute {OperationName} after {MaxRetries} attempts", operationName, maxRetries);
-                    return default!;
+                    return null;
                 }
 
                 Logger.LogWarning(ex, "Attempt {Attempt}/{MaxRetries} failed for {OperationName}. Retrying in {DelayMs}ms",

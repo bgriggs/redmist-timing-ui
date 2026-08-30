@@ -19,6 +19,7 @@ using RedMist.Timing.UI.Views;
 using Sentry;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,6 +108,12 @@ public partial class App : Application
         var inMemoryLogProvider = new InMemoryLogProvider(50);
         services.AddSingleton(inMemoryLogProvider);
         loggerFactory.AddProvider(inMemoryLogProvider);
+
+        // After the in-app log provider is attached, deliberately. A debug build has no Sentry - the
+        // DSN comes from the same release-only secrets file - so the log viewer inside the app is
+        // the only place this line can be read on a device, which is where the question "why did
+        // nothing load" actually gets asked.
+        ReportBlankRequiredConfiguration(builder.Configuration, loggerFactory);
 
         // Add HttpClient factory
         services.AddHttpClient();
@@ -359,6 +366,51 @@ public partial class App : Application
 
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
        => _ = _host!.StopAsync(_cancellationTokenSource!.Token);
+
+    /// <summary>
+    /// Names any required setting that is missing or blank, once, at startup.
+    /// </summary>
+    /// <remarks>
+    /// The Keycloak realm, client id and client secret ship blank in appsettings.json, to be filled
+    /// in by the secrets file that only a release build embeds. The "?? throw" guards where they are
+    /// read never fire on those, because an empty string is not null, so a build without the secrets
+    /// went on to ask Keycloak for a token as client "" in realm "" and the failure surfaced layers
+    /// away with nothing naming a setting. The other keys below already carry values, and are here
+    /// because they are read through the same kind of guard and share the same gap.
+    ///
+    /// Reported rather than thrown. These clients are built while the first view model is resolved,
+    /// so throwing would stop the app from starting, and a debug build on a device has no way to
+    /// supply the values - user secrets come from a path that exists on a developer's machine, not
+    /// on a phone. Running with the server-backed parts broken beats not running at all when the
+    /// work is on everything else.
+    ///
+    /// Key names only. The values are credentials.
+    /// </remarks>
+    private static void ReportBlankRequiredConfiguration(IConfiguration configuration, ILoggerFactory loggerFactory)
+    {
+        string[] requiredKeys =
+        [
+            "Server:EventUrl",
+            "Server:OrganizationUrl",
+            "Server:SponsorUrl",
+            "Hub:Url",
+            "Keycloak:AuthServerUrl",
+            "Keycloak:Realm",
+            "Keycloak:ClientId",
+            "Keycloak:ClientSecret",
+            "Cdn:ArchiveUrl",
+        ];
+
+        var blank = requiredKeys.Where(key => string.IsNullOrWhiteSpace(configuration[key])).ToArray();
+        if (blank.Length == 0)
+        {
+            return;
+        }
+
+        loggerFactory.CreateLogger(nameof(App)).LogError(
+            "Configuration missing or blank: {Keys}. Server and hub requests will fail to authenticate.",
+            string.Join(", ", blank));
+    }
 
     public T GetService<T>() where T : class
         => _host!.Services.GetRequiredService<T>();

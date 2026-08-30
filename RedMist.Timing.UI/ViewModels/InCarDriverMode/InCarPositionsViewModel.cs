@@ -102,7 +102,13 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Failed to connect to event {EventId} for car {CarNumber}", eventId, carNumber);
-                Message = "Failed to connect to event: " + ex.Message;
+
+                // Same reasoning as the settings screen this came from: the driver gets something
+                // they can act on, and the exception goes to the log and Sentry on the line above.
+                Message = "Could not connect to the event. Check your connection and try again.";
+#if DEBUG
+                Message += $"\n\nDebug info: {ex.Message}";
+#endif
             }
         }, Logger);
     }
@@ -114,7 +120,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
             var payload = await eventClient.LoadInCarDriverModePayloadAsync(eventId, carNumber);
             if (payload == null)
             {
-                Message = "Empty payload.";
+                Message = "No position data yet.";
             }
             else
             {
@@ -125,7 +131,7 @@ public partial class InCarPositionsViewModel : ObservableObject, IRecipient<InCa
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading the in-car payload for event {EventId}, car {CarNumber}", eventId, carNumber);
-            Message = "Error loading last payload";
+            Message = "Could not load the latest positions.";
         }
     }
 
