@@ -12,27 +12,6 @@
 		<AndroidPackageFormat>aab</AndroidPackageFormat>
 		<AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
 		<RunAOTCompilation>false</RunAOTCompilation>
-		<!-- Keeps exceptions thrown in JNI callbacks reportable, per dotnet/android#10602. The
-		     marshal method rewriter gives each n_..._mm_wrapper entry point a catch block that calls
-		     AndroidEnvironmentInternal.UnhandledException. Both that type and that method are internal,
-		     and the only assembly they are visible to is Mono.Android - so in any other rewritten
-		     assembly, ours included, the reporting call itself fails and the fault is replaced by a
-		     MethodAccessException naming the reporting method. The real exception is discarded, and
-		     what reaches the crash reporter says nothing about what actually went wrong.
-
-		     That masking is what made the accessibility crash unreadable until it was tracked down by
-		     other means (an Avalonia bug, fixed by the 11.3.20 bump). This stays as a safety net for
-		     the next one rather than for that specific fault.
-
-		     Marshal methods are on by default for MonoVM and applied only when debug symbols are off,
-		     so this only ever bit release builds. The fix makes that method public; it is in
-		     Microsoft.Android 36.1.99-preview.2.154 and later, was never backported to
-		     release/10.0.1xx, and so is unreachable until this app moves to .NET 11. Drop this then.
-
-		     One consequence worth knowing: without the wrapper, a JNI callback fault is raised through
-		     AndroidEnvironment.UnhandledExceptionRaiser instead of reaching AppDomain.UnhandledException,
-		     so Sentry reports it under that mechanism and the app's own handler does not run for it. -->
-		<AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
 		<UserSecretsId>8c31261b-5551-40d9-a50a-bfb280d7f018</UserSecretsId>
 	</PropertyGroup>
 
