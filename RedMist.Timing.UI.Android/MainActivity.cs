@@ -47,8 +47,16 @@ public class MainActivity : AvaloniaMainActivity<App>
         // base.OnCreate is where Avalonia hands the shared MainView to a brand new AvaloniaView, and
         // it throws outright if the view still has a parent. Under the default launch mode a second
         // launch intent can put a second MainActivity alongside a live one, so this is the whole
-        // defense against that, not a backstop to a manifest setting.
-        DetachMainViewFromPreviousActivity();
+        // defense against that.
+        //
+        // Gated on having seen an activity before, and deliberately not on Avalonia's own state:
+        // reading Application.Current here reaches AvaloniaLocator before base.OnCreate has set the
+        // framework up, and that left the app running but never loading its view - a blank window,
+        // no crash, no log. On the first activity in a process there is nothing to detach anyway.
+        if (_liveActivity is not null)
+        {
+            DetachMainViewFromPreviousActivity();
+        }
 
         base.OnCreate(savedInstanceState);
 
