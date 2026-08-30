@@ -4,8 +4,13 @@ using Android.OS;
 using AndroidX.Activity;
 using Avalonia;
 using Avalonia.Android;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.VisualTree;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
+using Sentry;
+using System;
 
 namespace RedMist.Timing.UI.Android;
 
@@ -14,9 +19,21 @@ namespace RedMist.Timing.UI.Android;
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
+    // The whole app lives in this one activity, and Avalonia keeps a single process-wide MainView.
+    // Under the default "standard" launch mode a second launch intent creates a second MainActivity
+    // while the first is still alive, and the two overlap: the new OnCreate runs before the old
+    // OnDestroy releases the shared MainView. SingleTask means a relaunch resumes this instance
+    // through OnNewIntent instead of building a rival one.
+    LaunchMode = LaunchMode.SingleTask,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 public class MainActivity : AvaloniaMainActivity<App>
 {
+    /// <summary>
+    /// The most recently created activity, so <see cref="DetachMainViewFromPreviousActivity"/> can
+    /// finish a stale one. Weak because Android owns the activity's lifetime, not this class.
+    /// </summary>
+    private static WeakReference<MainActivity>? _liveActivity;
+
     private OnBackPressedCallback? _backPressedCallback;
 
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
@@ -33,6 +50,11 @@ public class MainActivity : AvaloniaMainActivity<App>
         // where the unattributable libmonosgen crashes were happening.
         CrashReporting.Init("android", o => o.DisableAppDomainUnhandledExceptionCapture());
 
+        // base.OnCreate is where Avalonia hands the shared MainView to a brand new AvaloniaView, and
+        // it throws outright if the view still has a parent. SingleTask should keep that from
+        // arising, but a startup crash is the worst place to rely on a manifest flag alone.
+        DetachMainViewFromPreviousActivity();
+
         base.OnCreate(savedInstanceState);
 
         // Use the modern OnBackPressedDispatcher API for Android 13+
@@ -41,6 +63,8 @@ public class MainActivity : AvaloniaMainActivity<App>
             _backPressedCallback = new BackPressedCallback(this);
             OnBackPressedDispatcher.AddCallback(this, _backPressedCallback);
         }
+
+        _liveActivity = new WeakReference<MainActivity>(this);
     }
 
 #pragma warning disable CS0672 // Member overrides obsolete member
@@ -75,6 +99,68 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         _backPressedCallback?.Remove();
         base.OnDestroy();
+    }
+
+    /// <summary>
+    /// Releases the process-wide MainView from an earlier activity's Avalonia view, if one still holds it.
+    /// </summary>
+    /// <remarks>
+    /// Avalonia stores its <c>SingleViewLifetime</c> in a static, so a second OnCreate in the same
+    /// process reuses the MainView instance rather than building a new one. That is fine when the
+    /// previous activity has already been destroyed - Avalonia clears its own view's Content in
+    /// OnDestroy - but not when the two activities overlap, which is where
+    /// "already has a visual parent ... EmbeddableControlRoot" came from. Clearing the old host's
+    /// Content is what actually detaches the view; the old activity is on its way out regardless.
+    /// </remarks>
+    private void DetachMainViewFromPreviousActivity()
+    {
+        try
+        {
+            if (Avalonia.Application.Current?.ApplicationLifetime
+                is not ISingleViewApplicationLifetime { MainView: { } mainView })
+            {
+                return;
+            }
+
+            if (mainView.GetVisualParent() is null)
+            {
+                return;
+            }
+
+            // Normally the root is reachable through the visual tree. A presenter that was orphaned
+            // from its root still reports a visual parent but no visual root, so fall back to the
+            // logical parent, which is the same EmbeddableControlRoot either way.
+            var host = mainView.GetVisualRoot() as ContentControl ?? mainView.Parent as ContentControl;
+            if (host is null || !ReferenceEquals(host.Content, mainView))
+            {
+                return;
+            }
+
+            host.Content = null;
+
+            // A breadcrumb alone would only ever surface attached to some later crash, and the whole
+            // point of this path is that no crash follows. Reported as its own event so a quiet
+            // REDMIST-APP-3 can be told apart from a guard that is quietly load-bearing.
+            SentrySdk.CaptureMessage(
+                "MainView was still parented to a previous activity at startup",
+                scope => scope.SetTag("handler", "MainActivity.OnCreate"),
+                SentryLevel.Warning);
+
+            // The previous activity is now showing an empty window and has no way to repopulate it,
+            // so send it on its way rather than leaving a blank task behind in Recents.
+            if (_liveActivity is not null
+                && _liveActivity.TryGetTarget(out var previous)
+                && !ReferenceEquals(previous, this)
+                && !previous.IsFinishing)
+            {
+                previous.Finish();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Never let the guard be the thing that stops the app from starting.
+            CrashReporting.CaptureHandled(ex, "MainActivity.DetachMainViewFromPreviousActivity");
+        }
     }
 
     private class BackPressedCallback : OnBackPressedCallback
