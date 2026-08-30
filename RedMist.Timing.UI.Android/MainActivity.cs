@@ -1,9 +1,14 @@
 ﻿using Android.App;
 using Android.Content.PM;
+using Android.Content.Res;
 using Android.OS;
+using Android.Views;
 using AndroidX.Activity;
+using AndroidX.Core.View;
 using Avalonia;
 using Avalonia.Android;
+using Avalonia.Styling;
+using Avalonia.Media;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
@@ -29,6 +34,7 @@ public class MainActivity : AvaloniaMainActivity<App>
     private static WeakReference<MainActivity>? _liveActivity;
 
     private OnBackPressedCallback? _backPressedCallback;
+    private bool _systemBarFailureReported;
 
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
@@ -68,6 +74,15 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
 
         _liveActivity = new WeakReference<MainActivity>(this);
+
+        // The in-app Light/Dark setting changes the theme without any Android configuration
+        // change, so the bars have to follow Avalonia's notion of the theme, not the system's.
+        if (Avalonia.Application.Current is { } app)
+        {
+            app.ActualThemeVariantChanged += OnActualThemeVariantChanged;
+        }
+
+        ApplySystemBarColors();
     }
 
 #pragma warning disable CS0672 // Member overrides obsolete member
@@ -98,8 +113,139 @@ public class MainActivity : AvaloniaMainActivity<App>
         MoveTaskToBack(true);
     }
 
+    protected override void OnResume()
+    {
+        base.OnResume();
+
+        // Reapplied rather than set once: Avalonia re-runs its edge-to-edge setup whenever the
+        // insets preference is set, which puts the scrim back. Resume is guaranteed and comes
+        // first; the focus hook below covers a window that is recreated without being focused,
+        // such as the unfocused half of a split screen.
+        ApplySystemBarColors();
+    }
+
+    public override void OnWindowFocusChanged(bool hasFocus)
+    {
+        base.OnWindowFocusChanged(hasFocus);
+
+        if (hasFocus)
+        {
+            ApplySystemBarColors();
+        }
+    }
+
+    public override void OnConfigurationChanged(Configuration newConfig)
+    {
+        base.OnConfigurationChanged(newConfig);
+
+        // The activity handles UiMode itself, so a switch to the system's dark theme arrives here
+        // rather than as a recreation, and nothing else would repaint the bars.
+        ApplySystemBarColors();
+    }
+
+    private void OnActualThemeVariantChanged(object? sender, EventArgs e) => ApplySystemBarColors();
+
+    /// <summary>
+    /// Paints the status and navigation bars in the app's own chrome color.
+    /// </summary>
+    /// <remarks>
+    /// Avalonia asks for edge to edge by adding FLAG_TRANSLUCENT_STATUS and
+    /// FLAG_TRANSLUCENT_NAVIGATION, which has the system dim both bars with its own scrim - the
+    /// grey bands above the header and below the tab strip. Its SystemBarColor property cannot
+    /// undo that, because Avalonia ignores that property whenever edge to edge is on.
+    ///
+    /// Painting the bars rather than drawing under them is deliberate. Measured on this app, the
+    /// Avalonia surface is 720x1471 on a 720x1600 screen, so the window stops at the bars whatever
+    /// the edge-to-edge preference says and nothing the app draws can reach them. Matching their
+    /// color to the chrome beside them is what closes the seam.
+    ///
+    /// Only tested below API 35. From 35 the system forces edge to edge, ignores both setters
+    /// below, and keeps the bars transparent, so the strips show whatever ends up behind the
+    /// window instead - which is a different problem than the one this solves.
+    /// </remarks>
+    private void ApplySystemBarColors()
+    {
+        try
+        {
+            if (Window is not { } window || ResolveChrome() is not { } chrome)
+            {
+                return;
+            }
+
+            window.ClearFlags(WindowManagerFlags.TranslucentStatus);
+            window.ClearFlags(WindowManagerFlags.TranslucentNavigation);
+            window.AddFlags(WindowManagerFlags.DrawsSystemBarBackgrounds);
+
+#pragma warning disable CA1422 // Disabled from API 35, where the system owns the bars - see the remarks.
+            window.SetStatusBarColor(chrome.Color);
+
+            // The navigation bar's icons can only be darkened from API 26, so below that a light
+            // bar would be light glyphs on light paint. Leaving it alone is the lesser evil.
+            if (OperatingSystem.IsAndroidVersionAtLeast(26))
+            {
+                window.SetNavigationBarColor(chrome.Color);
+            }
+#pragma warning restore CA1422
+
+            // Otherwise the system puts its own scrim back over the navigation bar.
+            if (OperatingSystem.IsAndroidVersionAtLeast(29))
+            {
+                window.NavigationBarContrastEnforced = false;
+            }
+
+            // The bars now carry the chrome color, so their icons have to contrast with that.
+            if (WindowCompat.GetInsetsController(window, window.DecorView) is { } controller)
+            {
+                controller.AppearanceLightStatusBars = !chrome.IsDark;
+                controller.AppearanceLightNavigationBars = !chrome.IsDark;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Cosmetic: a failure here costs the blended bars, not the app. Reported once, because
+            // this runs on every resume and focus gain and a structural failure would repeat for
+            // as long as the app is open.
+            if (!_systemBarFailureReported)
+            {
+                _systemBarFailureReported = true;
+                CrashReporting.CaptureHandled(ex, "MainActivity.ApplySystemBarColors");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads the brush the header and tab strip are painted with, in whichever theme is currently resolved.
+    /// </summary>
+    /// <remarks>
+    /// Taken from Avalonia rather than from an Android night-qualified resource, because the two
+    /// disagree: the app carries its own Light/Dark/System setting, so a user on a light phone can
+    /// be running the dark theme. Reading the same brush the chrome reads means the bars cannot
+    /// drift from it, and there is no second copy of the color to keep in step.
+    /// </remarks>
+    private static (global::Android.Graphics.Color Color, bool IsDark)? ResolveChrome()
+    {
+        if (Avalonia.Application.Current is not { } app)
+        {
+            return null;
+        }
+
+        var variant = app.ActualThemeVariant;
+        if (!app.TryGetResource("medAppBackground", variant, out var value) || value is not ISolidColorBrush brush)
+        {
+            return null;
+        }
+
+        var c = brush.Color;
+        return (global::Android.Graphics.Color.Argb(c.A, c.R, c.G, c.B), variant == ThemeVariant.Dark);
+    }
+
     protected override void OnDestroy()
     {
+        if (Avalonia.Application.Current is { } app)
+        {
+            app.ActualThemeVariantChanged -= OnActualThemeVariantChanged;
+        }
+
         _backPressedCallback?.Remove();
         base.OnDestroy();
     }
