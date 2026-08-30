@@ -24,6 +24,7 @@ namespace RedMist.Timing.UI.Android;
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
+    LaunchMode = LaunchMode.SingleTop,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 public class MainActivity : AvaloniaMainActivity<App>
 {
@@ -51,9 +52,12 @@ public class MainActivity : AvaloniaMainActivity<App>
         CrashReporting.Init("android", o => o.DisableAppDomainUnhandledExceptionCapture());
 
         // base.OnCreate is where Avalonia hands the shared MainView to a brand new AvaloniaView, and
-        // it throws outright if the view still has a parent. Under the default launch mode a second
-        // launch intent can put a second MainActivity alongside a live one, so this is the whole
-        // defense against that.
+        // it throws outright if the view still has a parent. SingleTop above is what now keeps a
+        // second launch intent from putting a second MainActivity on a live one, so this is the
+        // backstop rather than the whole defense. What it still covers is a second instance the
+        // launch mode cannot dedupe: FLAG_ACTIVITY_MULTIPLE_TASK, a second display, a second task.
+        // Explicitly not recreation - that destroys the old activity first and Avalonia clears its
+        // own view's Content in OnDestroy, so the check below finds nothing to do and returns.
         //
         // Gated on having seen an activity before, and deliberately not on Avalonia's own state:
         // reading Application.Current here reaches AvaloniaLocator before base.OnCreate has set the
@@ -287,13 +291,23 @@ public class MainActivity : AvaloniaMainActivity<App>
 
             host.Content = null;
 
-            // A breadcrumb alone would only ever surface attached to some later crash, and the whole
-            // point of this path is that no crash follows. Reported as its own event so a quiet
-            // REDMIST-APP-3 can be told apart from a guard that is quietly load-bearing.
-            SentrySdk.CaptureMessage(
+            // This was its own event for one release, to settle whether the guard was load-bearing or
+            // dead code. It was load-bearing, and the answer came back narrower than expected: every
+            // report was an automated store-review emulator, where an explicit component start puts a
+            // second MainActivity on top of a live one. Reproduced on a device that way, and never
+            // once from an ordinary relaunch, which reuses the existing activity. SingleTop now stops
+            // that at the source - verified against the same repro - so this should go quiet, and it
+            // drops out of the issue feed rather than opening a fresh issue every release.
+            SentrySdk.AddBreadcrumb(
                 "MainView was still parented to a previous activity at startup",
-                scope => scope.SetTag("handler", "MainActivity.OnCreate"),
-                SentryLevel.Warning);
+                category: "app.lifecycle",
+                level: BreadcrumbLevel.Warning);
+
+            // The breadcrumb alone would not be enough to check that claim later: breadcrumbs cannot
+            // be searched or counted, and the launch-mode fix and this downgrade ship together, so a
+            // quiet REDMIST-APP-F on its own cannot tell a working fix from having stopped looking.
+            // A tag can be aggregated, and rides on any later event from this process.
+            SentrySdk.ConfigureScope(scope => scope.SetTag("mainview-detach", "fired"));
 
             // The previous activity is now showing an empty window and has no way to repopulate it,
             // so send it on its way rather than leaving a blank task behind in Recents.
