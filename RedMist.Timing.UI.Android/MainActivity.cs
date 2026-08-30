@@ -19,12 +19,6 @@ namespace RedMist.Timing.UI.Android;
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
-    // The whole app lives in this one activity, and Avalonia keeps a single process-wide MainView.
-    // Under the default "standard" launch mode a second launch intent creates a second MainActivity
-    // while the first is still alive, and the two overlap: the new OnCreate runs before the old
-    // OnDestroy releases the shared MainView. SingleTask means a relaunch resumes this instance
-    // through OnNewIntent instead of building a rival one.
-    LaunchMode = LaunchMode.SingleTask,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 public class MainActivity : AvaloniaMainActivity<App>
 {
@@ -51,8 +45,9 @@ public class MainActivity : AvaloniaMainActivity<App>
         CrashReporting.Init("android", o => o.DisableAppDomainUnhandledExceptionCapture());
 
         // base.OnCreate is where Avalonia hands the shared MainView to a brand new AvaloniaView, and
-        // it throws outright if the view still has a parent. SingleTask should keep that from
-        // arising, but a startup crash is the worst place to rely on a manifest flag alone.
+        // it throws outright if the view still has a parent. Under the default launch mode a second
+        // launch intent can put a second MainActivity alongside a live one, so this is the whole
+        // defense against that, not a backstop to a manifest setting.
         DetachMainViewFromPreviousActivity();
 
         base.OnCreate(savedInstanceState);
