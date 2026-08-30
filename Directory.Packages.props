@@ -39,7 +39,7 @@
     <PackageVersion Include="BigMission.Shared" Version="1.1.0" />
     <PackageVersion Include="RedMist.TimingCommon" Version="1.15.0" />
     <PackageVersion Include="TypeGen" Version="7.0.0" />
-    <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
+    <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.10" />
