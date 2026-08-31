@@ -96,6 +96,22 @@ evidence: the app carried on with the state the aborted operation left behind an
 somewhere unrelated, leaving a tombstone with nothing but `libmonosgen` frames. Set it to `false` to
 go back to suppressing - the exception is still reported either way.
 
+## Testing on a real device
+`RedMist.Timing.UI.Tests` covers logic, headless, on the desktop. For the failures that only exist on
+hardware - a slow cold start, memory growing over a long session, a screen showing a driver a .NET
+exception message - `tools/device` drives the Android app on a phone plugged in over USB:
+
+```bash
+python tools/device/smoke.py     # walks every screen, asserts nothing broke
+python tools/device/soak.py      # expands car rows repeatedly, recording memory
+```
+
+Avalonia publishes a real automation tree to Android's accessibility bridge, so these find controls
+by name and text rather than by screen position. Every run writes a JSON record under
+`tools/device/results/` and compares against the stored baseline. See
+[tools/device/AGENTS.md](tools/device/AGENTS.md) for how to run them and how to read the output;
+none of it runs in CI, since there is no phone on the runner.
+
 ## Event Only Mode
 When hosting the application in the web, the event selection is delegated to the website. Therefore, the application directly routes to the event in the mode. It uses the page URL with event parameter to accomplish this. For development, you can pass the event ID as a command line argument to the application. For example, set the args in the Desktop launchSettings.json:
 ```bash
