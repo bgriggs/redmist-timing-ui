@@ -2,7 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -203,17 +202,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     [ObservableProperty]
     private bool isLegendVisible = false;
 
-    public IImage? SentinelLegendImage => GetLegendImage(CarViewModel.SENTINEL_IMAGE);
-    public IImage? MrlLegendImage => GetLegendImage(CarViewModel.MRL_IMAGE);
-
-    private static IImage? GetLegendImage(string resourceKey)
-    {
-        if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, resourceKey) is string uri)
-        {
-            return new Bitmap(AssetLoader.Open(new Uri(uri)));
-        }
-        return null;
-    }
+    // Through the cache, not decoded inline: these getters are read on every binding evaluation,
+    // and the legend's bindings are live from the moment the view is realized - IsLegendVisible
+    // only hides it. Each read used to decode a fresh bitmap.
+    public IImage? SentinelLegendImage => AssetImageCache.GetThemed(CarViewModel.SENTINEL_IMAGE);
+    public IImage? MrlLegendImage => AssetImageCache.GetThemed(CarViewModel.MRL_IMAGE);
 
     [ObservableProperty]
     private string searchText = string.Empty;

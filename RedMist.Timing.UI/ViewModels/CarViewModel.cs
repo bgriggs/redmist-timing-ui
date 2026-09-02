@@ -1,8 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Threading;
 using BigMission.Avalonia.Utilities.Extensions;
 using BigMission.Shared.Utilities;
@@ -22,7 +20,6 @@ using System;
 using System.Globalization;
 using System.Net.Http;
 using System.Reactive.Linq;
-using System.Threading;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -449,10 +446,6 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private IDisposable? flashEndTimer;
     private IDisposable? forcePropertyTimer;
     private IDisposable? entryResetTimer;
-    private static readonly Lock s_imageLock = new();
-    private static IImage? s_sentinelImage;
-    private static IImage? s_mrlImage;
-    private static IImage? s_defaultImage;
 
     #region Car Details
 
@@ -893,44 +886,17 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
     private static IImage GetCarSourceImage(VideoSystemType type)
     {
-        if (type == VideoSystemType.Sentinel)
+        // The cache replaces the lock-guarded statics this used to keep: those pinned whichever
+        // theme variant resolved first for the rest of the session, where the cache keys on the
+        // resolved URI and so holds both variants once both have been seen.
+        var themed = type switch
         {
-            if (s_sentinelImage != null)
-                return s_sentinelImage;
-            lock (s_imageLock)
-            {
-                if (s_sentinelImage != null)
-                    return s_sentinelImage;
-                if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, SENTINEL_IMAGE) is string image)
-                {
-                    s_sentinelImage = new Bitmap(AssetLoader.Open(new Uri(image)));
-                    return s_sentinelImage;
-                }
-            }
-        }
-        else if (type == VideoSystemType.MyRacesLive)
-        {
-            if (s_mrlImage != null)
-                return s_mrlImage;
-            lock (s_imageLock)
-            {
-                if (s_mrlImage != null)
-                    return s_mrlImage;
-                if (Application.Current?.FindResource(Application.Current.ActualThemeVariant, MRL_IMAGE) is string image)
-                {
-                    s_mrlImage = new Bitmap(AssetLoader.Open(new Uri(image)));
-                    return s_mrlImage;
-                }
-            }
-        }
+            VideoSystemType.Sentinel => AssetImageCache.GetThemed(SENTINEL_IMAGE),
+            VideoSystemType.MyRacesLive => AssetImageCache.GetThemed(MRL_IMAGE),
+            _ => null,
+        };
 
-        if (s_defaultImage != null)
-            return s_defaultImage;
-        lock (s_imageLock)
-        {
-            s_defaultImage ??= new Bitmap(AssetLoader.Open(new Uri("avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png")));
-            return s_defaultImage;
-        }
+        return themed ?? AssetImageCache.Get("avares://RedMist.Timing.UI/Assets/BootstrapIcons-CameraVideo.png");
     }
 
     [RelayCommand]
