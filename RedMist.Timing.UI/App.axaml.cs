@@ -440,10 +440,11 @@ public partial class App : Application
         return NullLogger.Instance;
     }
 
-    [Transient(typeof(EventClient))]
+    [Singleton(typeof(RestClientFactory))]
+    [Singleton(typeof(EventClient))]
     [Singleton(typeof(HubClient))]
-    [Transient(typeof(OrganizationClient))]
-    [Transient(typeof(SponsorClient))]
+    [Singleton(typeof(OrganizationClient))]
+    [Singleton(typeof(SponsorClient))]
     [Singleton(typeof(ViewSizeService))]
     [Singleton(typeof(EventContext))]
     [Singleton(typeof(OrganizationIconCacheService))]

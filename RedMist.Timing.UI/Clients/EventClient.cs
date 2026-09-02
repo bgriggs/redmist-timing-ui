@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -22,8 +21,8 @@ public class EventClient : BaseRestClient
     private ILogger Logger { get; }
 
 
-    public EventClient(IConfiguration configuration, ILoggerFactory loggerFactory, EventAccessCodeStore accessCodeStore)
-        : base(configuration, "Server:EventUrl")
+    public EventClient(RestClientFactory restClientFactory, ILoggerFactory loggerFactory, EventAccessCodeStore accessCodeStore)
+        : base(restClientFactory, "Server:EventUrl")
     {
         this.accessCodeStore = accessCodeStore;
         Logger = loggerFactory.CreateLogger(GetType().Name);

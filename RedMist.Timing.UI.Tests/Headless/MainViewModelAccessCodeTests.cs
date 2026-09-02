@@ -1,4 +1,4 @@
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Configuration;
@@ -56,7 +56,7 @@ public sealed class MainViewModelAccessCodeTests
         private readonly EventAccessCodeStore store;
 
         public PrivateEventClient(IConfiguration configuration, ILoggerFactory loggerFactory, EventAccessCodeStore store)
-            : base(configuration, loggerFactory, store)
+            : base(new RestClientFactory(configuration), loggerFactory, store)
         {
             this.store = store;
         }

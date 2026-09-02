@@ -1,4 +1,4 @@
-using RedMist.Timing.UI.Clients;
+﻿using RedMist.Timing.UI.Clients;
 using RedMist.TimingCommon.Models;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -8,7 +8,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignSponsorClient : SponsorClient
 {
-    public DesignSponsorClient() : base(new DesignConfiguration(), new DesignHttpClientFactory())
+    public DesignSponsorClient() : base(new RestClientFactory(new DesignConfiguration()), new DesignHttpClientFactory())
     {
     }
 

@@ -6,7 +6,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 
 public class DesignOrganizationClient : OrganizationClient
 {
-    public DesignOrganizationClient() : base(new DesignConfiguration(), new DesignHttpClientFactory())
+    public DesignOrganizationClient() : base(new DesignConfiguration(), new DesignHttpClientFactory(), new RestClientFactory(new DesignConfiguration()))
     {
     }
 

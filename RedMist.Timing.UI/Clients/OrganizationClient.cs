@@ -10,8 +10,8 @@ public class OrganizationClient : BaseRestClient
     private readonly IHttpClientFactory httpClientFactory;
     private readonly string cdnLogosUrl = "https://assets.redmist.racing/logos";
 
-    public OrganizationClient(IConfiguration configuration, IHttpClientFactory httpClientFactory)
-        : base(configuration, "Server:OrganizationUrl")
+    public OrganizationClient(IConfiguration configuration, IHttpClientFactory httpClientFactory, RestClientFactory restClientFactory)
+        : base(restClientFactory, "Server:OrganizationUrl")
     {
         if (configuration["Cdn:BaseUrl"] != null && configuration["Cdn:Logos"] != null)
         {

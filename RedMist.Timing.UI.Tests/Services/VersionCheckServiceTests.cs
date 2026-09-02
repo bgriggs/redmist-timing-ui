@@ -28,8 +28,8 @@ public sealed class VersionCheckServiceTests
         })
         .Build();
 
-    // Shared: each EventClient builds a RestClient with its own HttpMessageHandler that nothing
-    // disposes. CheckVersion is pure, so one instance serves every test.
+    // Shared: each RestClientFactory built here owns an HttpMessageHandler that nothing disposes.
+    // CheckVersion is pure, so one instance serves every test.
     private static readonly VersionCheckService Service = CreateService();
 
     private static VersionCheckService CreateService(EventClient eventClient)
@@ -39,7 +39,7 @@ public sealed class VersionCheckServiceTests
     {
         var configuration = Configuration();
         // CheckVersion doesn't touch the client, but the constructor requires one.
-        var eventClient = new EventClient(configuration, NullLoggerFactory.Instance,
+        var eventClient = new EventClient(new RestClientFactory(configuration), NullLoggerFactory.Instance,
             new EventAccessCodeStore(new MockPreferencesService()));
         return new VersionCheckService(eventClient, new UpdateMessageService(configuration),
             NullLogger<VersionCheckService>.Instance);
@@ -306,7 +306,7 @@ public sealed class VersionCheckServiceTests
     /// Stands in for the server so the timeout and failure paths can be exercised without one.
     /// </summary>
     private sealed class StubEventClient(Func<CancellationToken, Task<UIVersionInfo?>> respond)
-        : EventClient(Configuration(), NullLoggerFactory.Instance,
+        : EventClient(new RestClientFactory(Configuration()), NullLoggerFactory.Instance,
             new EventAccessCodeStore(new MockPreferencesService()))
     {
         private readonly TaskCompletionSource canceled = new(TaskCreationOptions.RunContinuationsAsynchronously);

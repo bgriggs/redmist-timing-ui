@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels.Design;
 
-public class DesignEventClient(IConfiguration configuration) : EventClient(configuration, new DebugLoggerFactory(), new EventAccessCodeStore(new MockPreferencesService()))
+public class DesignEventClient(IConfiguration configuration) : EventClient(new RestClientFactory(configuration), new DebugLoggerFactory(), new EventAccessCodeStore(new MockPreferencesService()))
 {
     public override Task<List<EventListSummary>> LoadRecentEventsAsync()
     {

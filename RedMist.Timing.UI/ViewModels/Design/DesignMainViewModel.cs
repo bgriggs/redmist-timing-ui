@@ -5,7 +5,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 public class DesignMainViewModel : MainViewModel
 {
     public DesignMainViewModel() :
-        base(new EventsListViewModel(new Clients.EventClient(new DesignConfiguration(), new DebugLoggerFactory(), new EventAccessCodeStore(new MockPreferencesService())),
+        base(new EventsListViewModel(new Clients.EventClient(new Clients.RestClientFactory(new DesignConfiguration()), new DebugLoggerFactory(), new EventAccessCodeStore(new MockPreferencesService())),
             new DesignOrganizationClient(), new DesignOrganizationIconCacheService(), new DebugLoggerFactory()),
             new DesignLiveTimingViewModel(), new DesignHubClient(), new DesignEventClient(new DesignConfiguration()),
             new DebugLoggerFactory(), new Services.ViewSizeService(), new EventContext(),
