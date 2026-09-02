@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
@@ -72,12 +72,13 @@ internal static class TestViewModelFactory
     internal static CarViewModel CreateCar(PitTracking pitTracking)
     {
         var configuration = CreateConfiguration();
+        var restClientFactory = new RestClientFactory(configuration);
         var loggerFactory = new DebugLoggerFactory();
         var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
 
         return new CarViewModel(
             new Event { EventId = 1 },
-            new EventClient(configuration, loggerFactory, accessCodeStore),
+            new EventClient(restClientFactory, loggerFactory, accessCodeStore),
             new HubClient(loggerFactory, configuration, accessCodeStore),
             pitTracking,
             new ViewSizeService(),
@@ -89,11 +90,12 @@ internal static class TestViewModelFactory
     internal static LiveTimingViewModel CreateLiveTiming()
     {
         var configuration = CreateConfiguration();
+        var restClientFactory = new RestClientFactory(configuration);
         var loggerFactory = new DebugLoggerFactory();
         var httpClientFactory = new DesignHttpClientFactory();
         var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
         var sponsorIconCache = new SponsorIconCacheService(httpClientFactory, loggerFactory);
-        var sponsorClient = new SponsorClient(configuration, httpClientFactory);
+        var sponsorClient = new SponsorClient(restClientFactory, httpClientFactory);
         var sponsorRotator = new SponsorRotatorViewModel(
             new SponsorsService(sponsorClient, sponsorIconCache, loggerFactory),
             sponsorIconCache,
@@ -102,13 +104,13 @@ internal static class TestViewModelFactory
 
         return new LiveTimingViewModel(
             new HubClient(loggerFactory, configuration, accessCodeStore),
-            new EventClient(configuration, loggerFactory, accessCodeStore),
+            new EventClient(restClientFactory, loggerFactory, accessCodeStore),
             loggerFactory,
             new ViewSizeService(),
             new EventContext(),
             httpClientFactory,
             configuration,
-            new OrganizationIconCacheService(new OrganizationClient(configuration, httpClientFactory), loggerFactory),
+            new OrganizationIconCacheService(new OrganizationClient(configuration, httpClientFactory, restClientFactory), loggerFactory),
             sponsorRotator)
         {
             EventModel = new Event { EventId = 1 },
@@ -119,11 +121,12 @@ internal static class TestViewModelFactory
     internal static InCarSettingsViewModel CreateInCarSettings()
     {
         var configuration = CreateConfiguration();
+        var restClientFactory = new RestClientFactory(configuration);
         var loggerFactory = new DebugLoggerFactory();
         var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
 
         return new InCarSettingsViewModel(
-            new EventClient(configuration, loggerFactory, accessCodeStore),
+            new EventClient(restClientFactory, loggerFactory, accessCodeStore),
             new HubClient(loggerFactory, configuration, accessCodeStore),
             accessCodeStore,
             new MockPreferencesService(),
@@ -143,15 +146,16 @@ internal static class TestViewModelFactory
     internal static MainViewModel CreateMain(EventClient? eventClient = null, EventAccessCodeStore? accessCodeStore = null)
     {
         var configuration = CreateConfiguration();
+        var restClientFactory = new RestClientFactory(configuration);
         var loggerFactory = new DebugLoggerFactory();
         var httpClientFactory = new DesignHttpClientFactory();
         accessCodeStore ??= new EventAccessCodeStore(new MockPreferencesService());
-        eventClient ??= new EventClient(configuration, loggerFactory, accessCodeStore);
+        eventClient ??= new EventClient(restClientFactory, loggerFactory, accessCodeStore);
         var hubClient = new HubClient(loggerFactory, configuration, accessCodeStore);
-        var organizationClient = new OrganizationClient(configuration, httpClientFactory);
+        var organizationClient = new OrganizationClient(configuration, httpClientFactory, restClientFactory);
         var iconCacheService = new OrganizationIconCacheService(organizationClient, loggerFactory);
         var sponsorIconCache = new SponsorIconCacheService(httpClientFactory, loggerFactory);
-        var sponsorClient = new SponsorClient(configuration, httpClientFactory);
+        var sponsorClient = new SponsorClient(restClientFactory, httpClientFactory);
         var sponsorRotator = new SponsorRotatorViewModel(
             new SponsorsService(sponsorClient, sponsorIconCache, loggerFactory),
             sponsorIconCache,

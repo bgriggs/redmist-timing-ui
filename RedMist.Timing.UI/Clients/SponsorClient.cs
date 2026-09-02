@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using RedMist.TimingCommon.Models;
+﻿using RedMist.TimingCommon.Models;
 using RestSharp;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -12,8 +11,8 @@ public class SponsorClient : BaseRestClient
     private readonly IHttpClientFactory httpClientFactory;
 
 
-    public SponsorClient(IConfiguration configuration, IHttpClientFactory httpClientFactory)
-        : base(configuration, "Server:SponsorUrl")
+    public SponsorClient(RestClientFactory restClientFactory, IHttpClientFactory httpClientFactory)
+        : base(restClientFactory, "Server:SponsorUrl")
     {
         this.httpClientFactory = httpClientFactory;
     }
