@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:RedMist.Timing.UI.ViewModels"
+			 xmlns:vmc="clr-namespace:RedMist.Timing.UI.ViewModels.InCarDriverMode"
 			 xmlns:design="clr-namespace:RedMist.Timing.UI.ViewModels.Design"
 			 xmlns:v="clr-namespace:RedMist.Timing.UI.Views"
 			 xmlns:vd="clr-namespace:RedMist.Timing.UI.Views.InCarDriverMode"
@@ -19,6 +20,23 @@
 		<x:Double x:Key="TabItemHeaderFontSize">13</x:Double>
 		<!--<Thickness x:Key="TabItemHeaderMargin">5,1,1,1</Thickness>-->
 	</UserControl.Resources>
+
+	<!-- Views built from their view model rather than named as direct children of the tabs.
+	     A direct child is constructed when this view's XAML is parsed, which happens at app launch -
+	     so every tab's whole control tree used to be built before the events list even appeared, for
+	     tabs the user may never open and whose view models do not exist yet. As a template the tab's
+	     view is built the first time that tab is shown instead. The view models carry all the state,
+	     so a view built this way binds to the same data. LiveTiming stays a direct child below: it is
+	     the tab the user lives on, and templating it would rebuild its large grid on every return to
+	     the tab. -->
+	<UserControl.DataTemplates>
+		<DataTemplate DataType="vm:ResultsViewModel"><v:ResultsView/></DataTemplate>
+		<DataTemplate DataType="vm:EventInformationViewModel"><v:EventInformationView/></DataTemplate>
+		<DataTemplate DataType="vm:ControlLogViewModel"><v:ControlLogView/></DataTemplate>
+		<DataTemplate DataType="vm:FlagsViewModel"><v:FlagsView/></DataTemplate>
+		<DataTemplate DataType="vm:SettingsViewModel"><v:SettingsView/></DataTemplate>
+		<DataTemplate DataType="vmc:InCarSettingsViewModel"><vd:InCarSettings/></DataTemplate>
+	</UserControl.DataTemplates>
 
 	<Grid RowDefinitions="*" IsVisible="{Binding IsContentVisible}">
 		<!--Event List-->
@@ -42,7 +60,7 @@
 				</TabItem.Header>
 				<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"></v:LiveTimingView>
 			</TabItem>
-			<TabItem Name="ResultsTab" IsSelected="{Binding IsResultsTabSelected}" Padding="4,0">
+			<TabItem Name="ResultsTab" IsSelected="{Binding IsResultsTabSelected}" Padding="4,0" Content="{Binding ResultsViewModel}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource trophygeom}">
@@ -53,50 +71,43 @@
 						<TextBlock Text="Results" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
-				<v:ResultsView DataContext="{Binding ResultsViewModel}"/>
 			</TabItem>
-			<TabItem Name="InformationTab" IsSelected="{Binding IsInformationTabSelected}" Padding="4,0">
+			<TabItem Name="InformationTab" IsSelected="{Binding IsInformationTabSelected}" Padding="4,0" Content="{Binding EventInformationViewModel}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
 						<TextBlock Text="Info" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
-				<v:EventInformationView DataContext="{Binding EventInformationViewModel}"/>
 			</TabItem>
-			<TabItem Name="ControlLogTab" IsSelected="{Binding IsControlLogTabSelected}" Padding="4,0">
+			<TabItem Name="ControlLogTab" IsSelected="{Binding IsControlLogTabSelected}" Padding="4,0" Content="{Binding ControlLogViewModel}">
 				<TabItem.Header>
 					<StackPanel Width="70">
 						<PathIcon Height="15" Margin="0,2,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource warninggeom}"/>
 						<TextBlock Text="Control Log" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
-				<v:ControlLogView DataContext="{Binding ControlLogViewModel}"/>
 			</TabItem>
-			<TabItem Name="FlagsTab" IsSelected="{Binding IsFlagsTabSelected}" Padding="4,0">
+			<TabItem Name="FlagsTab" IsSelected="{Binding IsFlagsTabSelected}" Padding="4,0" Content="{Binding FlagsViewModel}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource flaggeom}"/>
 						<TextBlock Text="Flags" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
-				<v:FlagsView DataContext="{Binding FlagsViewModel}"/>
 			</TabItem>
-			<TabItem Name="SettingsTab" IsSelected="{Binding IsSettingsTabSelected}" Padding="4,0">
+			<TabItem Name="SettingsTab" IsSelected="{Binding IsSettingsTabSelected}" Padding="4,0" Content="{Binding SettingsViewModel}">
 				<TabItem.Header>
 					<StackPanel Width="60">
 						<PathIcon Height="15" Margin="0,3,0,0" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource geargeom}"/>
 						<TextBlock Text="Settings" Margin="0,1,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
 					</StackPanel>
 				</TabItem.Header>
-				<v:SettingsView DataContext="{Binding SettingsViewModel}"/>
 			</TabItem>
 		</TabControl>
 
 		<!--Driver Mode-->
-		<ContentControl IsVisible="{Binding IsDriverModeVisible}">
-			<vd:InCarSettings DataContext="{Binding InCarSettingsViewModel}" />
-		</ContentControl>
+		<ContentControl IsVisible="{Binding IsDriverModeVisible}" Content="{Binding InCarSettingsViewModel}"/>
 
 		<!-- Optional Update Notification - Dismissible banner at top -->
 		<Border IsVisible="{Binding IsUpdateNotificationVisible}"
