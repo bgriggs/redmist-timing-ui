@@ -304,6 +304,13 @@
 										<TextBlock Classes="tableheader" Text="LAP  POS  CLS POS     TIME        PIT     FLAG    RACE TIME    DRIVER"/>
 										<ScrollViewer MaxHeight="250" Grid.Row="1">
 											<ItemsControl ItemsSource="{Binding LapList.Laps}">
+												<!--A long session is hundreds of laps inside a 250px window. The rows are a uniform
+												    height, so the panel estimates the extent exactly and scrolling is unaffected.-->
+												<ItemsControl.ItemsPanel>
+													<ItemsPanelTemplate>
+														<VirtualizingStackPanel/>
+													</ItemsPanelTemplate>
+												</ItemsControl.ItemsPanel>
 												<ItemsControl.ItemTemplate>
 													<DataTemplate>
 														<StackPanel Orientation="Horizontal">

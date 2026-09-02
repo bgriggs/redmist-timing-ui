@@ -210,8 +210,19 @@ of the 487-lap event in the original crash report. Exact figures are in
 - **Expanding a car costs around 44 MB** and the cost is roughly linear. Six cars took the
   process from ~340 MB to ~605 MB, and repeated runs peaked within 5 MB of each other.
 - **The growth is managed memory.** Of ~265 MB gained, ~239 MB was `unknown`. `native_mb`
-  rose ~12 MB and `gfx_mb` ~2 MB across the whole run, which is why the chart is not the
-  suspect — the non-virtualized lap list is.
+  rose ~12 MB and `gfx_mb` ~2 MB across the whole run, which is why the chart was never the
+  suspect — the non-virtualized lap list was.
+- **That was confirmed, and the lap list is now virtualized.** It showed 155 rows through a
+  250px window; it now builds about 21. Two runs of the pinned hold command agreed to the
+  megabyte: `mb_per_expand` 44.2 → 10.3, `net_growth_unknown_mb` 239 → 41, `peak_pss_mb`
+  605 → 362. **The baselines in `results/` still hold the pre-change figures**, so until
+  someone is asked to move them, every hold run will report those same deltas as "outside
+  tolerance". They are the fix, not a regression.
+- **What is left is the other three quarters.** 10.3 MB an expand is not nothing, and none
+  of it is the lap rows any more. The car table cannot be virtualized the same way — rows
+  vary from 33px collapsed to ~300px expanded, and `VirtualizingStackPanel` sizes the
+  scrollbar from the rows it has built, so it estimated 2247px against a true 5184px and
+  resized mid-drag. See `LapListVirtualizationTests` for that measurement.
 - **Collapsing a car reclaims nothing measurable.** Measured with the memory-trim request
   (accepted on all four cycles) and a five second settle: `collapse_deltas_mb` came out
   `[-6, -2, 1, -4]`, mean −2.8 MB — three collapses of four measured *higher* than the
