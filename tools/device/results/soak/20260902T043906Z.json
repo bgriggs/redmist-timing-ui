@@ -1,0 +1,138 @@
+{
+  "scenario": "soak",
+  "started_utc": "2026-09-02T04:39:06+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-01 22:34:44"
+  },
+  "notes": {
+    "mode": "hold",
+    "cycles_requested": 6,
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "opened",
+      "at_s": 57.4,
+      "event": "LDRL - Hair of the Dawg 2026",
+      "laps": 155
+    },
+    {
+      "name": "baseline",
+      "at_s": 57.9,
+      "pss_mb": 300,
+      "rss_mb": 355,
+      "java_mb": 3,
+      "native_mb": 95,
+      "gfx_mb": 33,
+      "unknown_mb": 128
+    },
+    {
+      "name": "expand",
+      "at_s": 84.8,
+      "cycle": 0,
+      "car": "#295",
+      "nodes_delta": 77,
+      "pss_mb": 326,
+      "rss_mb": 385,
+      "java_mb": 6,
+      "native_mb": 102,
+      "gfx_mb": 33,
+      "unknown_mb": 138
+    },
+    {
+      "name": "expand",
+      "at_s": 113.1,
+      "cycle": 1,
+      "car": "#13",
+      "nodes_delta": 63,
+      "pss_mb": 332,
+      "rss_mb": 392,
+      "java_mb": 4,
+      "native_mb": 103,
+      "gfx_mb": 34,
+      "unknown_mb": 145
+    },
+    {
+      "name": "expand",
+      "at_s": 141.7,
+      "cycle": 2,
+      "car": "#34",
+      "nodes_delta": -8,
+      "pss_mb": 340,
+      "rss_mb": 399,
+      "java_mb": 6,
+      "native_mb": 104,
+      "gfx_mb": 34,
+      "unknown_mb": 149
+    },
+    {
+      "name": "expand",
+      "at_s": 170.3,
+      "cycle": 3,
+      "car": "#462",
+      "nodes_delta": 7,
+      "pss_mb": 345,
+      "rss_mb": 405,
+      "java_mb": 3,
+      "native_mb": 104,
+      "gfx_mb": 35,
+      "unknown_mb": 156
+    },
+    {
+      "name": "expand",
+      "at_s": 199.0,
+      "cycle": 4,
+      "car": "#128",
+      "nodes_delta": 5,
+      "pss_mb": 353,
+      "rss_mb": 413,
+      "java_mb": 4,
+      "native_mb": 105,
+      "gfx_mb": 35,
+      "unknown_mb": 162
+    },
+    {
+      "name": "expand",
+      "at_s": 227.7,
+      "cycle": 5,
+      "car": "#197",
+      "nodes_delta": 22,
+      "pss_mb": 362,
+      "rss_mb": 421,
+      "java_mb": 4,
+      "native_mb": 105,
+      "gfx_mb": 35,
+      "unknown_mb": 169
+    }
+  ],
+  "faults": [],
+  "summary": {
+    "mode": "hold",
+    "session_laps": 155,
+    "cycles_available": 18,
+    "baseline_pss_mb": 300,
+    "cycles_completed": 6,
+    "died": false,
+    "peak_pss_mb": 362,
+    "final_pss_mb": 362,
+    "peak_over_baseline_pss_mb": 62,
+    "net_growth_pss_mb": 62,
+    "peak_over_baseline_unknown_mb": 41,
+    "net_growth_unknown_mb": 41,
+    "mb_per_expand": 10.3
+  },
+  "status": "pass",
+  "duration_s": 228.3
+}
