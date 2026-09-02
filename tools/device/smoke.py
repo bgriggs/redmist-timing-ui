@@ -88,7 +88,7 @@ def main():
         run.since = d.launch(cold=True)
         nodes = d.wait_home()
         summary["home_ready_s"] = round(time.time() - t0, 1)
-        summary["cold_start_ms"] = d.displayed_ms()
+        summary["cold_start_ms"] = d.displayed_ms(since=run.since)
         start_pid = d.pid()
         clean(run, "home", nodes)
         summary["live_event_count"] = len(d.list_rows(nodes))

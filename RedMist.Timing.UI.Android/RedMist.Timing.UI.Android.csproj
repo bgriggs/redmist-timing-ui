@@ -50,6 +50,14 @@
 
 		<!-- Exclude JVM variant of Compose Runtime Annotation to prevent duplicate types -->
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" ExcludeAssets="all" />
+
+		<!-- TypeGen is a build-time TypeScript codegen library pulled in transitively by
+		     RedMist.TimingCommon. It has no runtime role in the app, but it was still being
+		     packaged, carrying Newtonsoft.Json in with it. AOT is what surfaced that: the
+		     compiler walks every shipped assembly, and TypeGen.Core failed to resolve
+		     Newtonsoft.Json, taking the whole build down. iOS already excludes it for the same
+		     reason. -->
+		<PackageReference Include="TypeGen" ExcludeAssets="all" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>

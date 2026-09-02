@@ -1,0 +1,276 @@
+{
+  "scenario": "smoke",
+  "started_utc": "2026-08-31T03:01:42+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-08-30 20:59:49"
+  },
+  "notes": {
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "screen",
+      "at_s": 18.6,
+      "screen": "home",
+      "nodes": 169,
+      "sample": [
+        "Live and Upcoming",
+        "Endurance Karting  6 Hrs of New England",
+        "World Racing League - Watkins Glen 2026",
+        "Max Track Time - Watkins Glen International",
+        "The Thompson 12",
+        "The Thompson 12 - EC"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 28.2,
+      "screen": "completed-events",
+      "nodes": 181,
+      "sample": [
+        "Completed Events",
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro EC",
+        "The Sebring NYE 14hr Enduro",
+        "AMP'd Up Duals Copy 1",
+        "Endurance Karting - 2025 3 Hours of Florida"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 37.7,
+      "screen": "completed-events-page-2",
+      "nodes": 181,
+      "sample": [
+        "Completed Events",
+        "The Fast Parts Grand Prix at Mid-Ohio Sat 8hr",
+        "Endurance Karting - 6 Hours of New England",
+        "World Racing League - High Plains 2025",
+        "Thompson 12",
+        "2025 Karting for CKG"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 56.7,
+      "screen": "event",
+      "nodes": 145,
+      "sample": [
+        "Provisional Results for LDRL - Hair of the Dawg 2026",
+        "01/17/2026",
+        "Sessions",
+        "Friday Practice",
+        "02/13 9:33 AM",
+        "Provisional Results"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 74.6,
+      "screen": "session-results",
+      "nodes": 840,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 93.8,
+      "screen": "car-expanded",
+      "nodes": 1377,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "expand",
+      "at_s": 93.8,
+      "delta_nodes": 537
+    },
+    {
+      "name": "failure",
+      "at_s": 137.2,
+      "detail": "AssertionError: {'contains': 'Page 1'} never appeared: on screen ['Settings', 'Settings', 'Samsung account', 'Profile  \u2022  Apps and features', 'Connections', 'Wi-Fi  \u2022  Bluetooth  \u2022  Airplane mode', 'Connected devices', 'Quick Share  \u2022  Android Auto', 'Sounds and vibration', 'Sound mode  \u2022  Ringtone']"
+    }
+  ],
+  "faults": [
+    {
+      "buffer": "crash",
+      "line": "--------- beginning of crash"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:28.100 11820 11820 F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x8000 in tid 11820 (rsports.redmist), pid 11820 (rsports.redmist)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : Build fingerprint: 'samsung/a03sutfnssu/a03su:13/TP1A.220624.014/S135DLUDS8AYI1:user/release-keys'"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : Revision: '1'"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : ABI: 'arm64'"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : Processor: '0'"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : Timestamp: 2026-08-30 21:03:28.432080891-0600"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : Process uptime: 105s"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : Cmdline: com.bigmissionmotorsports.redmist"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : pid: 11820, tid: 11820, name: rsports.redmist  >>> com.bigmissionmotorsports.redmist <<<"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : uid: 10288"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.578 12666 12666 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0000000000008000"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x0  0000000000008000  x1  00000000000b9edc  x2  0000000000000000  x3  0000000000000059"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x4  0000000000000400  x5  0000000000000004  x6  0000000000000000  x7  0000000004d4cfad"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x8  0000000000001000  x9  0000007158b76718  x10 00000000005cf6d8  x11 0000007194fb0000"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x12 0000000000000000  x13 0000000000000000  x14 003553d6992d5d10  x15 0000000000000000"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x16 0000007194f9d9d8  x17 000000729d6ac7b0  x18 00000072c1188000  x19 000000007c000000"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x20 0000007158b7c0f8  x21 0000007158b7e738  x22 ffffffffffff4045  x23 0000007158b76718"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x24 0000000000000008  x25 0000000000000010  x26 0000007194fb0000  x27 0000000000000018"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     x28 0000000004000000  x29 0000007ffd9aa6c0"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :     lr  0000007194f41dfc  sp  0000007ffd9aa6c0  pc  0000007194f43364  pst 0000000080000000"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   : backtrace:"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #00 pc 000000000029d364  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #01 pc 000000000029bdf8  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #02 pc 0000000000297c50  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #03 pc 00000000002b5e04  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #04 pc 00000000002b4f30  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #05 pc 00000000002b1418  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #06 pc 00000000002b1200  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.579 12666 12666 F DEBUG   :       #07 pc 00000000002ada08  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.580 12666 12666 F DEBUG   :       #08 pc 00000000002adef8  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.580 12666 12666 F DEBUG   :       #09 pc 000000000029f8cc  /data/app/~~LfAHeZYSlSGoQIIKhxFpSQ==/com.bigmissionmotorsports.redmist-0KXqhq5tfrSEoYL5i8r7LQ==/lib/arm64/libmonosgen-2.0.so (BuildId: 4efb763813573a1140dcdc5ea251cacf33529cbc)"
+    },
+    {
+      "buffer": "crash",
+      "line": "08-30 21:03:29.580 12666 12666 F DEBUG   :       #10 pc 0000000000004310  <anonymous:72b6209000>"
+    },
+    {
+      "buffer": "events",
+      "line": "08-30 21:03:29.699  1363 12684 I am_crash: [1363,0,com.bigmissionmotorsports.redmist,816365124,Native crash,Segmentation fault,unknown,0]"
+    },
+    {
+      "buffer": "events",
+      "line": "08-30 21:03:29.961  1363  7316 I am_proc_died: [0,11820,com.bigmissionmotorsports.redmist,0,2,525,611]"
+    }
+  ],
+  "summary": {
+    "home_ready_s": 17.5,
+    "cold_start_ms": 9021,
+    "live_event_count": 10,
+    "completed_event_count": 10,
+    "page_2_event_count": 10,
+    "session_count": 4,
+    "car_row_count": 18,
+    "session_laps": 155
+  },
+  "status": "fail",
+  "duration_s": 137.6
+}
