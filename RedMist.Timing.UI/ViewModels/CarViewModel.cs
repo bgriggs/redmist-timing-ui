@@ -23,7 +23,7 @@ using System.Reactive.Linq;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNotification>
+public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNotification>, IDisposable
 {
     #region Resources
 
@@ -446,6 +446,13 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private IDisposable? flashEndTimer;
     private IDisposable? forcePropertyTimer;
     private IDisposable? entryResetTimer;
+    private bool disposed;
+
+    /// <summary>
+    /// Whether this row has been released. Exposed so tests can assert both that a car leaving the
+    /// field is disposed and, just as importantly, that one merely hidden by a search is not.
+    /// </summary>
+    internal bool IsDisposed => disposed;
 
     #region Car Details
 
@@ -751,6 +758,16 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
 
     private void UpdateCarDetails(bool isEnabled)
     {
+        // A disposed row must not build a new details view model. Nothing would ever dispose it -
+        // the cache has already let go of this car - so it would hold a hub control log
+        // subscription for the rest of the session. The expander this is driven from is a two-way
+        // binding on a row that may still be realized as it is being removed, so the write is
+        // reachable in principle even though nothing observed makes it.
+        if (disposed)
+        {
+            return;
+        }
+
         if (isEnabled && CarDetailsViewModel == null)
         {
             _ = int.TryParse(LastCarPosition?.SessionId ?? "0", out int sessionId);
@@ -762,6 +779,54 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             CarDetailsViewModel.Dispose();
             CarDetailsViewModel = null;
         }
+    }
+
+    /// <summary>
+    /// Releases what this row holds once it leaves the field.
+    /// </summary>
+    /// <remarks>
+    /// A row that is dropped while its details are open used to strand the whole details view model
+    /// - its laps, its chart, and its control log subscription on the hub - because nothing ever
+    /// told it to let go. The cache does say so, through DisposeMany, but only for items that
+    /// implement this interface, so for a car the call did nothing at all.
+    ///
+    /// Only the source cache may call this, and <see cref="LiveTimingViewModel"/> is arranged so
+    /// that it does. Disposal is driven from the unfiltered cache rather than from a filtered or
+    /// grouped projection of it, because those emit a removal for a car that is merely out of view -
+    /// searching would otherwise dispose most of the field, and clearing the search would hand the
+    /// same dead instances back.
+    ///
+    /// Idempotent, since more than one thing can reasonably decide a row is finished.
+    /// </remarks>
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
+        }
+        disposed = true;
+
+        // Timers first: each fires onto the UI thread to set a property, and there is no point
+        // letting one land on a row that is already gone.
+        flashStartTimer?.Dispose();
+        flashEndTimer?.Dispose();
+        forcePropertyTimer?.Dispose();
+        entryResetTimer?.Dispose();
+
+        // The expensive part. DetailsViewModel.Dispose releases the hub's control log subscription
+        // for this car and unregisters it from the messenger. Cleared through the field rather than
+        // the property so the details are not reported as collapsed to a row that is going away;
+        // UpdateCarDetails would decline to act on it now in any case.
+        isDetailsExpanded = false;
+        CarDetailsViewModel?.Dispose();
+        CarDetailsViewModel = null;
+
+        // Registered in the constructor. The messenger holds recipients weakly, so this is not what
+        // keeps a car alive - it just stops a row that is on its way out being handed another size
+        // change on the way.
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

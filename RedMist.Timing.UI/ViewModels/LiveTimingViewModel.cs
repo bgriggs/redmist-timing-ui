@@ -142,6 +142,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     //private IDisposable? consistencyCheckInterval;
     private IDisposable? fullUpdateInterval;
+    /// <summary>
+    /// Owns the lifetime of the rows in <see cref="carCache"/>. See where it is assigned.
+    /// </summary>
+    private readonly IDisposable carLifetime;
 
     public string BackRouterPath { get; set; } = "EventsList";
 
@@ -252,7 +256,6 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             .AutoRefresh(t => t.SortablePosition)
             .AutoRefresh(t => t.BestTime)
             .SortAndBind(Cars, SortExpressionComparer<CarViewModel>.Ascending(t => t.SortablePosition))
-            .DisposeMany()
             .Subscribe();
 
         // Grouped by class
@@ -284,6 +287,23 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 // Both are null/empty (int.MaxValue), maintain order
                 return orderA.CompareTo(orderB);
             }))
+            .DisposeMany()
+            .Subscribe();
+
+        // Car lifetime, kept separate from the two projections above. DisposeMany disposes whatever
+        // the stream it is attached to drops, and a filtered or grouped stream drops a car that is
+        // merely out of view: hung off the flat projection, a search matching three cars would have
+        // disposed the rest of the field, and clearing the search would have handed the same dead
+        // instances straight back - the cache still holds them. Attached to the unfiltered cache it
+        // fires only on a real removal, which is a car leaving the entry list or the event being
+        // reset, and on teardown of this subscription.
+        //
+        // Subscribed last on purpose. DynamicData notifies in subscription order, so the two
+        // projections above have already taken the row out of Cars and out of its group by the time
+        // this runs. Disposing a row that is still bound would tear its details view model - the
+        // chart, and the control log grid - out from under a realized row, part way through
+        // delivering the change set that removes it.
+        carLifetime = carCache.Connect()
             .DisposeMany()
             .Subscribe();
     }
@@ -976,7 +996,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             .Subscribe(_ => Dispatcher.UIThread.InvokeOnUIThread(() => ApplySearchFilter(value)));
     }
 
-    private void ApplySearchFilter(string text)
+    /// <remarks>
+    /// Internal rather than private so a test can apply a filter without waiting out the debounce
+    /// in <see cref="OnSearchTextChanged"/>.
+    /// </remarks>
+    internal void ApplySearchFilter(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
