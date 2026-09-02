@@ -106,8 +106,9 @@ public class EventClient : BaseRestClient
             return null;
         var request = new RestRequest("LoadEvent", Method.Get);
         request.AddQueryParameter("eventId", eventId);
-        // LoadEvent itself is not gated by the access code, but attach it anyway
-        // so the same path works once the user has provided one.
+        // LoadEvent is gated by the access code on the server, so a private event answers 401 here
+        // - before the caller has an Event to prompt from. MainViewModel tracks the event it is
+        // navigating into for exactly that reason.
         AttachAccessCode(request, eventId);
         return await GetAsync<TimingCommon.Models.Event?>(request, eventId);
     }
