@@ -180,6 +180,24 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     private Event? currentEvent;
     private string currentEventOrganizationName = string.Empty;
 
+    /// <summary>
+    /// The event being navigated into, recorded before the event itself is loaded.
+    /// </summary>
+    /// <remarks>
+    /// LoadEvent is gated by the access code on the server, so a private event answers 401 there and
+    /// <see cref="currentEvent"/> is never assigned - it still holds the previous event, or nothing at
+    /// all on a cold start. <see cref="Receive(EventAccessDeniedNotification)"/> matches the denial
+    /// against this so it can still raise the prompt; without it the first visit to a private event
+    /// left the viewer on a blank screen with no way to enter a code.
+    /// </remarks>
+    private PendingEventNavigation? pendingEventAccess;
+
+    /// <summary>
+    /// What is known about an event before it has been loaded: enough to title the access code prompt,
+    /// plus the route to replay once a code has been accepted.
+    /// </summary>
+    private sealed record PendingEventNavigation(int EventId, string EventName, string OrganizationName, RouterEvent Route);
+
 
     public MainViewModel(EventsListViewModel eventsListViewModel, LiveTimingViewModel liveTimingViewModel, HubClient hubClient,
         EventClient eventClient, ILoggerFactory loggerFactory, ViewSizeService viewSizeService, EventContext eventContext,
@@ -272,6 +290,13 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     public async void Receive(ValueChangedMessage<RouterEvent> message)
     {
         var router = message.Value;
+
+        // Give up any event we were waiting on a code for. Only the navigation that is in flight
+        // has a use for it, and a record left behind would answer a later denial for that event by
+        // prompting over whatever the viewer had moved on to - driver mode, say - and then replaying
+        // a route they had already left. The branch below sets it again for its own load.
+        pendingEventAccess = null;
+
         try
         {
             if (router.Path == "EventStatus")
@@ -280,15 +305,21 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
 
                 int eventId = 0;
                 string organizationName = string.Empty;
+                string eventName = string.Empty;
                 if (router.Data is EventListSummary @event)
                 {
                     eventId = @event.Id;
                     organizationName = @event.OrganizationName;
+                    eventName = @event.EventName;
                 }
                 else if (router.Data is int id)
                 {
                     eventId = id;
                 }
+
+                // Record the destination before loading it: the load is the call that gets denied,
+                // and the denial has to be able to find its way back to an event to prompt for.
+                pendingEventAccess = new PendingEventNavigation(eventId, eventName, organizationName, router);
 
                 Event? eventModel = null;
                 if (eventId > 0)
@@ -297,10 +328,17 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 }
 
                 if (eventModel == null)
+                {
+                    // Not a denial - the load failed or was skipped, and nothing is coming. Holding
+                    // the record until the next navigation would leave a denial for this event able
+                    // to prompt in the meantime.
+                    pendingEventAccess = null;
                     return;
+                }
 
                 currentEvent = eventModel;
                 currentEventOrganizationName = organizationName;
+                pendingEventAccess = null;
 
                 if (eventModel.IsPrivate && string.IsNullOrEmpty(accessCodeStore.Get(eventModel.EventId)))
                 {
@@ -393,6 +431,13 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 InCarSettingsViewModel?.BackToSettings();
             }
         }
+        catch (EventAccessDeniedException ex)
+        {
+            // Expected for a private event the viewer has no code for. EventClient has already sent
+            // the notification that raises the prompt, so this is a navigation that stops early
+            // rather than a failure - logging it as an error only fills the crash reporter with it.
+            Logger.LogInformation("Access code required for event {EventId}; prompting", ex.EventId);
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error handling router message for path {Path}", router?.Path);
@@ -403,10 +448,26 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         Func<Task>? onSuccess = null, Action? onCancel = null)
     {
         var orgName = !string.IsNullOrEmpty(organizationName) ? organizationName : eventModel.OrganizationName;
+        ShowAccessCodePrompt(eventModel.EventId, eventModel.EventName, orgName,
+            onSuccess ?? (() => SetupForEventAsync(eventModel)), onCancel);
+    }
+
+    /// <summary>
+    /// Raises the access code prompt for an event that has not been loaded, and so is known only by
+    /// what the events list said about it.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="onSuccess"/> is required here, unlike on the overload above: with no event
+    /// model there is nothing sensible to fall back to, and a prompt that closes on the right code
+    /// without going anywhere is the dead end this whole path exists to remove.
+    /// </remarks>
+    private void ShowAccessCodePrompt(int eventId, string eventName, string organizationName,
+        Func<Task> onSuccess, Action? onCancel = null)
+    {
         AccessCodePromptViewModel = new AccessCodePromptViewModel(
-            eventModel.EventId,
-            eventModel.EventName,
-            orgName,
+            eventId,
+            eventName,
+            organizationName,
             eventClient,
             accessCodeStore,
             loggerFactory,
@@ -414,14 +475,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             {
                 IsAccessCodePromptVisible = false;
                 AccessCodePromptViewModel = null;
-                if (onSuccess != null)
-                {
-                    await onSuccess();
-                }
-                else
-                {
-                    await SetupForEventAsync(eventModel);
-                }
+                await onSuccess();
             },
             onCancel: () =>
             {
@@ -718,12 +772,39 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     public void Receive(EventAccessDeniedNotification message)
     {
         var eventId = message.Value;
-        if (currentEvent == null || currentEvent.EventId != eventId)
-            return;
+
+        // Chiefly for the prompt's own validation probe, which is denied when the entered code is
+        // wrong: that belongs to the open prompt, which reports it inline, and re-raising here would
+        // replace the prompt mid-attempt and throw away what the viewer had typed. Not mutual
+        // exclusion - the flag is only set once the posted job runs - so simultaneous denials from
+        // the several requests an event screen has in flight can still each post a prompt.
         if (IsAccessCodePromptVisible)
             return;
 
-        accessCodeStore.Clear(eventId);
-        Avalonia.Threading.Dispatcher.UIThread.PostSafe(() => ShowAccessCodePrompt(currentEvent, currentEventOrganizationName), Logger);
+        // Read once: EventsList navigation clears this from the dispatcher thread while denials
+        // arrive on whichever thread the request completed on.
+        var evt = currentEvent;
+        if (evt != null && evt.EventId == eventId)
+        {
+            accessCodeStore.Clear(eventId);
+            Avalonia.Threading.Dispatcher.UIThread.PostSafe(() => ShowAccessCodePrompt(evt, currentEventOrganizationName), Logger);
+            return;
+        }
+
+        // Denied by the load that would have set currentEvent, so there is no event model to prompt
+        // from - only what the events list knew. Replay the route once a code is accepted, which
+        // runs the same load again with the code attached.
+        if (pendingEventAccess is { } pending && pending.EventId == eventId)
+        {
+            accessCodeStore.Clear(eventId);
+            Avalonia.Threading.Dispatcher.UIThread.PostSafe(
+                () => ShowAccessCodePrompt(pending.EventId, pending.EventName, pending.OrganizationName,
+                    onSuccess: () =>
+                    {
+                        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(pending.Route));
+                        return Task.CompletedTask;
+                    }),
+                Logger);
+        }
     }
 }

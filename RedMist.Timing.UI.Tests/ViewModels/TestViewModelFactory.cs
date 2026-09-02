@@ -43,6 +43,12 @@ internal static class TestViewModelFactory
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test",
                 ["Keycloak:ClientSecret"] = "test",
+                // FlagsViewModel throws from its constructor without this one, which takes down the
+                // whole of MainViewModel.SetupForEventAsync partway through - leaving a view model
+                // that looks half-built rather than one that failed.
+                ["Cdn:ArchiveUrl"] = "http://localhost/archive",
+                ["Cdn:BaseUrl"] = "http://localhost/cdn",
+                ["Cdn:Logos"] = "http://localhost/cdn/logos",
             })
             .Build();
     }
@@ -125,13 +131,22 @@ internal static class TestViewModelFactory
             loggerFactory);
     }
 
-    internal static MainViewModel CreateMain()
+    /// <summary>
+    /// Builds the main view model, optionally against a caller-supplied event client and access code
+    /// store so a test can stand in for the server.
+    /// </summary>
+    /// <remarks>
+    /// The store has to be passed in alongside a substitute client, not just to the view model:
+    /// the two have to agree on what code is held, because that is what the client keys its answers
+    /// off and what the view model writes when a code is accepted.
+    /// </remarks>
+    internal static MainViewModel CreateMain(EventClient? eventClient = null, EventAccessCodeStore? accessCodeStore = null)
     {
         var configuration = CreateConfiguration();
         var loggerFactory = new DebugLoggerFactory();
         var httpClientFactory = new DesignHttpClientFactory();
-        var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
-        var eventClient = new EventClient(configuration, loggerFactory, accessCodeStore);
+        accessCodeStore ??= new EventAccessCodeStore(new MockPreferencesService());
+        eventClient ??= new EventClient(configuration, loggerFactory, accessCodeStore);
         var hubClient = new HubClient(loggerFactory, configuration, accessCodeStore);
         var organizationClient = new OrganizationClient(configuration, httpClientFactory);
         var iconCacheService = new OrganizationIconCacheService(organizationClient, loggerFactory);
