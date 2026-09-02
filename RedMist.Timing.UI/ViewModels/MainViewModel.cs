@@ -397,6 +397,14 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 InCarSettingsViewModel?.Dispose();
                 InCarSettingsViewModel = null;
 
+                // Same for the results tab, which may still be holding a session's timing grid -
+                // and, behind any row the user expanded, a control log subscription on the hub.
+                // The back button from an open session lands here without passing through the
+                // results view model's own router branches, so this is the only place that catches
+                // it before the next event replaces the view model wholesale.
+                ResultsViewModel?.Dispose();
+                ResultsViewModel = null;
+
                 IsAccessCodePromptVisible = false;
                 AccessCodePromptViewModel = null;
                 currentEvent = null;
@@ -513,6 +521,9 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             });
         }
 
+        // Opening an event while one is already set up replaces these. Only the results view model
+        // owns anything that has to be handed back - a session's timing grid, and the rows in it.
+        ResultsViewModel?.Dispose();
         ResultsViewModel = new ResultsViewModel(eventModel, hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator);
         EventInformationViewModel = new EventInformationViewModel(eventModel, iconCacheService, loggerFactory);
         ControlLogViewModel = new ControlLogViewModel(eventModel, hubClient, eventClient, eventContext, iconCacheService, loggerFactory);

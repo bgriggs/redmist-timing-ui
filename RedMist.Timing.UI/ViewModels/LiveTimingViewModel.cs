@@ -34,7 +34,7 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChangedNotification>,
     IRecipient<AppResumeNotification>, IRecipient<SessionStatusNotification>,
-    IRecipient<CarStatusNotification>, IRecipient<ResetNotification>
+    IRecipient<CarStatusNotification>, IRecipient<ResetNotification>, IDisposable
 {
     private SessionState? sessionStatus;
 
@@ -146,6 +146,11 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// Owns the lifetime of the rows in <see cref="carCache"/>. See where it is assigned.
     /// </summary>
     private readonly IDisposable carLifetime;
+    /// <summary>Projects the cache into <see cref="Cars"/>.</summary>
+    private readonly IDisposable flatProjection;
+    /// <summary>Projects the cache into <see cref="GroupedCars"/>.</summary>
+    private readonly IDisposable groupedProjection;
+    private bool disposed;
 
     public string BackRouterPath { get; set; } = "EventsList";
 
@@ -250,7 +255,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             logProvider.LogAdded += OnLogAdded;
         }
         // Flat
-        var f = carCache.Connect()
+        flatProjection = carCache.Connect()
             .Filter(searchFilterSubject)
             .AutoRefresh(t => t.OverallPosition)
             .AutoRefresh(t => t.SortablePosition)
@@ -259,7 +264,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             .Subscribe();
 
         // Grouped by class
-        carCache.Connect()
+        groupedProjection = carCache.Connect()
             .Filter(searchFilterSubject)
             .GroupOnProperty(c => c.Class)
             .Transform(g => new GroupHeaderViewModel(g.Key, GetClassColor(g.Key), g.Cache), true)
@@ -444,6 +449,59 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         {
             Logger.LogError(ex, $"Error unsubscribing event: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Releases the grid and everything in it.
+    /// </summary>
+    /// <remarks>
+    /// Written for the instances <see cref="ResultsViewModel"/> builds, one per session opened, and
+    /// which it used to simply drop. Nothing released those, so every car in a session's results -
+    /// and the details view model behind any row that had been expanded, including its control log
+    /// subscription on the hub - stayed alive for the rest of the session. Making the row disposable
+    /// did not reach them, because the thing that disposes rows is the cache subscription here, and
+    /// nothing disposed that either.
+    ///
+    /// The instance registered with the container is a singleton and lives as long as the app, so in
+    /// practice this runs for the per-session ones.
+    ///
+    /// Order matters. Inbound work is stopped first, so nothing arrives to be applied to a grid
+    /// that is being taken apart. The projections then go before <see cref="carLifetime"/>, for the
+    /// same reason that one is subscribed last: disposing a row still bound into
+    /// <see cref="Cars"/> would tear its chart and control log grid out from under a realized row.
+    ///
+    /// <see cref="SponsorRotator"/> is deliberately untouched. It is a container singleton shared
+    /// with the other view models, so stopping or disposing it here would reach into whichever
+    /// event is on screen.
+    /// </remarks>
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
+        }
+        disposed = true;
+
+        // Stop anything that could still push an update in.
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+        if (logProvider != null)
+        {
+            logProvider.LogAdded -= OnLogAdded;
+        }
+        StopFullUpdateInterval();
+        searchDebounce?.Dispose();
+
+        // Unbind before releasing the rows.
+        flatProjection.Dispose();
+        groupedProjection.Dispose();
+
+        // Disposes every row still in the cache, which is what releases any open details.
+        carLifetime.Dispose();
+
+        carCache.Dispose();
+        searchFilterSubject.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -1002,6 +1060,15 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// </remarks>
     internal void ApplySearchFilter(string text)
     {
+        // The search is debounced, and disposing that timer cannot recall a callback it has already
+        // posted to the dispatcher. Leaving an event while a keystroke is in flight would otherwise
+        // land here after the filter subject has been disposed, and pushing onto a disposed subject
+        // throws - reported, not fatal, but noise for a case that is simply finished with.
+        if (disposed)
+        {
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(text))
         {
             searchFilter = _ => true;

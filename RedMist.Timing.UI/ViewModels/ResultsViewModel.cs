@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
-public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<AppResumeNotification>
+public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChangedMessage<RouterEvent>>, IRecipient<AppResumeNotification>, IDisposable
 {
     public ObservableCollection<SessionViewModel> Sessions { get; } = [];
     public bool HasNoSessions => Sessions.Count == 0;
@@ -157,8 +157,12 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                     Logger.LogError(ex, "Error loading results for session {SessionId}", session.Id);
                 }
 
-                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator) 
-                { 
+                // Opening a session while one is already open replaces the grid, so let the old one
+                // go rather than leaving it holding a field of rows.
+                ReleaseLiveTiming();
+
+                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator)
+                {
                     BackRouterPath = "SessionResultsList",
                     EventModel = EventModel,
                     IsRealTime = false,
@@ -176,14 +180,14 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
             {
                 RefreshSessions();
                 IsLiveTimingVisible = false;
-                LiveTimingViewModel = null;
+                ReleaseLiveTiming();
                 eventContext.ClearContext();
             }
             else if (path == "ResultsTab" && router?.Data is bool isResultsTabVisible && isResultsTabVisible)
             {
                 RefreshSessions();
                 IsLiveTimingVisible = false;
-                LiveTimingViewModel = null;
+                ReleaseLiveTiming();
                 eventContext.ClearContext();
             }
         }
@@ -191,6 +195,47 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         {
             Logger.LogError(ex, "Error handling router message for path {Path}", path);
         }
+    }
+
+    /// <summary>
+    /// Takes the session's timing grid off screen and releases it.
+    /// </summary>
+    /// <remarks>
+    /// Before this, a session's grid was simply dropped. Nothing released it, so its rows were never
+    /// disposed and any expanded row kept its control log subscription on the hub for the rest of
+    /// the app session.
+    ///
+    /// The property is cleared first, but do not read more into that than it does: a
+    /// ContentPresenter renews its child on the next measure pass rather than when the content
+    /// changes, so the view is still attached, with its data context still pointing here, when
+    /// Dispose runs a line later. Disposal therefore does unbind rows from a realized view. That is
+    /// fine - it is the same binding update as collapsing an expanded row by hand - but it is not
+    /// the guarantee the ordering looks like it is giving, and anything added here that genuinely
+    /// requires the view to be gone first would need to be posted behind a layout pass.
+    /// </remarks>
+    private void ReleaseLiveTiming()
+    {
+        var previous = LiveTimingViewModel;
+        LiveTimingViewModel = null;
+        previous?.Dispose();
+    }
+
+    /// <summary>
+    /// Releases the session grid this view model is holding, if any.
+    /// </summary>
+    /// <remarks>
+    /// The three router paths that put the sessions list back on screen already release it, but not
+    /// every way out goes through one. The Android back button, from an open session, routes through
+    /// <see cref="Back"/> to the events list - a path this view model has no branch for - so the
+    /// grid was still held when the next event replaced this whole view model. That is the exit a
+    /// phone user takes most, and it left a control log subscription on the hub behind every car
+    /// row that had been expanded.
+    /// </remarks>
+    public void Dispose()
+    {
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+        ReleaseLiveTiming();
+        GC.SuppressFinalize(this);
     }
 
     private void RefreshSessions()
