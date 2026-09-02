@@ -1,0 +1,39 @@
+{
+  "scenario": "soak",
+  "started_utc": "2026-09-02T02:52:30+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-01 20:51:21"
+  },
+  "notes": {
+    "mode": "cycle",
+    "cycles_requested": 4,
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "failure",
+      "at_s": 63.7,
+      "detail": "AssertionError: the home screen never appeared: on screen ['Slow charging', \"For faster charging:\\n\\nUse a supported charger.\\n\\nMake sure the cable isn't damaged.\", 'Do not show again.', 'OK']"
+    }
+  ],
+  "faults": [],
+  "summary": {
+    "mode": "cycle",
+    "cycles_completed": 0,
+    "died": false
+  },
+  "status": "fail",
+  "duration_s": 64.1
+}
