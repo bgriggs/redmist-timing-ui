@@ -14,10 +14,19 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<design:DesignResultsViewModel/>
 	</Design.DataContext>
+	<!-- The session's timing grid is built from its view model rather than named here directly.
+	     As a direct child it was constructed whenever this view was, which is now every time the
+	     Results tab is selected - rebuilding the largest control tree in the app to show a list of
+	     sessions. Built from the view model it appears only once a session is actually opened, which
+	     is the only time LiveTimingViewModel is non-null. -->
+	<UserControl.DataTemplates>
+		<DataTemplate DataType="model:LiveTimingViewModel">
+			<v:LiveTimingView/>
+		</DataTemplate>
+	</UserControl.DataTemplates>
+
 	<Grid>
-		<ContentControl IsVisible="{Binding IsLiveTimingVisible}">
-			<v:LiveTimingView DataContext="{Binding LiveTimingViewModel}"/>
-		</ContentControl>
+		<ContentControl IsVisible="{Binding IsLiveTimingVisible}" Content="{Binding LiveTimingViewModel}"/>
 		<Grid RowDefinitions="Auto,*" IsVisible="{Binding !IsLiveTimingVisible}">
 			<!-- Header with background -->
 			<Border Background="{DynamicResource TimingTableHeaderBackgroundBrush}"

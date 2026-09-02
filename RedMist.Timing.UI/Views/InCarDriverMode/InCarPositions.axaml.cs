@@ -10,6 +10,9 @@ public partial class InCarPositions : UserControl
     }
 
     // Keeping the screen awake is driven by InCarSettingsViewModel rather than this view's
-    // loaded/unloaded events: driver mode is only toggled with IsVisible, so the view is never
-    // detached from the visual tree and OnUnloaded would not fire to release the wake lock.
+    // loaded/unloaded events. That used to be because driver mode was only toggled with IsVisible,
+    // leaving the view attached so OnUnloaded would never fire; it is now built from its view model
+    // and so is genuinely destroyed on leaving driver mode. The wake lock still belongs to the view
+    // model either way - it is released in InCarSettingsViewModel.Dispose, which the router calls -
+    // and tying it to view lifetime would only make it depend on how the view happens to be hosted.
 }
