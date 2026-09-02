@@ -10,8 +10,35 @@
 		<AndroidUseAapt2>True</AndroidUseAapt2>
 		<AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 		<AndroidPackageFormat>aab</AndroidPackageFormat>
-		<AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
-		<RunAOTCompilation>false</RunAOTCompilation>
+		<!-- Ahead-of-time compilation, measured on a Samsung SM-S135DL (Android 13, arm64):
+		     median time to first frame over 7 launches each, via `am start -W`.
+
+		         off (as shipped)   10063 ms
+		         profiled AOT        9242 ms   -8%
+		         full AOT            5922 ms   -41%
+
+		     Unprofiled deliberately. AndroidEnableProfiledAot restricts compilation to the
+		     methods in dotnet.aotprofile, which covers .NET Android's own startup path and
+		     knows nothing about Avalonia - hence the 8%. Compiling everything is what
+		     actually pays, at 14.4 MB more per-ABI native code (16.5 -> 30.9 MB compressed,
+		     arm64), which is what a Play split delivers, and about 20 MB more PSS.
+
+		     Safe here in a way it is not on iOS: Android's AOT mode is Normal, so the JIT
+		     stays available and MessagePack's runtime IL generation still works. iOS is full
+		     AOT with no JIT, which is why it needs the TrimmerRootAssembly entries.
+
+		     Both flags are needed. RunAOTCompilation defaults to false, and leaving
+		     AndroidEnableProfiledAot unset would default it to true once AOT is on.
+
+		     Costs a long build - 178 assemblies per ABI - and needs the Android NDK, which
+		     CI runners have preinstalled but a dev machine may not.
+
+		     Not settled: one smoke run of six device runs died with a SIGSEGV whose stack is
+		     entirely inside libmonosgen with no managed frames. It did not reproduce in the
+		     five runs after it, and it matches the shape of the intermittent native crash the
+		     app already had, so it is not attributed to AOT - but it is not cleared either. -->
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<RunAOTCompilation>true</RunAOTCompilation>
 		<UserSecretsId>8c31261b-5551-40d9-a50a-bfb280d7f018</UserSecretsId>
 	</PropertyGroup>
 
