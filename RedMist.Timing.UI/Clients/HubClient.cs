@@ -31,6 +31,48 @@ public class HubClient : HubClientBase
     private readonly IConfiguration configuration;
     private readonly EventAccessCodeStore accessCodeStore;
     private long sessionUpdateCount;
+    private long lastEventMessageTicks;
+
+    /// <summary>
+    /// Whether the hub subscription is currently up.
+    /// </summary>
+    /// <remarks>
+    /// Read by the live timing screen to decide whether it still needs to poll for a full session
+    /// state. This is the connection's own state rather than anything inferred from the data, so it
+    /// stays true through a legitimately quiet feed and goes false the moment the transport drops.
+    /// </remarks>
+    public virtual bool IsConnected => Volatile.Read(ref active)?.Hub.State == HubConnectionState.Connected;
+
+    /// <summary>
+    /// When the hub last delivered on the subscribed event's timing stream, or null if it never has.
+    /// </summary>
+    /// <remarks>
+    /// Stamped where the messages arrive rather than where they are applied. The live timing screen
+    /// routes its own polled results through the same recipients the hub feeds, so a clock kept at
+    /// the receiving end would be reset by the poll and could never tell the screen to stop polling.
+    ///
+    /// Control logs deliberately do not stamp it. They arrive for the same subscription but only
+    /// sporadically, and a clock they could advance would let one vouch for a timing feed that had
+    /// stopped.
+    ///
+    /// Not reset on unsubscribe, and the bound rather than the tidiness is the argument. Carrying a
+    /// timestamp into the next event can only make that event look healthy for as long as the value
+    /// stays young - and if its subscription is broken nothing refreshes it, so it ages past the
+    /// threshold within a tick or two. One skipped poll is the whole exposure. The other direction,
+    /// a screen opened during an outage seeing a stale timestamp and polling, is the right answer
+    /// anyway.
+    /// </remarks>
+    public virtual DateTime? LastEventMessageUtc
+    {
+        get
+        {
+            var ticks = Interlocked.Read(ref lastEventMessageTicks);
+            return ticks == 0 ? null : new DateTime(ticks, DateTimeKind.Utc);
+        }
+    }
+
+    private void StampEventMessage()
+        => Interlocked.Exchange(ref lastEventMessageTicks, DateTime.UtcNow.Ticks);
 
 
     public HubClient(ILoggerFactory loggerFactory, IConfiguration configuration, EventAccessCodeStore accessCodeStore)
@@ -116,13 +158,17 @@ public class HubClient : HubClientBase
         if (subscribedEventId is { } eventId)
         {
             var accessCode = accessCodeStore.Get(eventId);
-            if (string.IsNullOrEmpty(accessCode))
+            var subscribed = string.IsNullOrEmpty(accessCode)
+                ? await TryInvokeAsync(connection, "SubscribeToEventV2", eventId)
+                : await TryInvokeAsync(connection, "SubscribeToEventV2WithCode", eventId, accessCode);
+
+            // Announced only once the server has actually taken the subscription, because the point
+            // of the announcement is that the delta stream has resumed with a gap behind it. The
+            // server sends no state on subscribe, so whoever is showing this event has to ask for a
+            // whole one; see HubResubscribedNotification.
+            if (subscribed)
             {
-                await TryInvokeAsync(connection, "SubscribeToEventV2", eventId);
-            }
-            else
-            {
-                await TryInvokeAsync(connection, "SubscribeToEventV2WithCode", eventId, accessCode);
+                WeakReferenceMessenger.Default.Send(new HubResubscribedNotification(eventId));
             }
         }
         else if (subscribedInCarDriverEventIdAndCar is { } inCar)
@@ -331,10 +377,11 @@ public class HubClient : HubClientBase
             await DisposeConnectionAsync(connection);
     }
 
-    private void ProcessSessionMessage(SessionStatePatch sessionStatePatch)
+    internal void ProcessSessionMessage(SessionStatePatch sessionStatePatch)
     {
         try
         {
+            StampEventMessage();
             sessionUpdateCount++;
             Logger.LogInformation("RX Session Patch {c}", sessionUpdateCount);
             WeakReferenceMessenger.Default.Send(new SessionStatusNotification(sessionStatePatch));
@@ -345,10 +392,11 @@ public class HubClient : HubClientBase
         }
     }
 
-    private void ProcessCarPatches(CarPositionPatch[] carPatches)
+    internal void ProcessCarPatches(CarPositionPatch[] carPatches)
     {
         try
         {
+            StampEventMessage();
             Logger.LogInformation("RX Car Patches: {c}", carPatches.Length);
             WeakReferenceMessenger.Default.Send(new CarStatusNotification(carPatches));
         }
@@ -358,10 +406,11 @@ public class HubClient : HubClientBase
         }
     }
 
-    private void ProcessReset()
+    internal void ProcessReset()
     {
         try
         {
+            StampEventMessage();
             Logger.LogInformation("RX Reset");
             WeakReferenceMessenger.Default.Send(new ResetNotification());
         }
