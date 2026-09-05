@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Sentry;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Net.WebSockets;
@@ -123,7 +125,7 @@ public static class CrashReporting
                 // through configurePlatform below.
                 options.CacheDirectoryPath = BuildCacheDirectory(Environment.SpecialFolder.LocalApplicationData);
 
-                options.SetBeforeSend(static (SentryEvent e) => ThrottleConnectivityNoise(e));
+                options.SetBeforeSend(static (SentryEvent e) => ApplyNoisePolicy(e));
 
                 configurePlatform?.Invoke(options);
             });
@@ -189,64 +191,202 @@ public static class CrashReporting
     /// </remarks>
     private static readonly TimeSpan NoiseWindow = TimeSpan.FromMinutes(10);
     private const int MaxConnectivityEventsPerWindow = 3;
-    private static readonly Lock NoiseGate = new();
-    private static DateTime noiseWindowStart;
-    private static int noiseInWindow;
 
-    /// <summary>Clears the throttle window. Test-only; the app has no reason to reset it.</summary>
+    /// <summary>
+    /// The fingerprint every failure to reach the server is filed under, so they group as one issue.
+    /// </summary>
+    /// <remarks>
+    /// Sentry groups on the stack and the message, and these arrive from every call site in the app
+    /// with the generic argument baked into the frame - <c>GetAsync&lt;SessionState&gt;</c>,
+    /// <c>GetAsync&lt;List&lt;Session&gt;&gt;</c>, and so on - worded differently by each platform:
+    /// "Connection failure", "The network connection was lost.", "Unable to resolve host". One race
+    /// weekend produced thirty-odd separate issues that all meant the phone had no usable network,
+    /// which is what pushed a real layout crash to the fortieth row of the issue list.
+    ///
+    /// Grouping them costs the ability to see which call site noticed the network was gone first,
+    /// which is not something anyone has needed to know. What is deliberately not grouped in with
+    /// them is anything the server actually answered - see <see cref="IsConnectivityFailure"/> - so
+    /// a 429 or a 502 still raises an issue of its own, which is how the rate-limit storm this
+    /// policy was written after was found in the first place.
+    /// </remarks>
+    private const string ConnectivityFingerprint = "connectivity-failure";
+
+    /// <summary>
+    /// The fingerprint for a request that was never answered in time, kept apart from the one above.
+    /// </summary>
+    /// <remarks>
+    /// A timeout says the server did not answer, which is a statement about the server; the rest of
+    /// the connectivity bucket says the phone had nothing to ask over, which is a statement about
+    /// the paddock. Filing them together would bury a backend that has started timing out under the
+    /// ambient signal loss of a race weekend, and the two want opposite responses.
+    /// </remarks>
+    private const string TimeoutFingerprint = "request-timeout";
+
+    private static readonly Lock NoiseGate = new();
+    private static readonly Dictionary<string, (DateTime WindowStart, int Count)> NoiseWindows = [];
+
+    [ThreadStatic]
+    private static bool reportingUnhandledFault;
+
+    /// <summary>
+    /// Marks whatever is reported inside the returned scope as a fault that reached a global
+    /// unhandled handler, which <see cref="ApplyNoisePolicy"/> then declines to classify as noise.
+    /// </summary>
+    /// <remarks>
+    /// Thread-static because Sentry runs BeforeSend synchronously on the thread that captured the
+    /// event, so the flag is still set when the policy reads it and cannot leak into another
+    /// thread's events. A scope object rather than a pair of calls so an exception thrown by the
+    /// logger cannot leave the flag stuck on for everything that thread reports afterwards.
+    /// </remarks>
+    public static UnhandledFaultScope ReportingUnhandledFault()
+    {
+        var scope = new UnhandledFaultScope(reportingUnhandledFault);
+        reportingUnhandledFault = true;
+        return scope;
+    }
+
+    /// <summary>Restores the flag <see cref="ReportingUnhandledFault"/> replaced.</summary>
+    public readonly struct UnhandledFaultScope(bool previous) : IDisposable
+    {
+        public void Dispose() => reportingUnhandledFault = previous;
+    }
+
+    /// <summary>Clears the throttle windows. Test-only; the app has no reason to reset them.</summary>
     internal static void ResetConnectivityThrottle()
     {
         lock (NoiseGate)
         {
-            noiseWindowStart = default;
-            noiseInWindow = 0;
-        }
-    }
-
-    internal static SentryEvent? ThrottleConnectivityNoise(SentryEvent e)
-    {
-        // A crash is never noise, whatever its inner exception happens to be. Without this, a fatal
-        // wrapping a TimeoutException that arrives after the window's budget is spent would be
-        // dropped - the session would still end as crashed, leaving a fall in the crash-free rate
-        // with no issue to explain it, which is the exact state this change exists to end.
-        if (e.Level == SentryLevel.Fatal || e.SentryExceptions?.Any(x => x.Mechanism?.Handled == false) == true)
-        {
-            return e;
-        }
-
-        if (!IsConnectivityFailure(e.Exception))
-        {
-            return e;
-        }
-
-        lock (NoiseGate)
-        {
-            var now = DateTime.UtcNow;
-            if (now - noiseWindowStart > NoiseWindow)
-            {
-                noiseWindowStart = now;
-                noiseInWindow = 0;
-            }
-
-            noiseInWindow++;
-            return noiseInWindow <= MaxConnectivityEventsPerWindow ? e : null;
+            NoiseWindows.Clear();
         }
     }
 
     /// <summary>
-    /// True for the transport-level failures that a flaky trackside network produces in bulk.
+    /// Decides what an event is worth before it is sent: dropped, grouped and rationed, or left alone.
     /// </summary>
-    internal static bool IsConnectivityFailure(Exception? exception)
+    /// <returns>The event to send, or null to drop it.</returns>
+    internal static SentryEvent? ApplyNoisePolicy(SentryEvent e)
     {
-        for (var ex = exception; ex is not null; ex = ex.InnerException)
+        if (IsAlwaysReported(e))
         {
-            if (ex is HttpRequestException or SocketException or WebSocketException or TimeoutException)
-            {
-                return true;
-            }
+            return e;
         }
 
-        return false;
+        // Cancellation is the app stopping its own work - a car row collapsed while its laps were
+        // still loading, or the user left the event - so nothing failed and there is nothing to
+        // report. Dropped rather than rationed for that reason: a ration keeps what is worth seeing
+        // occasionally, and this never is. It still reaches the on-device log and rides along as a
+        // breadcrumb, which is where a cancellation that turns out to be a bug would be read.
+        if (IsDeliberateCancellation(e.Exception))
+        {
+            return null;
+        }
+
+        if (NoiseFingerprintFor(e.Exception) is not string fingerprint)
+        {
+            return e;
+        }
+
+        e.SetFingerprint([fingerprint]);
+        return WithinWindow(fingerprint) ? e : null;
+    }
+
+    /// <summary>
+    /// True for the events no amount of noise may suppress.
+    /// </summary>
+    /// <remarks>
+    /// A crash is never noise, whatever its inner exception happens to be. Without this, a fatal
+    /// wrapping a TimeoutException arriving after the window's budget is spent would be dropped -
+    /// the session would still end as crashed, leaving a fall in the crash-free rate with no issue
+    /// to explain it, which is the exact state this policy exists to end. Such an event keeps its
+    /// own grouping too: a crash is not one of a kind with a lost connection.
+    ///
+    /// The third case is a fault that reached one of App's global handlers. Those report through
+    /// ILogger, so the event arrives stamped handled and at Error - indistinguishable, by anything
+    /// on the event itself, from a fault a catch block chose to log. The distinction matters: a
+    /// cancellation caught around an HTTP call is routine, and the same cancellation escaping to
+    /// the top of the UI thread is a bug. Without this, turning off
+    /// <c>Sentry:CrashOnUnhandledUiException</c> - which is the switch used to keep an app usable
+    /// while a crash loop is investigated at an event - would silently take those with it.
+    /// </remarks>
+    private static bool IsAlwaysReported(SentryEvent e)
+        => e.Level == SentryLevel.Fatal
+           || reportingUnhandledFault
+           || e.SentryExceptions?.Any(x => x.Mechanism?.Handled == false) == true;
+
+    /// <summary>
+    /// The fingerprint to file a fault under when it is the sort that arrives in bulk, or null when
+    /// it is a fault worth reading on its own terms.
+    /// </summary>
+    private static string? NoiseFingerprintFor(Exception? exception)
+    {
+        if (!IsConnectivityFailure(exception))
+        {
+            return null;
+        }
+
+        return Chain(exception).Any(x => x is TimeoutException) ? TimeoutFingerprint : ConnectivityFingerprint;
+    }
+
+    /// <summary>Whether this fingerprint still has budget in the current window.</summary>
+    private static bool WithinWindow(string fingerprint)
+    {
+        lock (NoiseGate)
+        {
+            var now = DateTime.UtcNow;
+
+            // Per fingerprint, not per process. Shared, the ambient signal loss of a race weekend
+            // spends the whole budget and a backend that starts timing out adds nothing visible to
+            // it - which would make the grouping above a way to hide an outage rather than find it.
+            if (!NoiseWindows.TryGetValue(fingerprint, out var window) || now - window.WindowStart > NoiseWindow)
+            {
+                window = (now, 0);
+            }
+
+            window.Count++;
+            NoiseWindows[fingerprint] = window;
+            return window.Count <= MaxConnectivityEventsPerWindow;
+        }
+    }
+
+    /// <summary>
+    /// True for the failures to reach the server that a flaky trackside network produces in bulk.
+    /// </summary>
+    /// <remarks>
+    /// A status code is the discriminator that matters here, and it is checked first. RestSharp
+    /// reports a response the server did send but that was not a success as an HttpRequestException
+    /// - "Request failed with status code TooManyRequests" - which is the same type a phone with no
+    /// signal produces, and .NET separates them by populating StatusCode only when there was a
+    /// response to take it from. Without that check the entire 5xx and 429 surface would be filed as
+    /// the phone's fault and rationed away, which is precisely how a rate-limit storm goes unnoticed.
+    ///
+    /// WebException is named explicitly because it is related to none of the others - it derives
+    /// from InvalidOperationException - and it is how Android words the two failures a phone leaving
+    /// coverage produces most: "Unable to resolve host" and "Connection reset".
+    ///
+    /// An AggregateException has to hold nothing but these, rather than merely lead with one:
+    /// walking InnerException alone reaches only its first fault, so a real bug travelling beside a
+    /// socket error would be filed under a title saying the network dropped.
+    /// </remarks>
+    internal static bool IsConnectivityFailure(Exception? exception)
+    {
+        if (exception is null)
+        {
+            return false;
+        }
+
+        if (Chain(exception).Any(x => x is HttpRequestException { StatusCode: not null }))
+        {
+            return false;
+        }
+
+        if (exception is AggregateException aggregate)
+        {
+            var faults = aggregate.Flatten().InnerExceptions;
+            return faults.Count > 0 && faults.All(IsConnectivityFailure);
+        }
+
+        return Chain(exception).Any(x => x is HttpRequestException or SocketException or WebSocketException
+                                              or TimeoutException or WebException);
     }
 
     /// <summary>
@@ -262,12 +402,48 @@ public static class CrashReporting
     internal static bool IsDeliberateCancellation(AggregateException exception)
     {
         var faults = exception.Flatten().InnerExceptions;
-        return faults.Count > 0 && faults.All(IsDeliberateCancellation);
+        return faults.Count > 0 && faults.All(IsCancellationFault);
     }
 
-    private static bool IsDeliberateCancellation(Exception exception)
-        => exception is OperationCanceledException
-           && exception is not TaskCanceledException { InnerException: TimeoutException };
+    /// <summary>
+    /// True when a single fault is a cancellation rather than something breaking.
+    /// </summary>
+    /// <remarks>
+    /// The counterpart to the <see cref="AggregateException"/> overload above, for the faults that
+    /// arrive one at a time through ILogger rather than through the unobserved-task handler.
+    ///
+    /// The whole chain is searched rather than the outermost fault, because on the app's own HTTP
+    /// stack the cancellation is never outermost: RestSharp reports an aborted request as an
+    /// HttpRequestException("Request aborted") wrapping the TaskCanceledException, and iOS as an
+    /// OperationCanceledException wrapping NSURLError -999. Judging the outer type alone recognized
+    /// the second shape and missed the first, which is most of them.
+    ///
+    /// A TimeoutException anywhere in the chain settles it the other way, whichever end the
+    /// cancellation is at. That covers both the HttpClient timeout .NET expresses as a
+    /// TaskCanceledException wrapping one, and RestSharp's TimeoutException("Request timed out")
+    /// wrapping the cancellation its own deadline raised. Neither is the app stopping its work.
+    /// </remarks>
+    internal static bool IsDeliberateCancellation(Exception? exception) => exception switch
+    {
+        null => false,
+        AggregateException aggregate => IsDeliberateCancellation(aggregate),
+        _ => IsCancellationFault(exception),
+    };
+
+    private static bool IsCancellationFault(Exception exception)
+    {
+        var chain = Chain(exception).ToList();
+        return chain.Any(x => x is OperationCanceledException) && !chain.Any(x => x is TimeoutException);
+    }
+
+    /// <summary>An exception and everything it wraps, outermost first.</summary>
+    private static IEnumerable<Exception> Chain(Exception? exception)
+    {
+        for (var ex = exception; ex is not null; ex = ex.InnerException)
+        {
+            yield return ex;
+        }
+    }
 
     /// <summary>
     /// Builds the directory Sentry writes undelivered envelopes to, under the given root.
