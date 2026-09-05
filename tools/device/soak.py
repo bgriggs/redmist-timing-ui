@@ -111,7 +111,7 @@ def open_session(run, event_text, session_text):
     """Navigate to a completed session's results and return its screen."""
     run.since = d.launch(cold=True)
     d.wait_home()
-    d.tap_text("Completed Events")
+    d.tap_text(d.TO_COMPLETED)
     _, nodes = d.wait_for(contains="Page 1")
 
     if event_text:

@@ -23,9 +23,11 @@ if hasattr(sys.stdout, "reconfigure"):
 
 # The screen text that means "this screen loaded". Deliberately the words a person would
 # look for, not internal names, so these keep working when the layout is rearranged.
-HOME = d.HOME_TITLE
-COMPLETED = "Completed Events"
 DRIVER = "In-Car Driver Settings"
+
+# The list screens are not named by anything on them - see devdrive.wait_home. What is used
+# below is devdrive.TO_COMPLETED and TO_HOME, which are the toggle at the bottom, and each
+# of those names the screen you are NOT on. They are tapped, never treated as identity.
 
 
 def clean(run, screen, nodes):
@@ -96,7 +98,7 @@ def main():
 
         # 2. Completed events, including the paging that the retry work touched. A page
         #    that fails to load must not silently look like the end of the archive.
-        d.tap_text(COMPLETED)
+        d.tap_text(d.TO_COMPLETED)
         _, nodes = d.wait_for(contains="Page 1")
         clean(run, "completed-events", nodes)
         summary["completed_event_count"] = len(d.list_rows(nodes))
@@ -162,6 +164,8 @@ def main():
         run.step("expand", delta_nodes=len(nodes) - before)
 
         d.tap(cars[0])
+        # Exact match, deliberately: the scroll bar contributes a node whose text is
+        # "Position", so a contains= here would never see the panel go away.
         _, _ = d.poll(lambda ns: d.find(ns, text="Positions") is None or None,
                       timeout=30, describe="the collapsed car panel")
 
@@ -176,7 +180,7 @@ def main():
         _, nodes = d.wait_for(contains="Page 1")
         clean(run, "completed-events-after-back", nodes)
 
-        d.tap_text(HOME)
+        d.tap_text(d.TO_HOME)
         nodes = d.wait_home()
         clean(run, "home-again", nodes)
 
