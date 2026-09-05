@@ -281,11 +281,23 @@ Do not "fix" them by removing the guards.
   root rather than a child of home, so the way back to the live list is the button at the
   bottom of the screen. `foreground()` checks for this and smoke calls it after every Back;
   without it, everything asserted afterwards would be against the launcher's UI.
-- **Both list screens contain both list names.** Each shows its own name as the title and
-  the other as the button that switches to it, so `contains="Live and Upcoming"` matches
-  while sitting on the completed list. Tell them apart by where the text is (`wait_home()`
-  in `devdrive.py` requires the title near the top) or by "Page 1", which only the completed
-  list has.
+- **Neither list screen renders a title.** The header is now the logo and the reload
+  button, so the only thing naming either list is the toggle at the bottom — and it names
+  the one you are *not* on: the live list offers "Older Events", the archive offers "Latest
+  Events". Use `devdrive.TO_COMPLETED` / `devdrive.TO_HOME` rather than writing either
+  string out, and tell the screens apart with `wait_home()` or by "Page 1", which only the
+  archive has. (Before 2026-09-05 the screens were titled "Live and Upcoming" and "Completed
+  Events" and both names appeared on both screens; selectors written against that match
+  nothing.) The title is commented out in the XAML rather than deleted, and `PageTitle`
+  still returns those same two strings inverted — re-binding it would make `wait_home()`
+  accept the archive *as* home, which fails in the passing direction.
+
+- **The scroll bar contributes nodes that read like content.** Their text — `text`, not
+  `content-desc`, so `contains=` matches them — is "Page down", "Line down", "Line up" and
+  "Position", on every scrolling screen. A `contains="Page "` check therefore matches the
+  scroll bar and never the pager; `"Page 1"` is safe only because of the digit. Watch it
+  near "Position" too: smoke waits on `text="Positions"` for the car detail panel by exact
+  match, and loosening that to `contains=` would make the collapse wait never finish.
 - **Node count is not a signal that a car expanded.** The detail panel pushes about as many
   rows off the bottom as it adds, and once came back exactly unchanged. Assert on the
   panel's own content instead — smoke waits (with a timeout, not a fixed sleep) for its

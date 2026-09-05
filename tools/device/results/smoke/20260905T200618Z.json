@@ -1,0 +1,182 @@
+{
+  "scenario": "smoke",
+  "started_utc": "2026-09-05T20:06:18+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-05 14:03:27"
+  },
+  "notes": {
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "screen",
+      "at_s": 22.2,
+      "screen": "home",
+      "nodes": 164,
+      "sample": [
+        "The Fast Parts Grand Prix at Mid Ohio ",
+        "LIVE",
+        "The Fast Parts Grand Prix at Mid Ohio EC",
+        "LIVE",
+        "POC @ Willow Springs",
+        "Endurance Karting  6 Hrs of New England"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 32.0,
+      "screen": "completed-events",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro EC",
+        "The Sebring NYE 14hr Enduro",
+        "AMP'd Up Duals Copy 1",
+        "Endurance Karting - 2025 3 Hours of Florida",
+        "LDRL - Dawgs In The Hunt 2025"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 41.6,
+      "screen": "completed-events-page-2",
+      "nodes": 180,
+      "sample": [
+        "The Fast Parts Grand Prix at Mid-Ohio Sat 8hr",
+        "Endurance Karting - 6 Hours of New England",
+        "World Racing League - High Plains 2025",
+        "Thompson 12",
+        "2025 Karting for CKG",
+        "Champcar VIR24"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 60.4,
+      "screen": "event",
+      "nodes": 145,
+      "sample": [
+        "Provisional Results for LDRL - Hair of the Dawg 2026",
+        "01/17/2026",
+        "Sessions",
+        "Friday Practice",
+        "02/13 9:33 AM",
+        "Provisional Results"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 79.3,
+      "screen": "session-results",
+      "nodes": 840,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 92.0,
+      "screen": "car-expanded",
+      "nodes": 917,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "expand",
+      "at_s": 92.0,
+      "delta_nodes": 77
+    },
+    {
+      "name": "screen",
+      "at_s": 107.1,
+      "screen": "completed-events-after-back",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro EC",
+        "The Sebring NYE 14hr Enduro",
+        "AMP'd Up Duals Copy 1",
+        "Endurance Karting - 2025 3 Hours of Florida",
+        "LDRL - Dawgs In The Hunt 2025"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 116.8,
+      "screen": "home-again",
+      "nodes": 174,
+      "sample": [
+        "The Fast Parts Grand Prix at Mid Ohio ",
+        "LIVE",
+        "The Fast Parts Grand Prix at Mid Ohio EC",
+        "LIVE",
+        "POC @ Willow Springs",
+        "Endurance Karting  6 Hrs of New England"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 125.6,
+      "screen": "driver-mode",
+      "nodes": 81,
+      "sample": [
+        "In-Car Driver Settings",
+        "Car Number",
+        "Select Event",
+        "Show in-class cars only",
+        "OK"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 131.1,
+      "screen": "home-after-driver-mode",
+      "nodes": 174,
+      "sample": [
+        "The Fast Parts Grand Prix at Mid Ohio ",
+        "LIVE",
+        "The Fast Parts Grand Prix at Mid Ohio EC",
+        "LIVE",
+        "POC @ Willow Springs",
+        "Endurance Karting  6 Hrs of New England"
+      ]
+    }
+  ],
+  "faults": [],
+  "summary": {
+    "home_ready_s": 19.5,
+    "cold_start_ms": 9571,
+    "live_event_count": 10,
+    "completed_event_count": 10,
+    "page_2_event_count": 10,
+    "session_count": 4,
+    "car_row_count": 18,
+    "session_laps": 155,
+    "final_pss_mb": 371
+  },
+  "status": "pass",
+  "duration_s": 132.1
+}

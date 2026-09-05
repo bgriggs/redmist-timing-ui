@@ -23,7 +23,13 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 PKG = "com.bigmissionmotorsports.redmist"
-HOME_TITLE = "Live and Upcoming"
+
+# The two list screens no longer carry a title - the header was reduced to the logo - so
+# what names them is the toggle at the bottom, and it names each one by the other. The
+# button reading "Older Events" is therefore the live list offering to switch away, and the
+# button reading "Latest Events" is the archive offering to switch back.
+TO_COMPLETED = "Older Events"
+TO_HOME = "Latest Events"
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESULTS = os.path.join(HERE, "results")
 
@@ -372,20 +378,28 @@ def raw_strings(nodes):
 
 
 def wait_home(timeout=60):
-    """Wait for the home screen, told apart by where its title sits.
+    """Wait for the home screen, told apart from the archive by what it offers to show.
 
-    Both list screens carry both list names - each shows its own as the title at the top
-    and the other as the button at the bottom that switches to it - so matching on text
-    alone cannot separate them, and a check for "Live and Upcoming" passes while sitting on
-    the completed list. Expressed as a fraction of the tree's height rather than in pixels,
-    so it still holds on a phone with a different screen or a taller status bar.
+    This used to look for the screen's own title near the top of the tree, since both lists
+    carried both names and only their position separated them. The header renders no title
+    now, so the toggle is the only thing naming either screen - and it names the one you are
+    not on, which makes it unambiguous: the live list offers "Older Events" and the archive
+    offers "Latest Events", never both.
+
+    That title is commented out in EventsListView.axaml rather than deleted, and PageTitle
+    still returns these same two strings the other way round. Re-binding it would put
+    "Older Events" on the archive as its title and this would accept the archive as home -
+    passing rather than failing, which is the worse direction. Change this if that comes
+    back.
+
+    Do not be tempted to also require the absence of a pager as a second opinion. The
+    scroll bar contributes nodes whose text - not content-desc, so `contains` does match
+    them - is "Page down", "Line up", "Line down" and "Position". A check for "Page "
+    therefore matches every scrolling screen, which is this one, and rejects the home
+    screen forever. "Page 1" is safe only because of the digit.
     """
     def pick(ns):
-        root_h = max((n.bounds[3] for n in ns), default=0)
-        if not root_h:
-            return None
-        return any(n.bounds[1] < root_h * 0.2
-                   for n in find_all(ns, contains=HOME_TITLE)) or None
+        return find(ns, contains=TO_COMPLETED) is not None or None
 
     _, nodes = poll(pick, timeout=timeout, describe="the home screen")
     return nodes

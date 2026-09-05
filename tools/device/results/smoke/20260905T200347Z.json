@@ -1,0 +1,33 @@
+{
+  "scenario": "smoke",
+  "started_utc": "2026-09-05T20:03:47+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-05 14:03:27"
+  },
+  "notes": {
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "failure",
+      "at_s": 65.2,
+      "detail": "AssertionError: the home screen never appeared: on screen ['The Fast Parts Grand Prix at Mid Ohio ', 'LIVE', 'The Fast Parts Grand Prix at Mid Ohio EC', 'LIVE', 'POC @ Willow Springs', 'Endurance Karting  6 Hrs of New England', 'World Racing League - Watkins Glen 2026', 'Max Track Time - Watkins Glen International', 'The Thompson 12', 'The Thompson 12 - EC']"
+    }
+  ],
+  "faults": [],
+  "summary": {},
+  "status": "fail",
+  "duration_s": 65.7
+}
