@@ -15,11 +15,11 @@
 
 	<Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 		<Border Background="{DynamicResource medAppBackground}" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource boldItemBorder}">
-			<Grid ColumnDefinitions="60,*,60" Height="65">
+			<Grid ColumnDefinitions="60,*,60" Height="40">
 				<StackPanel Orientation="Vertical" Grid.Column="1">
 					<Image Source="avares://RedMist.Timing.UI/Assets/redmist.png" Width="70" Height="30" Margin="-5,4,0,0"/>
-					<TextBlock Text="{Binding PageTitle}" Classes="title" VerticalAlignment="Center" HorizontalAlignment="Center"
-							   TextTrimming="CharacterEllipsis" MaxLines="1" Margin="4,0"/>
+					<!--<TextBlock Text="{Binding PageTitle}" Classes="title" VerticalAlignment="Center" HorizontalAlignment="Center"
+							   TextTrimming="CharacterEllipsis" MaxLines="1" Margin="4,0"/>-->
 				</StackPanel>
 				<Button Grid.Column="2" ToolTip.Tip="Reload Events" Margin="7" Command="{Binding RefreshEvents}" HorizontalAlignment="Right">
 					<PathIcon Height="12" Width="12" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource refreshArrow}" VerticalAlignment="Top" Margin="0,1,0,0"/>

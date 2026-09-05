@@ -43,9 +43,9 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
 
     public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
-    public string PageTitle => LiveAndUpcomingEventsShown ? "Live and Upcoming" : "Completed Events";
+    public string PageTitle => LiveAndUpcomingEventsShown ? "Latest Events" : "Older Events";
 
-    public string ToggleButtonText => LiveAndUpcomingEventsShown ? "Completed Events" : "Live and Upcoming";
+    public string ToggleButtonText => LiveAndUpcomingEventsShown ? "Older Events" : "Latest Events";
 
     public static string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty;
 
