@@ -354,7 +354,10 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                 {
                     try
                     {
-                        await EventsListViewModel.InitializeAsync();
+                        // Quiet: the list is already on screen by the time this runs, so reloading
+                        // it the blanking way empties what the user is looking at and rebuilds it -
+                        // which is what leaving an event used to look like.
+                        await EventsListViewModel.RefreshIfChangedAsync();
                     }
                     catch (Exception ex)
                     {

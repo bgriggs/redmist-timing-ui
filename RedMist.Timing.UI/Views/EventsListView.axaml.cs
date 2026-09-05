@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.ViewModels;
@@ -22,7 +22,9 @@ public partial class EventsListView : UserControl
         {
             if (DataContext is EventsListViewModel vm)
             {
-                await vm.InitializeAsync();
+                // Falls through to a full load the first time, when there is nothing on screen to
+                // compare against. On any later load the list is already up and must stay up.
+                await vm.RefreshIfChangedAsync();
             }
         }
         catch (Exception ex)
@@ -40,7 +42,9 @@ public partial class EventsListView : UserControl
             // Refresh List Box Items
             if (DataContext is EventsListViewModel vm)
             {
-                await vm.InitializeAsync();
+                // The pull gesture draws its own spinner, so the list underneath does not have to
+                // be taken away to show that something is happening.
+                await vm.RefreshIfChangedAsync(userRequested: true);
             }
         }
         catch (Exception ex)
