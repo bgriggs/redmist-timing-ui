@@ -204,33 +204,37 @@ Your obligations:
 
 Context for whoever is asked to continue the memory investigation. These came from this
 harness on the Samsung SM-S135DL (2783 MB RAM), on a 155-lap session — a third the length
-of the 487-lap event in the original crash report. Exact figures are in
-`results/soak/baseline.hold.json`; the shape is what matters:
+of the 487-lap event in the original crash report.
 
-- **Expanding a car costs around 44 MB** and the cost is roughly linear. Six cars took the
-  process from ~340 MB to ~605 MB, and repeated runs peaked within 5 MB of each other.
-- **The growth is managed memory.** Of ~265 MB gained, ~239 MB was `unknown`. `native_mb`
+**The baselines were re-recorded on 2026-09-05 against the virtualized build**, so they now
+hold the post-fix figures and a clean run compares clean. The pre-fix ones are kept beside
+them as `previous-baseline.hold.json`, `previous-baseline.cycle.json` and
+`previous-baseline.json`, which is where the "before" column below comes from.
+
+- **Expanding a car used to cost around 44 MB**, roughly linearly: six cars took the process
+  from ~340 MB to ~605 MB, and repeated runs peaked within 5 MB of each other.
+- **The growth was managed memory.** Of ~265 MB gained, ~239 MB was `unknown`. `native_mb`
   rose ~12 MB and `gfx_mb` ~2 MB across the whole run, which is why the chart was never the
   suspect — the non-virtualized lap list was.
-- **That was confirmed, and the lap list is now virtualized.** It showed 155 rows through a
-  250px window; it now builds about 21. Two runs of the pinned hold command agreed to the
-  megabyte: `mb_per_expand` 44.2 → 10.3, `net_growth_unknown_mb` 239 → 41, `peak_pss_mb`
-  605 → 362. **The baselines in `results/` still hold the pre-change figures**, so until
-  someone is asked to move them, every hold run will report those same deltas as "outside
-  tolerance". They are the fix, not a regression.
-- **What is left is the other three quarters.** 10.3 MB an expand is not nothing, and none
-  of it is the lap rows any more. The car table cannot be virtualized the same way — rows
-  vary from 33px collapsed to ~300px expanded, and `VirtualizingStackPanel` sizes the
-  scrollbar from the rows it has built, so it estimated 2247px against a true 5184px and
-  resized mid-drag. See `LapListVirtualizationTests` for that measurement.
-- **Collapsing a car reclaims nothing measurable.** Measured with the memory-trim request
-  (accepted on all four cycles) and a five second settle: `collapse_deltas_mb` came out
-  `[-6, -2, 1, -4]`, mean −2.8 MB — three collapses of four measured *higher* than the
-  expand before them. Individual values are only a few times the ±1 MB quantization floor,
-  so this is consistent with nothing being released rather than proof of it, and is worth
-  saying in those terms.
-- **No process death was reached** at 600 MB on a 2783 MB phone in six cycles. The crash is
-  a threshold, not a guaranteed outcome, which is why nobody could reproduce it on demand.
+- **That was confirmed, and the lap list is now virtualized.** It built 155 rows through a
+  250px window; it now builds about 21. Hold mode, before → after: `mb_per_expand`
+  44.2 → 10.5, `net_growth_unknown_mb` 239 → 42, `peak_pss_mb` 605 → 359. Cycle mode:
+  `net_growth_unknown_mb` 136 → 30, `peak_pss_mb` 494 → 342. Measured three times across
+  four days, agreeing within 0.2 MB an expand.
+- **What is left is the other three quarters.** 10.5 MB an expand is not nothing, and none
+  of it is the lap rows any more — so do not assume where it goes without measuring. The car
+  table cannot be virtualized the same way: rows vary from 33px collapsed to ~300px expanded,
+  and `VirtualizingStackPanel` sizes the scrollbar from the rows it has built, so it
+  estimated 2247px against a true 5184px and resized mid-drag. See
+  `LapListVirtualizationTests` for that measurement.
+- **Collapsing a car still reclaims nothing measurable**, and there is now less to reclaim:
+  `collapse_deltas_mb` went from `[-6, -2, 1, -4]` to `[-3, -1, -1, -1]`, mean −2.8 → −1.5 MB.
+  Measured with the memory-trim request and a five second settle. These values are only a few
+  times the ±1 MB quantization floor, so they are consistent with nothing being released
+  rather than proof of it, and are worth saying in those terms.
+- **No process death was ever reached** — 605 MB pre-fix, 359 MB now, on a 2783 MB phone. The
+  crash is a threshold, not a guaranteed outcome, which is why nobody could reproduce it on
+  demand.
 
 If you are testing a change meant to help, run the same pinned command before and after,
 and report both. A change that does not move `net_growth_unknown_mb` did not help, and saying
