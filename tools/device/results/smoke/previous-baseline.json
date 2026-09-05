@@ -1,6 +1,6 @@
 {
   "scenario": "smoke",
-  "started_utc": "2026-09-05T15:26:41+00:00",
+  "started_utc": "2026-08-31T00:13:50+00:00",
   "device": {
     "model": "SM-S135DL",
     "android": "13",
@@ -11,9 +11,9 @@
   },
   "app": {
     "package": "com.bigmissionmotorsports.redmist",
-    "version_code": 34,
-    "version_name": "34",
-    "installed_at": "2026-09-01 22:34:44"
+    "version_code": 10105,
+    "version_name": "10105",
+    "installed_at": "2026-08-30 15:58:28"
   },
   "notes": {
     "event": "Hair of the Dawg",
@@ -22,21 +22,21 @@
   "steps": [
     {
       "name": "screen",
-      "at_s": 26.2,
+      "at_s": 25.4,
       "screen": "home",
-      "nodes": 163,
+      "nodes": 169,
       "sample": [
         "Live and Upcoming",
-        "The Fast Parts Grand Prix at Mid Ohio ",
-        "LIVE",
-        "The Fast Parts Grand Prix at Mid Ohio EC",
-        "LIVE",
-        "POC @ Willow Springs"
+        "Endurance Karting  6 Hrs of New England",
+        "World Racing League - Watkins Glen 2026",
+        "Max Track Time - Watkins Glen International",
+        "The Thompson 12",
+        "The Thompson 12 - EC"
       ]
     },
     {
       "name": "screen",
-      "at_s": 35.9,
+      "at_s": 35.0,
       "screen": "completed-events",
       "nodes": 181,
       "sample": [
@@ -50,7 +50,7 @@
     },
     {
       "name": "screen",
-      "at_s": 45.4,
+      "at_s": 44.5,
       "screen": "completed-events-page-2",
       "nodes": 181,
       "sample": [
@@ -64,7 +64,7 @@
     },
     {
       "name": "screen",
-      "at_s": 64.2,
+      "at_s": 63.4,
       "screen": "event",
       "nodes": 145,
       "sample": [
@@ -78,7 +78,7 @@
     },
     {
       "name": "screen",
-      "at_s": 81.7,
+      "at_s": 80.9,
       "screen": "session-results",
       "nodes": 840,
       "sample": [
@@ -92,9 +92,9 @@
     },
     {
       "name": "screen",
-      "at_s": 94.2,
+      "at_s": 97.5,
       "screen": "car-expanded",
-      "nodes": 917,
+      "nodes": 1377,
       "sample": [
         "Sat 6.5Hr",
         "Race Time: 06:39:38",
@@ -106,12 +106,12 @@
     },
     {
       "name": "expand",
-      "at_s": 94.2,
-      "delta_nodes": 77
+      "at_s": 97.5,
+      "delta_nodes": 537
     },
     {
       "name": "screen",
-      "at_s": 109.5,
+      "at_s": 113.1,
       "screen": "completed-events-after-back",
       "nodes": 181,
       "sample": [
@@ -125,21 +125,21 @@
     },
     {
       "name": "screen",
-      "at_s": 119.0,
+      "at_s": 122.6,
       "screen": "home-again",
-      "nodes": 175,
+      "nodes": 169,
       "sample": [
         "Live and Upcoming",
-        "The Fast Parts Grand Prix at Mid Ohio ",
-        "LIVE",
-        "The Fast Parts Grand Prix at Mid Ohio EC",
-        "LIVE",
-        "POC @ Willow Springs"
+        "Endurance Karting  6 Hrs of New England",
+        "World Racing League - Watkins Glen 2026",
+        "Max Track Time - Watkins Glen International",
+        "The Thompson 12",
+        "The Thompson 12 - EC"
       ]
     },
     {
       "name": "screen",
-      "at_s": 128.0,
+      "at_s": 131.5,
       "screen": "driver-mode",
       "nodes": 81,
       "sample": [
@@ -152,31 +152,31 @@
     },
     {
       "name": "screen",
-      "at_s": 133.6,
+      "at_s": 141.0,
       "screen": "home-after-driver-mode",
-      "nodes": 175,
+      "nodes": 169,
       "sample": [
         "Live and Upcoming",
-        "The Fast Parts Grand Prix at Mid Ohio ",
-        "LIVE",
-        "The Fast Parts Grand Prix at Mid Ohio EC",
-        "LIVE",
-        "POC @ Willow Springs"
+        "Endurance Karting  6 Hrs of New England",
+        "World Racing League - Watkins Glen 2026",
+        "Max Track Time - Watkins Glen International",
+        "The Thompson 12",
+        "The Thompson 12 - EC"
       ]
     }
   ],
   "faults": [],
   "summary": {
-    "home_ready_s": 19.5,
-    "cold_start_ms": 10236,
+    "home_ready_s": 22.8,
+    "cold_start_ms": 10679,
     "live_event_count": 10,
     "completed_event_count": 10,
     "page_2_event_count": 10,
     "session_count": 4,
     "car_row_count": 18,
     "session_laps": 155,
-    "final_pss_mb": 365
+    "final_pss_mb": 426
   },
   "status": "pass",
-  "duration_s": 134.7
+  "duration_s": 142.0
 }
