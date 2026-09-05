@@ -34,7 +34,8 @@ namespace RedMist.Timing.UI.ViewModels;
 
 public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChangedNotification>,
     IRecipient<AppResumeNotification>, IRecipient<SessionStatusNotification>,
-    IRecipient<CarStatusNotification>, IRecipient<ResetNotification>, IDisposable
+    IRecipient<CarStatusNotification>, IRecipient<ResetNotification>,
+    IRecipient<HubResubscribedNotification>, IDisposable
 {
     private SessionState? sessionStatus;
 
@@ -142,6 +143,43 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     //private IDisposable? consistencyCheckInterval;
     private IDisposable? fullUpdateInterval;
+
+    /// <summary>Set while a full refresh is in flight, so ticks cannot stack them up.</summary>
+    /// <remarks>
+    /// The refresh is started from a timer and not awaited, and it retries twice with a growing
+    /// delay, so on a bad connection one can outlive the interval that started it. Without this,
+    /// the worse the network got the more concurrent requests the app made of it - which is the
+    /// shape of the traffic that spent the server's rate limit during a live event.
+    /// </remarks>
+    private int refreshInFlight;
+
+    /// <summary>Set when a caller was turned away by <see cref="refreshInFlight"/>.</summary>
+    /// <remarks>
+    /// Some callers are not ticks and have no second chance: an app resume, a session reset, and a
+    /// hub resubscribe each know the screen is stale and nothing else will notice. Turning one of
+    /// those away silently would trade the old stacking problem for a frozen grid, so the request is
+    /// remembered and served when the refresh holding the guard finishes.
+    ///
+    /// It is also read by <see cref="ShouldRefreshNow"/>, which closes the gap between the last time
+    /// the loop below looks at this and the moment it releases the guard: a request landing in there
+    /// is not lost, only deferred to the next tick.
+    /// </remarks>
+    private int resyncOwed;
+
+    /// <summary>
+    /// When a whole session state was last applied, in UTC ticks. See <see cref="LivePollingPolicy"/>.
+    /// </summary>
+    /// <remarks>
+    /// Written from whichever thread ran the refresh and read from the timer, and a DateTime is
+    /// wider than a 32-bit ARM head reads atomically, so it is kept as a long behind Interlocked -
+    /// the same shape HubClient keeps its own clock in.
+    ///
+    /// Zero means no whole state has been applied to what is on screen yet, which is the state this
+    /// returns to for every event: the view model is a singleton reused for all of them, so leaving
+    /// the previous event's success in place would tell the gate a grid it has never filled was
+    /// recently in sync.
+    /// </remarks>
+    private long lastFullRefreshTicks;
     /// <summary>
     /// Owns the lifetime of the rows in <see cref="carCache"/>. See where it is assigned.
     /// </summary>
@@ -336,6 +374,14 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 ResetEvent();
             });
 
+            // ResetEvent has just emptied the grid, so nothing on screen has been filled from a
+            // whole state - whatever the previous event on this singleton managed. Said here rather
+            // than only on success below, because the load that follows may fail: the gate would
+            // then read the last event's timestamp, decide this screen was recently in sync, and
+            // leave it empty for the length of the refresh floor while the hub delivered deltas for
+            // rows that were never created.
+            MarkNotYetRefreshed();
+
             // Load organization icon from cache or CDN
             if (EventModel.OrganizationId > 0)
             {
@@ -360,7 +406,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             try
             {
                 Logger.LogInformation("ResetState...");
-                await Task.Run(() => RefreshStatusAsync());
+                await Task.Run(() => RefreshStatusAsync(required: true));
                 Logger.LogInformation("Subscribe...");
                 await Task.Run(() => hubClient.SubscribeToEventAsync(EventModel.EventId));
                 Logger.LogInformation("Completed subscribe...");
@@ -390,7 +436,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             {
                 try
                 {
-                    _ = RefreshStatusAsync();
+                    // The tick still runs every five seconds; what it does with it now depends on
+                    // whether the hub is already delivering. See LivePollingPolicy.
+                    if (ShouldRefreshNow())
+                    {
+                        _ = RefreshStatusAsync();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -404,7 +455,72 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
-    public async Task RefreshStatusAsync()
+    /// <summary>
+    /// Whether this tick needs to fetch a whole session state.
+    /// </summary>
+    /// <remarks>
+    /// The hub's clock is read from the client rather than kept here on purpose: a refresh applies
+    /// its result through the same recipients the hub feeds, so a timestamp taken at this end would
+    /// be reset by the poll itself and the screen could never decide it had stopped needing one.
+    /// </remarks>
+    internal bool ShouldRefreshNow()
+    {
+        // A request that was turned away by the guard outranks the policy: something asked for a
+        // whole state and has not had one.
+        if (Volatile.Read(ref resyncOwed) == 1)
+        {
+            return true;
+        }
+
+        var now = DateTime.UtcNow;
+        var sinceHubMessage = hubClient.LastEventMessageUtc is { } last ? now - last : TimeSpan.MaxValue;
+        var lastRefresh = Interlocked.Read(ref lastFullRefreshTicks);
+        var sinceFullRefresh = lastRefresh == 0 ? TimeSpan.MaxValue : now - new DateTime(lastRefresh, DateTimeKind.Utc);
+
+        return LivePollingPolicy.ShouldRefresh(hubClient.IsConnected, sinceHubMessage, sinceFullRefresh);
+    }
+
+    /// <summary>Returns the screen to "no whole state has been applied yet".</summary>
+    private void MarkNotYetRefreshed() => Interlocked.Exchange(ref lastFullRefreshTicks, 0);
+
+    /// <summary>
+    /// Fetches a whole session state and applies it.
+    /// </summary>
+    /// <param name="required">
+    /// True for a caller that knows the screen is stale and has no second chance - an app resume, a
+    /// session reset, a hub resubscribe. If the guard turns one of those away the request is
+    /// remembered and served when the refresh holding it finishes; a periodic tick is simply
+    /// dropped, since another is along in five seconds and the refresh it lost to answers the same
+    /// question anyway.
+    /// </param>
+    public async Task RefreshStatusAsync(bool required = false)
+    {
+        // One at a time. A refresh retries twice on failure, so on a bad connection it can outlive
+        // the tick that started it, and the ticks do not wait for each other.
+        if (Interlocked.Exchange(ref refreshInFlight, 1) == 1)
+        {
+            if (required)
+            {
+                Interlocked.Exchange(ref resyncOwed, 1);
+            }
+            return;
+        }
+
+        try
+        {
+            do
+            {
+                await RefreshOnceAsync();
+            }
+            while (Interlocked.Exchange(ref resyncOwed, 0) == 1);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref refreshInFlight, 0);
+        }
+    }
+
+    private async Task RefreshOnceAsync()
     {
         try
         {
@@ -425,6 +541,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
             var carPatches = sessionStatus.CarPositions.Select(c => ToFullPatch(CarPositionMapper.CreatePatch(new CarPosition(), c))).ToArray();
             Receive(new CarStatusNotification(carPatches));
+
+            // Stamped only on success, so a failed attempt does not count as the screen having been
+            // resynced and leave it running on deltas for another five minutes.
+            Interlocked.Exchange(ref lastFullRefreshTicks, DateTime.UtcNow.Ticks);
             Logger.LogInformation("Full update in {t}ms", sw.ElapsedMilliseconds);
         }
         catch (Exception ex)
@@ -553,7 +673,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             {
                 try
                 {
-                    await RefreshStatusAsync();
+                    await RefreshStatusAsync(required: true);
                 }
                 catch (Exception ex)
                 {
@@ -566,6 +686,33 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             });
         });
         return;
+    }
+
+    /// <summary>
+    /// Resyncs after the hub subscription is restored on a new connection.
+    /// </summary>
+    /// <remarks>
+    /// Unconditional, and the one thing that makes gating the periodic refresh safe. The delta
+    /// stream resumes with a gap behind it and the server sends no state on subscribe, so at this
+    /// moment the hub looks perfectly healthy while the grid is quietly wrong. Left to the gate,
+    /// nothing would ever ask for the state that repairs it.
+    /// </remarks>
+    public void Receive(HubResubscribedNotification message)
+    {
+        if (!IsRealTime || message.EventId != EventModel.EventId)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await RefreshStatusAsync(required: true);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error refreshing status after the hub resubscribed");
+            }
+        });
     }
 
     public void Receive(SessionStatusNotification message)
@@ -683,11 +830,14 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         Dispatcher.UIThread.InvokeOnUIThread(() =>
         {
             ResetEvent();
+            // Same reason as in InitializeLiveAsync: the grid is empty again, and if the refresh
+            // below fails the gate must not believe it is still in sync.
+            MarkNotYetRefreshed();
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await RefreshStatusAsync();
+                    await RefreshStatusAsync(required: true);
                 }
                 catch (Exception ex)
                 {

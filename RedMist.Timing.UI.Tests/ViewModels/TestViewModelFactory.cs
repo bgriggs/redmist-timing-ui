@@ -87,7 +87,13 @@ internal static class TestViewModelFactory
             loggerFactory);
     }
 
-    internal static LiveTimingViewModel CreateLiveTiming()
+    internal static LiveTimingViewModel CreateLiveTiming() => CreateLiveTiming(hubClient: null, serverClient: null);
+
+    /// <summary>
+    /// Builds the live timing view model, optionally against a caller-supplied hub and event client
+    /// so a test can stand in for the server and for the state of the hub subscription.
+    /// </summary>
+    internal static LiveTimingViewModel CreateLiveTiming(HubClient? hubClient, EventClient? serverClient)
     {
         var configuration = CreateConfiguration();
         var restClientFactory = new RestClientFactory(configuration);
@@ -103,8 +109,8 @@ internal static class TestViewModelFactory
             loggerFactory);
 
         return new LiveTimingViewModel(
-            new HubClient(loggerFactory, configuration, accessCodeStore),
-            new EventClient(restClientFactory, loggerFactory, accessCodeStore),
+            hubClient ?? new HubClient(loggerFactory, configuration, accessCodeStore),
+            serverClient ?? new EventClient(restClientFactory, loggerFactory, accessCodeStore),
             loggerFactory,
             new ViewSizeService(),
             new EventContext(),
