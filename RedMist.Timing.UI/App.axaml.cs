@@ -319,7 +319,15 @@ public partial class App : Application
             {
                 // Reaches Sentry through the logging provider registered in
                 // OnFrameworkInitializationCompleted.
-                _logger.Log(level, exception, "Global Exception Handler: {Context}", context);
+                //
+                // Marked as unhandled for the trip through the reporting pipeline, because the
+                // event otherwise arrives there stamped handled and at Error - the same shape as a
+                // fault a catch block chose to log - and the noise policy would be entitled to drop
+                // a cancellation that had in fact escaped to the top of the UI thread.
+                using (CrashReporting.ReportingUnhandledFault())
+                {
+                    _logger.Log(level, exception, "Global Exception Handler: {Context}", context);
+                }
             }
             else
             {
