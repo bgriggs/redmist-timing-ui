@@ -10,37 +10,86 @@
 		<AndroidUseAapt2>True</AndroidUseAapt2>
 		<AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 		<AndroidPackageFormat>aab</AndroidPackageFormat>
-		<!-- Ahead-of-time compilation, measured on a Samsung SM-S135DL (Android 13, arm64):
-		     median time to first frame over 7 launches each, via `am start -W`.
-
-		         off (as shipped)   10063 ms
-		         profiled AOT        9242 ms   -8%
-		         full AOT            5922 ms   -41%
-
-		     Unprofiled deliberately. AndroidEnableProfiledAot restricts compilation to the
-		     methods in dotnet.aotprofile, which covers .NET Android's own startup path and
-		     knows nothing about Avalonia - hence the 8%. Compiling everything is what
-		     actually pays, at 14.4 MB more per-ABI native code (16.5 -> 30.9 MB compressed,
-		     arm64), which is what a Play split delivers, and about 20 MB more PSS.
-
-		     Safe here in a way it is not on iOS: Android's AOT mode is Normal, so the JIT
-		     stays available and MessagePack's runtime IL generation still works. iOS is full
-		     AOT with no JIT, which is why it needs the TrimmerRootAssembly entries.
-
-		     Both flags are needed. RunAOTCompilation defaults to false, and leaving
-		     AndroidEnableProfiledAot unset would default it to true once AOT is on.
-
-		     Costs a long build - 178 assemblies per ABI - and needs the Android NDK, which
-		     CI runners have preinstalled but a dev machine may not.
-
-		     Not settled: one smoke run of six device runs died with a SIGSEGV whose stack is
-		     entirely inside libmonosgen with no managed frames. It did not reproduce in the
-		     five runs after it, and it matches the shape of the intermittent native crash the
-		     app already had, so it is not attributed to AOT - but it is not cleared either. -->
-		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-		<RunAOTCompilation>true</RunAOTCompilation>
 		<UserSecretsId>8c31261b-5551-40d9-a50a-bfb280d7f018</UserSecretsId>
 	</PropertyGroup>
+
+	<!-- Ahead-of-time compilation, measured on a Samsung SM-S135DL (Android 13, arm64):
+	     median time to first frame over 7 launches each, via `am start -W`.
+
+	         off (as shipped)   10063 ms
+	         profiled AOT        9242 ms   -8%
+	         full AOT            5922 ms   -41%
+
+	     Unprofiled deliberately. AndroidEnableProfiledAot restricts compilation to the
+	     methods in dotnet.aotprofile, which covers .NET Android's own startup path and knows
+	     nothing about Avalonia - hence the 8%. Compiling everything is what actually pays, at
+	     14.4 MB more per-ABI native code (16.5 -> 30.9 MB compressed, arm64), which is what a
+	     Play split delivers, and about 20 MB more PSS.
+
+	     Release only, and the condition is load-bearing. Nothing in the SDK gates the AOT
+	     compile on configuration - _AndroidAot runs on AotAssemblies alone - so setting these
+	     unconditionally puts the whole per-ABI compile into every debug deploy too.
+
+	     Neither line is redundant, though not for the obvious reason. RunAOTCompilation is
+	     already true by default for a Release MonoVM build, in
+	     Microsoft.Android.Sdk.DefaultProperties.targets; what this replaces is the explicit
+	     false that used to opt out of it. AndroidEnableProfiledAot does have to be set here,
+	     because it defaults to true once AOT is on.
+
+	     Costs a long build and needs the Android NDK, which CI runners have preinstalled but a
+	     dev machine may not.
+
+	     Not settled: one of six device runs died with a SIGSEGV whose stack is entirely inside
+	     libmonosgen with no managed frames. It did not reproduce in the five runs after it, and
+	     it matches the shape of the intermittent native crash the app already had, so it is not
+	     attributed to AOT - but it is not cleared either. -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<RunAOTCompilation>true</RunAOTCompilation>
+	</PropertyGroup>
+
+	<!-- Android has to keep its JIT, and this is what holds it to that.
+
+	     SignalR's MessagePack hub protocol writes every outbound argument through
+	     MessagePackSerializer's non-generic entry point, which takes a ref MessagePackWriter.
+	     MessagePack gates that path on RuntimeFeature.IsDynamicCodeSupported: with dynamic code
+	     it binds a delegate over a MakeGenericMethod'd MethodInfo, and without it there is
+	     nothing to bind instead, because a ref struct cannot be boxed into the object[] that
+	     MethodInfo.Invoke needs - which is how every other non-generic overload degrades. So it
+	     throws NotSupportedException (MessagePack 3.1.8, MessagePackSerializer.NonGenerics).
+	     Reported as dotnet/aspnetcore#34585.
+
+	     iOS does not reach any of this, because BigMission.Shared's TryAddMessagePack puts the
+	     hub on JSON there - RuntimeInformation.IsOSPlatform("IOS"), not a compile-time switch,
+	     so grepping this repo for it finds nothing. Forcing MessagePack on an iPhone is how the
+	     failure was found, and the shape of it is why this is a build error rather than a
+	     comment: the hub connects, and the first invoke fails inside the protocol - below every
+	     call site, so TryInvokeAsync never sees it to log it - leaving the app on 5-second REST
+	     polling. No crash and no error, and until SignalR's own logging was forwarded to the
+	     app's factory the only symptom was timing that had quietly gone stale.
+
+	     None of it applies today, and that was read off the build rather than assumed: Release
+	     with RunAOTCompilation gives AndroidAotMode=Normal, which keeps the JIT, and the
+	     runtimeconfig switch RuntimeFeature.IsDynamicCodeSupported is written true. The .NET
+	     SDK's trimming defaults set DynamicCodeSupport=true and the Android SDK never touches
+	     it; the iOS SDK is the one that overrides it to false. Debug builds come out as
+	     AndroidAotMode=Interpreter and write no switch at all, which is the configuration the
+	     app has been developed against all along.
+
+	     The mode check is an allow-list of the three this repo actually builds. Full and the
+	     LLVMOnly variants are the ones to watch - they are Mono's no-JIT modes, the same shape
+	     as iOS - but listing rather than excluding is the point: anything new stops here and
+	     gets checked. DynamicCodeSupport would not catch them on its own, because
+	     AndroidAotMode=Full leaves it true - the runtimeconfig would go on claiming a JIT the
+	     runtime no longer has. -->
+	<Target Name="VerifyAndroidKeepsItsJit" BeforeTargets="Build">
+		<Error Condition="'$(AndroidAotMode)' != 'None' And '$(AndroidAotMode)' != 'Normal' And '$(AndroidAotMode)' != 'Interpreter'"
+		       Text="AndroidAotMode is '$(AndroidAotMode)'. Only None, Normal and Interpreter are known to keep the JIT, which SignalR's MessagePack hub protocol needs: without it the hub connects, the first invoke throws NotSupportedException, and the app degrades to REST polling with no error. Confirm the mode keeps dynamic code before allowing it here." />
+		<Error Condition="'$(DynamicCodeSupport)' == 'false'"
+		       Text="DynamicCodeSupport is false, so RuntimeFeature.IsDynamicCodeSupported is false at runtime and SignalR's MessagePack hub protocol throws on its first invoke - silently, degrading the app to REST polling. Leave it unset, or move the hub to JSON as iOS does." />
+		<Error Condition="'$(PublishAot)' == 'true'"
+		       Text="PublishAot puts the Android head on NativeAOT, which has no JIT. SignalR's MessagePack hub protocol throws on its first invoke and the app degrades to REST polling with no error." />
+	</Target>
 
 	<!-- Debug symbol upload. Turns itself on only when CI supplies SENTRY_AUTH_TOKEN, so local and
 	     PR builds are untouched. sentry-cli reads the token, org and project from the environment
@@ -80,10 +129,12 @@
 
 		<!-- TypeGen is a build-time TypeScript codegen library pulled in transitively by
 		     RedMist.TimingCommon. It has no runtime role in the app, but it was still being
-		     packaged, carrying Newtonsoft.Json in with it. AOT is what surfaced that: the
-		     compiler walks every shipped assembly, and TypeGen.Core failed to resolve
-		     Newtonsoft.Json, taking the whole build down. iOS already excludes it for the same
-		     reason. -->
+		     packaged - and packaged incomplete. TypeGen 7.0.0's net10.0 dependency group is empty,
+		     so the Newtonsoft.Json that TypeGen.Core carries an assembly reference to is never
+		     restored alongside it; only the fallback group names it. AOT is what surfaced that,
+		     because the compiler walks every shipped assembly: TypeGen.Core could not resolve a
+		     reference nothing had brought in, and that took the whole build down. iOS already
+		     excludes it for the same reason. -->
 		<PackageReference Include="TypeGen" ExcludeAssets="all" PrivateAssets="all" />
 	</ItemGroup>
 

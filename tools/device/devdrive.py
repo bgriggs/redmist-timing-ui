@@ -531,23 +531,24 @@ def launch(cold=True, settle=1.0):
     return since
 
 
-def displayed_ms(since=None, timeout=60):
+def displayed_ms(since, timeout=60):
     """Milliseconds from launch to first frame, as the platform measures it.
 
     Timing this from the harness instead would mostly measure the harness: a screen read
     costs seconds, and through a cold start the first few fail and are retried, so a
     wall-clock number here comes out three times too large. The platform logs the real one.
 
-    Pass ``since`` - the timestamp ``launch()`` hands back - or this reports the wrong
-    launch. The read is bounded the same way ``faults()`` bounds its own, and for the same
-    reason: this harness does not clear logcat, so the buffer still holds the ``Displayed``
-    lines of every previous launch on the device. Unbounded, the first match is the
-    *oldest* surviving one, which can be minutes old and from a different build entirely.
-    That is not a hypothetical - it reported one build's startup time for another's, and
-    the two differed by three seconds.
+    ``since`` is the timestamp ``launch()`` hands back. It is required rather than
+    defaulted, because the default that used to sit here was the bug itself: an unbounded
+    read is wrong every time, and wrong silently. Bounding it works the same way
+    ``faults()`` bounds its own read, and for the same reason: this harness does not clear
+    logcat, so the buffer still holds the ``Displayed`` lines of every previous launch on
+    the device. Unbounded, the first match is the *oldest* surviving one, which can be
+    minutes old and from a different build entirely. That is not a hypothetical - it
+    reported one build's startup time for another's, and the two differed by three seconds.
     """
     pat = re.compile(r"Displayed %s/\S+: \+(?:(\d+)m)?(?:(\d+)s)?(\d+)ms" % re.escape(PKG))
-    window = "-T '%s'" % since if since else ""
+    window = "-T '%s'" % since
     deadline = time.time() + timeout
     while time.time() < deadline:
         for line in shell("logcat -b main -d %s -s ActivityTaskManager:I" % window).splitlines():
