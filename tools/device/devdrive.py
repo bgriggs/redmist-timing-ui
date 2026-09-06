@@ -13,10 +13,12 @@ seconds and needs a phone on a cable, so it exists for the questions the headles
 cannot answer: does it survive a cold start on real hardware, and what does memory do over
 a long session.
 """
+import hashlib
 import json
 import os
 import re
 import shutil
+import struct
 import subprocess
 import time
 import xml.etree.ElementTree as ET
@@ -425,6 +427,65 @@ _RAW_EXCEPTION = re.compile(
 def looks_like_raw_exception(text):
     return bool(_RAW_EXCEPTION.search(text or ""))
 
+
+def screencap():
+    """The framebuffer as ``(width, height, rgba)``.
+
+    Raw rather than the PNG ``screencap -p`` writes, because there is no PNG decoder in the
+    standard library and the raw form needs none: three or four little-endian words of
+    header, then width * height * 4 bytes of RGBA. Android 13 writes a colorspace word after
+    the format and older builds do not, so the header length is worked out from the size
+    rather than assumed.
+
+    This exists because ``dump`` cannot read a screen that never goes idle. Live timing
+    repaints every second, and uiautomator answers "could not get idle state" to almost
+    every request while it does - one attempt in ten succeeded when that was measured. The
+    tree is still the right way to find a control; this is the way to watch one change.
+    """
+    out = subprocess.run([adb_path(), "-s", serial(), "exec-out", "screencap"],
+                         capture_output=True, timeout=60).stdout
+    if len(out) < 16:
+        raise RuntimeError("screencap returned %d bytes" % len(out))
+    w, h, _fmt = struct.unpack("<III", out[:12])
+    for header in (16, 12):
+        if len(out) - header == w * h * 4:
+            return w, h, out[header:]
+    raise RuntimeError(
+        "screencap header not understood: %dx%d, %d bytes" % (w, h, len(out)))
+
+
+def region_digest(shot, bounds):
+    """A digest of the pixels inside ``bounds``, for comparing one capture against another."""
+    w, h, px = shot
+    l, t, r, b = bounds
+    l, t = max(0, l), max(0, t)
+    r, b = min(w, r), min(h, b)
+    if r <= l or b <= t:
+        raise ValueError("empty region %r on a %dx%d screen" % (bounds, w, h))
+    m = hashlib.blake2b(digest_size=16)
+    for y in range(t, b):
+        row = y * w * 4
+        m.update(px[row + l * 4:row + r * 4])
+    return m.digest()
+
+
+def region_changes(bounds, samples=8, interval=1.25):
+    """How many of ``samples`` successive captures differ from the one before, inside
+    ``bounds``. Returns ``(changes, transitions)``.
+
+    Paced, not taken back to back. A capture costs well under a second, so unpaced captures
+    land two to a second and the ones that share a second read as unchanged - against a clock
+    ticking once a second that turned 7 real changes into 4, which is a thin margin to judge
+    a healthy feed by. Just over a second per capture puts each one in a fresh tick.
+    """
+    digests = []
+    for i in range(samples):
+        if i:
+            time.sleep(max(0.0, interval - (time.time() - taken)))
+        taken = time.time()
+        digests.append(region_digest(screencap(), bounds))
+    changes = sum(1 for a, b in zip(digests, digests[1:]) if a != b)
+    return changes, len(digests) - 1
 
 def meminfo():
     """Megabytes, from dumpsys. ``unknown_mb`` is the interesting one for this app: the

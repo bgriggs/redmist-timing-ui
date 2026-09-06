@@ -46,6 +46,64 @@ def clean(run, screen, nodes):
     run.step("screen", screen=screen, nodes=len(nodes), sample=d.texts(nodes)[:6])
 
 
+def check_live_patches(run):
+    """Open the first live event and watch the session clock move.
+
+    The only step here that touches the live path. Everything else in this scenario opens
+    the archive, which is REST, so none of it would notice a dead hub.
+
+    The clock is the signal because of where it comes from: LiveTimingViewModel sets
+    RaceTime and LocalTime from SessionStatePatch and from nothing else, so a clock that is
+    advancing means patches are arriving and deserializing. That is worth asserting on its
+    own, because when the hub fails the app does not: it falls back to polling every five
+    seconds and carries on looking healthy, which is how the same failure went unnoticed on
+    iOS. The rate is what separates the two - patches move the clock about once a second,
+    polling about once every five.
+
+    Read from the framebuffer rather than the automation tree. A screen repainting every
+    second almost never reaches the idle state uiautomator insists on before it will dump;
+    the tree is read once, to find the clock and prove it says what it should, and the
+    watching is done on pixels. See devdrive.screencap.
+
+    Skipped rather than failed when nothing is live. An empty live list is legitimate
+    between seasons, and a live row can name an event whose session has not started.
+    """
+    nodes = d.wait_home()
+    rows = d.list_rows(nodes)
+    if not rows:
+        run.step("live-patches", checked=False, reason="no live events")
+        print("no live events - patch check skipped")
+        return
+
+    d.tap(rows[0])
+    try:
+        clock, _ = d.wait_for(timeout=45, contains="Local Time:")
+    except AssertionError as ex:
+        run.step("live-patches", checked=False, reason="no session clock (%s)" % ex)
+        print("first live event shows no session clock - patch check skipped")
+        d.back()
+        d.wait_home()
+        return
+
+    changes, transitions = d.region_changes(clock.bounds)
+    run.step("live-patches", checked=True, clock=clock.text,
+             changes=changes, transitions=transitions)
+    print("live clock %r changed on %d of %d captures" % (clock.text, changes, transitions))
+
+    # Half is deliberately loose. Patches should move it on nearly every capture, and
+    # five-second polling would move it on roughly one in five, so anything above a third
+    # already separates them - the margin is there so that a capture landing twice inside
+    # the same displayed second cannot fail a healthy run.
+    assert changes >= transitions // 2, (
+        "the session clock %r changed on only %d of %d captures about a second apart. It is "
+        "set from SessionStatePatch alone, so a clock this static means hub patches are not "
+        "arriving and the app has quietly fallen back to five-second REST polling."
+        % (clock.text, changes, transitions))
+
+    d.back()
+    assert d.foreground(), "Back from a live event left the app"
+    d.wait_home()
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     # Pinning the event and session is what makes a baseline mean anything over time. The
@@ -195,6 +253,11 @@ def main():
 
         summary["final_pss_mb"] = d.meminfo().get("pss_mb")
         assert d.pid() == start_pid, "the process restarted during the run"
+
+        # 7. Live patches, last on purpose. Opening a live session loads a whole timing grid,
+        #    and doing that before final_pss_mb would move a number the baseline is keeping.
+        check_live_patches(run)
+
         status = "pass"
         print("all screens ok")
     except Exception as ex:

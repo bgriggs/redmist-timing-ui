@@ -22,6 +22,7 @@ questions the headless tests cannot answer:
 - Does it survive a cold start on real hardware, and how long does that take?
 - What does memory do over a long session, and does the process survive it?
 - Does any screen show a driver a raw .NET exception instead of something actionable?
+- Are hub patches still arriving, or has the app quietly dropped to REST polling?
 
 It **cannot run in CI** — there is no phone on the runner. It is always a manual,
 local, USB-attached run.
@@ -72,6 +73,37 @@ python tools/device/soak.py --cycles 6 --event "Sebring" --session "14hr"
 ```
 
 Exit codes: `0` pass, `1` fail, `2` could not start (locked phone, no device).
+
+### The live patch check
+
+Smoke ends by opening the first event on the live list and watching the session clock.
+Everything else in both scenarios opens the archive, which is served over REST, so nothing
+else here would notice a dead hub.
+
+The clock is the signal because `LiveTimingViewModel` sets `RaceTime` and `LocalTime` from
+`SessionStatePatch` and from nothing else, so a clock that advances means patches are
+arriving and deserializing. It is worth asserting on its own because of how the failure
+presents: when the hub breaks the app does not. It falls back to polling every five seconds
+and goes on looking healthy, which is how the same failure went unnoticed on iOS. The rate
+is what separates them - patches move the clock about once a second, polling about once
+every five - so the check counts how many of eight captures differ from the one before and
+needs at least half.
+
+It reads pixels rather than the automation tree, and that is not a shortcut. A screen
+repainting every second almost never reaches the idle state `uiautomator dump` insists on:
+measured on a live session, one attempt in ten succeeded. The tree is read once, to find
+the clock and confirm it says what it should, and the watching is done on the framebuffer.
+
+**It skips rather than fails when nothing is live.** An empty live list is legitimate
+between seasons, and a live row can name an event whose session has not started. The skip
+and its reason are recorded in the run's steps - report it either way, because a run where
+this was skipped has not checked the hub at all.
+
+It runs last on purpose. Opening a live session loads a whole timing grid, and doing that
+before `final_pss_mb` is read would move a number the baseline is keeping. The change count
+is deliberately not a summary key either: it jitters with capture timing, and a tracked
+metric that moves on its own only teaches you to ignore it.
+
 
 Both take `--set-baseline`. **Do not pass it unless the user explicitly asked you to move
 the baseline.** See below.
