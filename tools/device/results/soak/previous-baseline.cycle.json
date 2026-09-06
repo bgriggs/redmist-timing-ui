@@ -1,6 +1,6 @@
 {
   "scenario": "soak",
-  "started_utc": "2026-08-31T00:21:32+00:00",
+  "started_utc": "2026-09-05T15:32:58+00:00",
   "device": {
     "model": "SM-S135DL",
     "android": "13",
@@ -11,9 +11,9 @@
   },
   "app": {
     "package": "com.bigmissionmotorsports.redmist",
-    "version_code": 10105,
-    "version_name": "10105",
-    "installed_at": "2026-08-30 15:58:28"
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-01 22:34:44"
   },
   "notes": {
     "mode": "cycle",
@@ -24,123 +24,123 @@
   "steps": [
     {
       "name": "opened",
-      "at_s": 59.7,
+      "at_s": 55.6,
       "event": "LDRL - Hair of the Dawg 2026",
       "laps": 155
     },
     {
       "name": "baseline",
-      "at_s": 60.2,
-      "pss_mb": 340,
-      "rss_mb": 398,
+      "at_s": 56.2,
+      "pss_mb": 299,
+      "rss_mb": 356,
       "java_mb": 3,
-      "native_mb": 129,
+      "native_mb": 95,
       "gfx_mb": 33,
-      "unknown_mb": 131
+      "unknown_mb": 129
     },
     {
       "name": "expand",
-      "at_s": 98.3,
+      "at_s": 84.4,
       "cycle": 0,
       "car": "#197",
-      "nodes_delta": 537,
-      "pss_mb": 396,
-      "rss_mb": 458,
-      "java_mb": 3,
-      "native_mb": 137,
+      "nodes_delta": 77,
+      "pss_mb": 323,
+      "rss_mb": 384,
+      "java_mb": 4,
+      "native_mb": 102,
       "gfx_mb": 33,
-      "unknown_mb": 171
+      "unknown_mb": 140
     },
     {
       "name": "collapse",
-      "at_s": 126.5,
+      "at_s": 107.5,
       "cycle": 0,
       "car": "#197",
       "trim_accepted": true,
-      "pss_mb": 402,
-      "rss_mb": 464,
-      "java_mb": 4,
-      "native_mb": 138,
+      "pss_mb": 326,
+      "rss_mb": 387,
+      "java_mb": 5,
+      "native_mb": 102,
       "gfx_mb": 33,
-      "unknown_mb": 175
+      "unknown_mb": 141
     },
     {
       "name": "expand",
-      "at_s": 160.4,
+      "at_s": 134.7,
       "cycle": 1,
       "car": "#128",
-      "nodes_delta": 492,
-      "pss_mb": 428,
-      "rss_mb": 491,
-      "java_mb": 6,
-      "native_mb": 138,
+      "nodes_delta": 77,
+      "pss_mb": 325,
+      "rss_mb": 386,
+      "java_mb": 5,
+      "native_mb": 98,
       "gfx_mb": 33,
-      "unknown_mb": 201
+      "unknown_mb": 145
     },
     {
       "name": "collapse",
-      "at_s": 188.0,
+      "at_s": 158.0,
       "cycle": 1,
       "car": "#128",
       "trim_accepted": true,
-      "pss_mb": 430,
-      "rss_mb": 492,
+      "pss_mb": 326,
+      "rss_mb": 387,
       "java_mb": 5,
-      "native_mb": 138,
+      "native_mb": 98,
       "gfx_mb": 33,
-      "unknown_mb": 202
+      "unknown_mb": 146
     },
     {
       "name": "expand",
-      "at_s": 225.2,
+      "at_s": 184.8,
       "cycle": 2,
       "car": "#462",
-      "nodes_delta": 477,
-      "pss_mb": 460,
-      "rss_mb": 522,
-      "java_mb": 6,
-      "native_mb": 135,
+      "nodes_delta": 67,
+      "pss_mb": 333,
+      "rss_mb": 394,
+      "java_mb": 5,
+      "native_mb": 98,
       "gfx_mb": 33,
-      "unknown_mb": 235
+      "unknown_mb": 152
     },
     {
       "name": "collapse",
-      "at_s": 253.3,
+      "at_s": 208.0,
       "cycle": 2,
       "car": "#462",
       "trim_accepted": true,
-      "pss_mb": 459,
-      "rss_mb": 521,
+      "pss_mb": 334,
+      "rss_mb": 395,
       "java_mb": 4,
-      "native_mb": 135,
+      "native_mb": 98,
       "gfx_mb": 33,
-      "unknown_mb": 236
+      "unknown_mb": 152
     },
     {
       "name": "expand",
-      "at_s": 286.3,
+      "at_s": 235.0,
       "cycle": 3,
       "car": "#34",
-      "nodes_delta": 437,
-      "pss_mb": 490,
-      "rss_mb": 552,
+      "nodes_delta": 67,
+      "pss_mb": 341,
+      "rss_mb": 402,
       "java_mb": 4,
-      "native_mb": 136,
-      "gfx_mb": 33,
-      "unknown_mb": 264
+      "native_mb": 98,
+      "gfx_mb": 34,
+      "unknown_mb": 159
     },
     {
       "name": "collapse",
-      "at_s": 314.7,
+      "at_s": 258.1,
       "cycle": 3,
       "car": "#34",
       "trim_accepted": true,
-      "pss_mb": 494,
-      "rss_mb": 556,
-      "java_mb": 5,
-      "native_mb": 136,
-      "gfx_mb": 33,
-      "unknown_mb": 267
+      "pss_mb": 342,
+      "rss_mb": 403,
+      "java_mb": 4,
+      "native_mb": 99,
+      "gfx_mb": 34,
+      "unknown_mb": 159
     }
   ],
   "faults": [],
@@ -148,23 +148,23 @@
     "mode": "cycle",
     "session_laps": 155,
     "cycles_available": 18,
-    "baseline_pss_mb": 340,
+    "baseline_pss_mb": 299,
     "cycles_completed": 4,
     "died": false,
-    "peak_pss_mb": 494,
-    "final_pss_mb": 494,
-    "peak_over_baseline_pss_mb": 154,
-    "net_growth_pss_mb": 154,
-    "peak_over_baseline_unknown_mb": 136,
-    "net_growth_unknown_mb": 136,
-    "collapse_reclaimed_mb": -2.8,
+    "peak_pss_mb": 342,
+    "final_pss_mb": 342,
+    "peak_over_baseline_pss_mb": 43,
+    "net_growth_pss_mb": 43,
+    "peak_over_baseline_unknown_mb": 30,
+    "net_growth_unknown_mb": 30,
+    "collapse_reclaimed_mb": -1.5,
     "collapse_deltas_mb": [
-      -6,
-      -2,
-      1,
-      -4
+      -3,
+      -1,
+      -1,
+      -1
     ]
   },
   "status": "pass",
-  "duration_s": 315.3
+  "duration_s": 258.7
 }
