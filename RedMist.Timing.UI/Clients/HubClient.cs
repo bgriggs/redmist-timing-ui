@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -30,6 +31,7 @@ public class HubClient : HubClientBase
     private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(5));
     private readonly IConfiguration configuration;
     private readonly EventAccessCodeStore accessCodeStore;
+    private readonly ILoggerProvider signalRLogForwarder;
     private long sessionUpdateCount;
     private long lastEventMessageTicks;
 
@@ -71,6 +73,27 @@ public class HubClient : HubClientBase
         }
     }
 
+    /// <summary>
+    /// Hands SignalR's own log categories to the app's logger factory.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="HubConnectionBuilder"/> builds its own service provider with its own logging, so
+    /// without this the client's internal logging goes nowhere. That matters more here than the
+    /// usual "some logs are missing", because the failures it reports are ones nothing else sees:
+    /// a hub message that cannot be serialized fails inside the protocol, below every call site in
+    /// this class, and <see cref="TryInvokeAsync"/> catches only what reaches it. The connection
+    /// stays up and idle and the live timing screen quietly falls back to polling, so the symptom
+    /// is stale data rather than an error - see LivePollingPolicy.
+    /// </remarks>
+    private sealed class SignalRLogForwarder(ILoggerFactory factory) : ILoggerProvider
+    {
+        public ILogger CreateLogger(string categoryName) => factory.CreateLogger(categoryName);
+
+        // The factory is owned by the host, not by the connection's provider, so this deliberately
+        // does not dispose it: connections are rebuilt on reconnect and would take it down with them.
+        public void Dispose() { }
+    }
+
     private void StampEventMessage()
         => Interlocked.Exchange(ref lastEventMessageTicks, DateTime.UtcNow.Ticks);
 
@@ -82,6 +105,7 @@ public class HubClient : HubClientBase
         ConnectionStatusChanged += HubClient_ConnectionStatusChanged;
         this.configuration = configuration;
         this.accessCodeStore = accessCodeStore;
+        signalRLogForwarder = new SignalRLogForwarder(loggerFactory);
     }
 
 
@@ -111,6 +135,14 @@ public class HubClient : HubClientBase
             };
         })
         .WithAutomaticReconnect(new InfiniteRetryPolicy())
+        // Information rather than Debug: the client logs a line per message at Debug, which at the
+        // feed's one-patch-per-second would flush the in-app log viewer's buffer continuously and
+        // bury the connection and protocol errors this exists to surface.
+        .ConfigureLogging(lb =>
+        {
+            lb.SetMinimumLevel(LogLevel.Information);
+            lb.AddProvider(signalRLogForwarder);
+        })
         .TryAddMessagePack();
 
         var hubConnection = builder.Build();
