@@ -1,4 +1,4 @@
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 using RedMist.Timing.UI.Services;
 using System.Threading.Tasks;
 
@@ -7,7 +7,7 @@ namespace RedMist.Timing.UI.ViewModels.Design;
 public class DesignOrganizationIconCacheService : OrganizationIconCacheService
 {
     public DesignOrganizationIconCacheService() 
-        : base(new DesignOrganizationClient(), new DebugLoggerFactory())
+        : base(new DesignOrganizationClient(), DesignImageStore.Create(), new DebugLoggerFactory())
     {
     }
 

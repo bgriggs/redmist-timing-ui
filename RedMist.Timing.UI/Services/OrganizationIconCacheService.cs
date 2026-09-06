@@ -7,24 +7,21 @@ namespace RedMist.Timing.UI.Services;
 
 /// <summary>
 /// Singleton service that caches organization icons as Bitmaps to avoid redundant loading and decoding.
-/// Uses CDN for fetching icons and maintains an in-memory cache for performance.
+/// Uses CDN for fetching icons, over the persistent store that keeps them between runs.
 /// </summary>
 public class OrganizationIconCacheService : ImageCacheServiceBase<int>
 {
     private readonly OrganizationClient organizationClient;
 
-    public OrganizationIconCacheService(OrganizationClient organizationClient, ILoggerFactory loggerFactory)
-        : base(loggerFactory.CreateLogger<OrganizationIconCacheService>())
+    public OrganizationIconCacheService(OrganizationClient organizationClient, PersistentImageStore store, ILoggerFactory loggerFactory)
+        : base(store, loggerFactory.CreateLogger<OrganizationIconCacheService>())
     {
         this.organizationClient = organizationClient;
     }
 
     protected override string GetKeyDisplayName(int key) => $"organization {key}";
 
-    protected override async Task<byte[]> LoadImageBytesAsync(int key)
-    {
-        return await organizationClient.GetOrganizationIconCdnAsync(key);
-    }
+    protected override string? GetImageUrl(int key) => organizationClient.GetOrganizationIconCdnUrl(key);
 
     /// <summary>
     /// Gets the organization icon as a Bitmap from cache or loads it from CDN.

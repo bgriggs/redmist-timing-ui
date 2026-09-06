@@ -83,6 +83,14 @@ public class MainActivity : AvaloniaMainActivity<App>
         // where the unattributable libmonosgen crashes were happening.
         CrashReporting.Init("android", o => o.DisableAppDomainUnhandledExceptionCapture());
 
+        // .NET maps no special folder to Android's cache directory, so the image cache cannot find
+        // it on its own - InternetCache, which is how the iOS head reaches Library/Caches, resolves
+        // to nothing here. Without this the organization logos land in the files directory, which
+        // is in the auto-backup set: regenerable images spending the app's 25 MB backup quota and
+        // then riding onto a restored device. Set before base.OnCreate, which is where Avalonia
+        // starts and, eventually, builds the store.
+        PersistentImageStore.CacheRootOverride = CacheDir?.AbsolutePath;
+
         // base.OnCreate is where Avalonia hands the shared MainView to a brand new AvaloniaView, and
         // it throws outright if the view still has a parent. SingleTop above is what now keeps a
         // second launch intent from putting a second MainActivity on a live one, so this is the

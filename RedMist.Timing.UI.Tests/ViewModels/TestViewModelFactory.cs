@@ -30,6 +30,13 @@ namespace RedMist.Timing.UI.Tests.ViewModels;
 /// </remarks>
 internal static class TestViewModelFactory
 {
+    /// <summary>
+    /// An image store with no disk tier, so building view models in a test never reads or writes
+    /// the real profile's image cache - and never leaves entries behind for the next run to serve.
+    /// </summary>
+    internal static PersistentImageStore CreateImageStore() =>
+        new(new DesignHttpClientFactory(), new DebugLoggerFactory(), cacheDirectory: null);
+
     internal static IConfiguration CreateConfiguration()
     {
         return new ConfigurationBuilder()
@@ -100,7 +107,7 @@ internal static class TestViewModelFactory
         var loggerFactory = new DebugLoggerFactory();
         var httpClientFactory = new DesignHttpClientFactory();
         var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
-        var sponsorIconCache = new SponsorIconCacheService(httpClientFactory, loggerFactory);
+        var sponsorIconCache = new SponsorIconCacheService(CreateImageStore(), loggerFactory);
         var sponsorClient = new SponsorClient(restClientFactory, httpClientFactory);
         var sponsorRotator = new SponsorRotatorViewModel(
             new SponsorsService(sponsorClient, sponsorIconCache, loggerFactory),
@@ -116,7 +123,7 @@ internal static class TestViewModelFactory
             new EventContext(),
             httpClientFactory,
             configuration,
-            new OrganizationIconCacheService(new OrganizationClient(configuration, httpClientFactory, restClientFactory), loggerFactory),
+            new OrganizationIconCacheService(new OrganizationClient(configuration, restClientFactory), CreateImageStore(), loggerFactory),
             sponsorRotator)
         {
             EventModel = new Event { EventId = 1 },
@@ -158,9 +165,9 @@ internal static class TestViewModelFactory
         accessCodeStore ??= new EventAccessCodeStore(new MockPreferencesService());
         eventClient ??= new EventClient(restClientFactory, loggerFactory, accessCodeStore);
         var hubClient = new HubClient(loggerFactory, configuration, accessCodeStore);
-        var organizationClient = new OrganizationClient(configuration, httpClientFactory, restClientFactory);
-        var iconCacheService = new OrganizationIconCacheService(organizationClient, loggerFactory);
-        var sponsorIconCache = new SponsorIconCacheService(httpClientFactory, loggerFactory);
+        var organizationClient = new OrganizationClient(configuration, restClientFactory);
+        var iconCacheService = new OrganizationIconCacheService(organizationClient, CreateImageStore(), loggerFactory);
+        var sponsorIconCache = new SponsorIconCacheService(CreateImageStore(), loggerFactory);
         var sponsorClient = new SponsorClient(restClientFactory, httpClientFactory);
         var sponsorRotator = new SponsorRotatorViewModel(
             new SponsorsService(sponsorClient, sponsorIconCache, loggerFactory),

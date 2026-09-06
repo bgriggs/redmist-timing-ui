@@ -20,6 +20,8 @@ using Sentry;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,6 +135,27 @@ public partial class App : Application
 
         // Add HttpClient factory
         services.AddHttpClient();
+
+        // Images get their own client, configured for traffic that is entirely opportunistic.
+        //
+        // HTTP/2 because the CDN offers it over ALPN but .NET does not ask for it: the default
+        // request version is 1.1, so a page of logos opened a separate connection and TLS handshake
+        // per image. On one multiplexed connection a round of revalidations is close to free, which
+        // is what makes checking every image on every launch affordable.
+        //
+        // RequestVersionOrLower rather than pinning h2, so a host that only speaks 1.1 - a sponsor
+        // image on someone else's server - still works. On WebAssembly both settings are ignored;
+        // the browser's own fetch stack decides the version there.
+        //
+        // The timeout is the other half. The default is 100 seconds, and there is always either a
+        // stored copy or an empty logo behind these requests, so holding one open that long buys
+        // nothing and keeps a task alive long after the screen has moved on.
+        services.AddHttpClient(PersistentImageStore.HttpClientName, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+            client.DefaultRequestVersion = HttpVersion.Version20;
+            client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+        });
 
         ConfigureServices(services);
 
@@ -471,6 +494,7 @@ public partial class App : Application
     [Singleton(typeof(SponsorClient))]
     [Singleton(typeof(ViewSizeService))]
     [Singleton(typeof(EventContext))]
+    [Singleton(typeof(PersistentImageStore))]
     [Singleton(typeof(OrganizationIconCacheService))]
     [Singleton(typeof(SponsorIconCacheService))]
     [Singleton(typeof(SponsorsService))]

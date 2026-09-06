@@ -11,7 +11,7 @@ public class DesignMainViewModel : MainViewModel
             new DebugLoggerFactory(), new Services.ViewSizeService(), new EventContext(),
             new DesignPlatformDetectionService(), new DesignVersionCheckService(), new DesignHttpClientFactory(),
             new DesignConfiguration(), new DesignOrganizationIconCacheService(),
-            new SponsorRotatorViewModel(new SponsorsService(new DesignSponsorClient(), new SponsorIconCacheService(new DesignHttpClientFactory(), new DebugLoggerFactory()), new DebugLoggerFactory()), new SponsorIconCacheService(new DesignHttpClientFactory(), new DebugLoggerFactory()), new DesignSponsorClient(), new DebugLoggerFactory()),
+            new SponsorRotatorViewModel(new SponsorsService(new DesignSponsorClient(), new SponsorIconCacheService(DesignImageStore.Create(), new DebugLoggerFactory()), new DebugLoggerFactory()), new SponsorIconCacheService(DesignImageStore.Create(), new DebugLoggerFactory()), new DesignSponsorClient(), new DebugLoggerFactory()),
             new MockPreferencesService(), new NoOpScreenWakeService(),
             new EventAccessCodeStore(new MockPreferencesService()))
     {

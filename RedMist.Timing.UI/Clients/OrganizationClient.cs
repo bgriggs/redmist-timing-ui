@@ -1,16 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
 using RestSharp;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Clients;
 
 public class OrganizationClient : BaseRestClient
 {
-    private readonly IHttpClientFactory httpClientFactory;
     private readonly string cdnLogosUrl = "https://assets.redmist.racing/logos";
 
-    public OrganizationClient(IConfiguration configuration, IHttpClientFactory httpClientFactory, RestClientFactory restClientFactory)
+    public OrganizationClient(IConfiguration configuration, RestClientFactory restClientFactory)
         : base(restClientFactory, "Server:OrganizationUrl")
     {
         if (configuration["Cdn:BaseUrl"] != null && configuration["Cdn:Logos"] != null)
@@ -19,8 +17,6 @@ public class OrganizationClient : BaseRestClient
             var logosPath = configuration["Cdn:Logos"]!.TrimStart('/').TrimEnd('/');
             cdnLogosUrl = $"{baseUrl}/{logosPath}";
         }
-
-        this.httpClientFactory = httpClientFactory;
     }
 
     public virtual async Task<byte[]> GetOrganizationIconAsync(int organizationId)
@@ -37,15 +33,13 @@ public class OrganizationClient : BaseRestClient
         return response.RawBytes;
     }
 
-    public virtual async Task<byte[]> GetOrganizationIconCdnAsync(int organizationId)
-    {
-        var httpClient = httpClientFactory.CreateClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{cdnLogosUrl}/org-{organizationId}.img");
-        var response = await httpClient.SendAsync(request);
-        if (!response.IsSuccessStatusCode)
-        {
-            return [];
-        }
-        return await response.Content.ReadAsByteArrayAsync();
-    }
+    /// <summary>
+    /// Where an organization's logo lives on the CDN.
+    /// </summary>
+    /// <remarks>
+    /// The URL rather than the bytes, because <see cref="Services.PersistentImageStore"/> does the
+    /// fetching: it has to hold the request open to attach If-Modified-Since and read Last-Modified
+    /// back off the response, which a method that returns only a byte array cannot express.
+    /// </remarks>
+    public virtual string GetOrganizationIconCdnUrl(int organizationId) => $"{cdnLogosUrl}/org-{organizationId}.img";
 }

@@ -75,15 +75,14 @@ public sealed class EventsListRefreshTests
     private static (EventsListViewModel Vm, StubEventClient Server) Create()
     {
         var configuration = TestViewModelFactory.CreateConfiguration();
-        var httpClientFactory = new DesignHttpClientFactory();
         var loggerFactory = new DebugLoggerFactory();
         var restClientFactory = new RestClientFactory(configuration);
         var server = new StubEventClient(restClientFactory, new EventAccessCodeStore(new MockPreferencesService()));
 
         var vm = new EventsListViewModel(
             server,
-            new OrganizationClient(configuration, httpClientFactory, restClientFactory),
-            new OrganizationIconCacheService(new OrganizationClient(configuration, httpClientFactory, restClientFactory), loggerFactory),
+            new OrganizationClient(configuration, restClientFactory),
+            new OrganizationIconCacheService(new OrganizationClient(configuration, restClientFactory), TestViewModelFactory.CreateImageStore(), loggerFactory),
             loggerFactory);
 
         return (vm, server);

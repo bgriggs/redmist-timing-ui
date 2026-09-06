@@ -1,4 +1,5 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using BigMission.Avalonia.Utilities;
 using BigMission.Avalonia.Utilities.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -102,6 +103,38 @@ public partial class EventsListViewModel : ObservableObject, IRecipient<AppResum
         this.iconCacheService = iconCacheService;
         Logger = loggerFactory.CreateLogger(GetType().Name);
         WeakReferenceMessenger.Default.RegisterAll(this);
+
+        // Never detached, and it does not need to be: both this and the cache are DI singletons
+        // that live as long as the app.
+        iconCacheService.ImageUpdated += OnOrganizationIconUpdated;
+    }
+
+    /// <summary>
+    /// Swaps in a logo the cache has re-fetched because it changed on the server.
+    /// </summary>
+    /// <remarks>
+    /// The rows are painted from the stored logo without waiting for the server, so this is the
+    /// second half of that bargain: the check finishes a moment later, and on the rare occasion it
+    /// finds a new logo, the row that is already on screen picks it up rather than showing the old
+    /// one until the app is next started.
+    ///
+    /// The bitmap comes with the event rather than being read back out of the cache. It is the same
+    /// instance the cache holds either way, so the rows still share one bitmap with every other view
+    /// of that organization - but reading it back could find the entry already evicted and drop the
+    /// update silently, and nothing would raise it a second time.
+    /// </remarks>
+    private void OnOrganizationIconUpdated(int organizationId, Bitmap icon)
+    {
+        Dispatcher.UIThread.InvokeOnUIThread(() =>
+        {
+            foreach (var vm in Events)
+            {
+                if (vm.OrganizationId == organizationId)
+                {
+                    vm.UpdateIcon(icon);
+                }
+            }
+        });
     }
 
 
