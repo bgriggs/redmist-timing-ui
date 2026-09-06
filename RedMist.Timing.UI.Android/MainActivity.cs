@@ -65,6 +65,13 @@ public class MainActivity : AvaloniaMainActivity<App>
         // is a singleton, so capturing here rooted the first activity for the life of the process
         // and pointed the screen wake flag at its window forever.
         App.ScreenWakeServiceFactory = static () => new AndroidScreenWakeService(static () => Current);
+
+        // Alongside the line above, and for the same reason: this runs inside base.OnCreate, before
+        // SetupWithLifetime builds the App and its LoggerFactory, so the factory is in place by the
+        // time there is anything to attach it to. It does not make startup itself readable - a
+        // fault before the host exists still goes through App.LogException to Console, which lands
+        // under DOTNET rather than this tag.
+        App.PlatformLogProviderFactory = static () => new AndroidLogProvider();
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }

@@ -38,6 +38,12 @@ public partial class App : Application
     /// </summary>
     public static Func<IScreenWakeService>? ScreenWakeServiceFactory { get; set; }
 
+    /// <summary>
+    /// Factory for a platform log sink - logcat on Android. Set by platform projects before app
+    /// initialization, the same way <see cref="ScreenWakeServiceFactory"/> is.
+    /// </summary>
+    public static Func<ILoggerProvider>? PlatformLogProviderFactory { get; set; }
+
 
     public override void Initialize()
     {
@@ -108,6 +114,16 @@ public partial class App : Application
         var inMemoryLogProvider = new InMemoryLogProvider(50);
         services.AddSingleton(inMemoryLogProvider);
         loggerFactory.AddProvider(inMemoryLogProvider);
+
+        // The platform's own log, where it has one that can be read from outside the app. On
+        // Android that is logcat, and without it a build on a device says nothing a cable can
+        // hear: AddDebug above is gated on a debugger being attached, Sentry only takes warnings
+        // and above, and the in-app viewer needs someone holding the phone. Added before the
+        // configuration report below so that report lands there too.
+        if (PlatformLogProviderFactory is not null)
+        {
+            loggerFactory.AddProvider(PlatformLogProviderFactory());
+        }
 
         // After the in-app log provider is attached, deliberately. A debug build has no Sentry - the
         // DSN comes from the same release-only secrets file - so the log viewer inside the app is
