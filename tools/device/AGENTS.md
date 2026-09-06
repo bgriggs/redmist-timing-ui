@@ -104,7 +104,12 @@ the comparison will say so.
 ```bash
 python tools/device/smoke.py --event "Hair of the Dawg" --session "Sat 6.5Hr"
 python tools/device/soak.py  --event "Hair of the Dawg" --session "Sat 6.5Hr" --cycles 6
+python tools/device/soak.py  --mode cycle --event "Hair of the Dawg" --session "Sat 6.5Hr" --cycles 4
 ```
+
+The two soak baselines were recorded with different `--cycles`, 6 for hold and 4 for cycle,
+so the commands are listed separately rather than left to be inferred from one another. Run
+cycle with 6 and the comparison reports "Ran differently" and refuses to compare.
 
 The event and session are pinned deliberately. Left on the defaults, both scenarios open
 whatever is first in the archive — and that changes every time a race finishes, so the
