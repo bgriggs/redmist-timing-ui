@@ -1,0 +1,200 @@
+{
+  "scenario": "smoke",
+  "started_utc": "2026-09-06T03:51:07+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-05 21:45:38"
+  },
+  "notes": {
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "screen",
+      "at_s": 15.5,
+      "screen": "home",
+      "nodes": 179,
+      "sample": [
+        "Test7",
+        "LIVE",
+        "SIMULATION",
+        "The Fast Parts Grand Prix at Mid Ohio ",
+        "LIVE",
+        "The Fast Parts Grand Prix at Mid Ohio EC"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 25.3,
+      "screen": "completed-events",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro EC",
+        "The Sebring NYE 14hr Enduro",
+        "AMP'd Up Duals Copy 1",
+        "Endurance Karting - 2025 3 Hours of Florida",
+        "LDRL - Dawgs In The Hunt 2025"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 34.9,
+      "screen": "completed-events-page-2",
+      "nodes": 180,
+      "sample": [
+        "The Fast Parts Grand Prix at Mid-Ohio Sat 8hr",
+        "Endurance Karting - 6 Hours of New England",
+        "World Racing League - High Plains 2025",
+        "Thompson 12",
+        "2025 Karting for CKG",
+        "Champcar VIR24"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 53.8,
+      "screen": "event",
+      "nodes": 145,
+      "sample": [
+        "Provisional Results for LDRL - Hair of the Dawg 2026",
+        "01/17/2026",
+        "Sessions",
+        "Friday Practice",
+        "02/13 9:33 AM",
+        "Provisional Results"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 72.0,
+      "screen": "session-results",
+      "nodes": 840,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 87.4,
+      "screen": "car-expanded",
+      "nodes": 917,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "expand",
+      "at_s": 87.4,
+      "delta_nodes": 77
+    },
+    {
+      "name": "screen",
+      "at_s": 102.7,
+      "screen": "completed-events-after-back",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro EC",
+        "The Sebring NYE 14hr Enduro",
+        "AMP'd Up Duals Copy 1",
+        "Endurance Karting - 2025 3 Hours of Florida",
+        "LDRL - Dawgs In The Hunt 2025"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 112.4,
+      "screen": "home-again",
+      "nodes": 179,
+      "sample": [
+        "Test7",
+        "LIVE",
+        "SIMULATION",
+        "The Fast Parts Grand Prix at Mid Ohio ",
+        "LIVE",
+        "The Fast Parts Grand Prix at Mid Ohio EC"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 121.3,
+      "screen": "driver-mode",
+      "nodes": 81,
+      "sample": [
+        "In-Car Driver Settings",
+        "Car Number",
+        "Select Event",
+        "Show in-class cars only",
+        "OK"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 127.7,
+      "screen": "home-after-driver-mode",
+      "nodes": 179,
+      "sample": [
+        "Test7",
+        "LIVE",
+        "SIMULATION",
+        "The Fast Parts Grand Prix at Mid Ohio ",
+        "LIVE",
+        "The Fast Parts Grand Prix at Mid Ohio EC"
+      ]
+    },
+    {
+      "name": "live-patches",
+      "at_s": 161.5,
+      "checked": true,
+      "clock": "Local Time: 1:16:49 PM",
+      "window_s": 10,
+      "received": 1,
+      "patches": 0,
+      "per_second": 0.0,
+      "app_log_lines": 1941,
+      "errors": 1936,
+      "first_error": "Microsoft.AspNetCore.SignalR.Client.HubConnection: Failed to bind arguments received in invocation '(null)' of 'ReceiveCarPatches'."
+    },
+    {
+      "name": "failure",
+      "at_s": 161.5,
+      "detail": "AssertionError: the app logged 1936 errors while a live session was open, the first being: Microsoft.AspNetCore.SignalR.Client.HubConnection: Failed to bind arguments received in invocation '(null)' of 'ReceiveCarPatches'."
+    }
+  ],
+  "faults": [],
+  "summary": {
+    "home_ready_s": 14.5,
+    "cold_start_ms": 6314,
+    "live_event_count": 10,
+    "completed_event_count": 10,
+    "page_2_event_count": 10,
+    "session_count": 4,
+    "car_row_count": 18,
+    "session_laps": 155,
+    "final_pss_mb": 378
+  },
+  "status": "fail",
+  "duration_s": 162.1
+}

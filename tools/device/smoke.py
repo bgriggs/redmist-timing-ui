@@ -11,6 +11,7 @@ process on a phone.
 Takes roughly two minutes. Leaves a JSON record under results/smoke/.
 """
 import argparse
+import re
 import sys
 import time
 
@@ -49,6 +50,18 @@ def clean(run, screen, nodes):
 # How long to watch the hub for. Patches arrive about once a second, so ten seconds is enough
 # to tell a live feed from a dead one several times over without adding real time to the run.
 PATCH_WINDOW_S = 10
+
+# Errors worth failing a run over, as opposed to errors a phone produces on its own.
+#
+# Since the client's own logging was forwarded into the app's factory, SignalR's internals
+# report here too, and several of the things it logs at Error are ordinary mobile networking
+# that InfiniteRetryPolicy recovers from without help - ReconnectingWithError,
+# ServerDisconnectedWithError, ErrorPolling. Failing on those would fail a healthy build on a
+# bad signal. What is never routine is a message that arrived and could not be used, which is
+# what a trimmed-away formatter, a broken contract or a serialization change all look like.
+BREAKS_LIVE = re.compile(
+    r"Failed to bind arguments|Invoking client side method|MessagePackSerializationException"
+    r"|Failed to process (session message|car patches|reset message)|Failed to invoke")
 
 
 def check_live_patches(run):
@@ -100,16 +113,24 @@ def check_live_patches(run):
         d.wait_home()
         return
 
+    # Settle before the window opens. log_since truncates to the whole second and logcat's -T is
+    # inclusive, so the window really starts up to a second early - and that second is the
+    # noisiest in the scenario, with the grid still loading and the subscription just placed.
+    time.sleep(1.0)
+
     since = d.log_since()
     time.sleep(PATCH_WINDOW_S)
     lines = d.app_log(since)
-    received = [m for _, m in lines if "RX " in m]
+    received = [m for _, _, m in lines if "RX " in m]
     patches = [m for m in received if "RX Session Patch" in m]
+    logged_errors = [m for _, lvl, m in lines if lvl in ("E", "F")]
+    errors = [m for m in logged_errors if BREAKS_LIVE.search(m)]
 
     rate = len(patches) / float(PATCH_WINDOW_S)
     run.step("live-patches", checked=True, clock=clock.text, window_s=PATCH_WINDOW_S,
              received=len(received), patches=len(patches), per_second=round(rate, 2),
-             app_log_lines=len(lines))
+             app_log_lines=len(lines), errors=len(errors), errors_total=len(logged_errors),
+             first_error=errors[0] if errors else None)
     print("hub delivered %d messages in %ds, %d of them session patches (%.1f/s)"
           % (len(received), PATCH_WINDOW_S, len(patches), rate))
 
@@ -126,6 +147,16 @@ def check_live_patches(run):
         "every message it receives, so silence means the subscription was never established and "
         "the app has fallen back to five-second REST polling."
         % (len(lines), PATCH_WINDOW_S))
+
+    # The count above is not enough on its own. The one time this scenario met a genuinely broken
+    # build - TimingCommon trimmed until its patch formatters were hollow - it passed: the hub was
+    # connected and a message had arrived, which satisfied the assertion above, while every patch
+    # was in fact failing to deserialize. What said so was here, at error level, and was ignored.
+    # None of that class of failure necessarily stops the traffic the count measures.
+    assert not errors, (
+        "the app logged %d errors that break live timing while a live session was open (%d error "
+        "lines in total), the first being: %s"
+        % (len(errors), len(logged_errors), errors[0]))
 
     if len(patches) < PATCH_WINDOW_S // 2:
         print("  note: session patches are slower than the once a second an RMonitor feed gives;"

@@ -566,7 +566,8 @@ def log_since():
 
 
 def app_log(since, tag="RedMist"):
-    """The app's own logcat lines since ``since``, newest last, as ``(timestamp, message)``.
+    """The app's own logcat lines since ``since``, oldest first, as ``(timestamp, level,
+    message)``, where level is logcat's single letter - V, D, I, W, E or F.
 
     The app writes to logcat through AndroidLogProvider on the Android head, under one fixed
     tag. A release build did not always do that: AddDebug goes through Debug.WriteLine, which
@@ -583,13 +584,13 @@ def app_log(since, tag="RedMist"):
     as dates - the callers count lines over a window they timed themselves.
     """
     out = shell("logcat -b main -d -T '%s' -s %s:V" % (since, tag))
-    pat = re.compile(r"^(\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d)\s+\d+\s+\d+\s+[VDIWEF]\s+%s\s*:\s?(.*)$"
+    pat = re.compile(r"^(\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d)\s+\d+\s+\d+\s+([VDIWEF])\s+%s\s*:\s?(.*)$"
                      % re.escape(tag))
     lines = []
     for line in out.splitlines():
         m = pat.match(line.strip())
         if m:
-            lines.append((m.group(1), m.group(2)))
+            lines.append((m.group(1), m.group(2), m.group(3)))
     return lines
 
 
