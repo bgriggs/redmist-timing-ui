@@ -46,27 +46,29 @@ def clean(run, screen, nodes):
     run.step("screen", screen=screen, nodes=len(nodes), sample=d.texts(nodes)[:6])
 
 
+# How long to watch the hub for. Patches arrive about once a second, so ten seconds is enough
+# to tell a live feed from a dead one several times over without adding real time to the run.
+PATCH_WINDOW_S = 10
+
+
 def check_live_patches(run):
-    """Open the first live event and watch the session clock move.
+    """Open the first live event and count the session patches the hub delivers.
 
-    The only step here that touches the live path. Everything else in this scenario opens
-    the archive, which is REST, so none of it would notice a dead hub.
+    The only step here that touches the live path. Everything else in this scenario opens the
+    archive, which is REST, so none of it would notice a dead hub - and a dead hub is quiet:
+    the app falls back to polling every five seconds and goes on looking healthy, which is how
+    the same failure went unnoticed on iOS for as long as it did.
 
-    The clock is the signal because of where it comes from: LiveTimingViewModel sets
-    RaceTime and LocalTime from SessionStatePatch and from nothing else, so a clock that is
-    advancing means patches are arriving and deserializing. That is worth asserting on its
-    own, because when the hub fails the app does not: it falls back to polling every five
-    seconds and carries on looking healthy, which is how the same failure went unnoticed on
-    iOS. The rate is what separates the two - patches move the clock about once a second,
-    polling about once every five.
+    HubClient logs a line per message the hub delivers, so counting those over a fixed window
+    measures the hub directly rather than inferring it from the screen. Reading the clock on the
+    timing display was the other way to do this and is worse twice over: it proves only that
+    something moved, and a screen repainting every second almost never reaches the idle state
+    uiautomator wants before it will dump - one attempt in ten succeeded when that was measured.
 
-    Read from the framebuffer rather than the automation tree. A screen repainting every
-    second almost never reaches the idle state uiautomator insists on before it will dump;
-    the tree is read once, to find the clock and prove it says what it should, and the
-    watching is done on pixels. See devdrive.screencap.
-
-    Skipped rather than failed when nothing is live. An empty live list is legitimate
-    between seasons, and a live row can name an event whose session has not started.
+    Three outcomes, and they are not the same thing. An app that has logged nothing since launch
+    is a build without the logcat provider, which every release before it was: skipped. An app
+    that has logged but received nothing from the hub is a subscription that was never
+    established: failed. Anything in between is a working hub, whatever its rate.
     """
     nodes = d.wait_home()
     rows = d.list_rows(nodes)
@@ -79,27 +81,55 @@ def check_live_patches(run):
     try:
         clock, _ = d.wait_for(timeout=45, contains="Local Time:")
     except AssertionError as ex:
+        # A live row can name an event whose session has not started. Not a failure.
         run.step("live-patches", checked=False, reason="no session clock (%s)" % ex)
         print("first live event shows no session clock - patch check skipped")
         d.back()
         d.wait_home()
         return
 
-    changes, transitions = d.region_changes(clock.bounds)
-    run.step("live-patches", checked=True, clock=clock.text,
-             changes=changes, transitions=transitions)
-    print("live clock %r changed on %d of %d captures" % (clock.text, changes, transitions))
+    # Whether this build logs to logcat at all is a different question from whether patches
+    # arrived, and answering it from the window below would confuse the two: a hub delivering
+    # nothing looks exactly like a build with no provider. Anything at all since launch settles
+    # it, and by now the app has logged plenty.
+    if not d.app_log(run.since):
+        run.step("live-patches", checked=False,
+                 reason="nothing logged since launch - build has no logcat provider")
+        print("app logs nothing to logcat - patch check skipped (build predates the provider)")
+        d.back()
+        d.wait_home()
+        return
 
-    # Half is deliberately loose. Patches should move it on nearly every capture, and
-    # five-second polling would move it on roughly one in five, so anything above a third
-    # already separates them - the margin is there so that a capture landing twice inside
-    # the same displayed second cannot fail a healthy run.
-    assert changes >= transitions // 2, (
-        "the session clock %r changed on only %d of %d captures about a second apart. It is "
-        "set from SessionStatePatch alone, so a clock this static means hub patches are not "
-        "arriving and the app has quietly fallen back to five-second REST polling."
-        % (clock.text, changes, transitions))
+    since = d.log_since()
+    time.sleep(PATCH_WINDOW_S)
+    lines = d.app_log(since)
+    received = [m for _, m in lines if "RX " in m]
+    patches = [m for m in received if "RX Session Patch" in m]
 
+    rate = len(patches) / float(PATCH_WINDOW_S)
+    run.step("live-patches", checked=True, clock=clock.text, window_s=PATCH_WINDOW_S,
+             received=len(received), patches=len(patches), per_second=round(rate, 2),
+             app_log_lines=len(lines))
+    print("hub delivered %d messages in %ds, %d of them session patches (%.1f/s)"
+          % (len(received), PATCH_WINDOW_S, len(patches), rate))
+
+    # Asserted on the hub delivering something, not on the patch rate, and the difference
+    # matters. A session patch a second is what an RMonitor-fed event gives, because its
+    # heartbeat moves the clock whether or not anything happened - but LivePollingPolicy
+    # documents the other lanes, which publish only when something changes, and an event
+    # carried by those alone is legitimately quiet. Nothing here can separate that from a slow
+    # feed, and failing a healthy run is worse than not measuring the rate. Silence is what is
+    # unambiguous: the failure this exists to catch leaves the subscription never established,
+    # so nothing arrives at all.
+    assert received, (
+        "the app logged %d lines in %d seconds and not one was a hub delivery. HubClient logs "
+        "every message it receives, so silence means the subscription was never established and "
+        "the app has fallen back to five-second REST polling."
+        % (len(lines), PATCH_WINDOW_S))
+
+    if len(patches) < PATCH_WINDOW_S // 2:
+        print("  note: session patches are slower than the once a second an RMonitor feed gives;"
+              " this event may be on a change-only lane")
     d.back()
     assert d.foreground(), "Back from a live event left the app"
     d.wait_home()

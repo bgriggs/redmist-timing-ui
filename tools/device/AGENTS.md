@@ -76,34 +76,42 @@ Exit codes: `0` pass, `1` fail, `2` could not start (locked phone, no device).
 
 ### The live patch check
 
-Smoke ends by opening the first event on the live list and watching the session clock.
-Everything else in both scenarios opens the archive, which is served over REST, so nothing
-else here would notice a dead hub.
+Smoke ends by opening the first event on the live list and counting the session patches the
+hub delivers over ten seconds. Everything else in both scenarios opens the archive, which is
+served over REST, so nothing else here would notice a dead hub - and a dead hub is quiet. The
+app falls back to polling every five seconds and goes on looking healthy, which is how the
+same failure went unnoticed on iOS for as long as it did.
 
-The clock is the signal because `LiveTimingViewModel` sets `RaceTime` and `LocalTime` from
-`SessionStatePatch` and from nothing else, so a clock that advances means patches are
-arriving and deserializing. It is worth asserting on its own because of how the failure
-presents: when the hub breaks the app does not. It falls back to polling every five seconds
-and goes on looking healthy, which is how the same failure went unnoticed on iOS. The rate
-is what separates them - patches move the clock about once a second, polling about once
-every five - so the check counts how many of eight captures differ from the one before and
-needs at least half.
+`HubClient` logs a line per message the hub delivers, so the count comes from
+`adb logcat -s RedMist` and measures the hub directly. That is only readable because the
+Android head installs a logcat provider. `AddDebug()` does not cover it: `DebugLogger` is gated
+on a debugger being attached, so it writes nothing on any build running from a phone, release
+or debug. `adb logcat -s RedMist` is worth knowing on its own - it is the app talking, and the
+runtime's native chatter is under `DOTNET` where it will not get in the way.
 
-It reads pixels rather than the automation tree, and that is not a shortcut. A screen
-repainting every second almost never reaches the idle state `uiautomator dump` insists on:
-measured on a live session, one attempt in ten succeeded. The tree is read once, to find
-the clock and confirm it says what it should, and the watching is done on the framebuffer.
+Three outcomes, and they mean different things:
 
-**It skips rather than fails when nothing is live.** An empty live list is legitimate
-between seasons, and a live row can name an event whose session has not started. The skip
-and its reason are recorded in the run's steps - report it either way, because a run where
-this was skipped has not checked the hub at all.
+- **Nothing logged since launch.** A build without the logcat provider - every release before
+  it. Skipped, and the run says so.
+- **Logged, but the hub delivered nothing.** The subscription was never established. Failed.
+- **Anything in between.** A working hub.
 
-It runs last on purpose. Opening a live session loads a whole timing grid, and doing that
-before `final_pss_mb` is read would move a number the baseline is keeping. The change count
-is deliberately not a summary key either: it jitters with capture timing, and a tracked
-metric that moves on its own only teaches you to ignore it.
+The assertion is on the hub delivering something, not on a patch a second, and the difference is
+deliberate. A session patch a second is what an RMonitor-fed event gives, because its heartbeat
+moves the clock whether or not anything happened. `LivePollingPolicy` documents the other lanes -
+multiloop, x2 passings, flags, Flagtronics, lap-completed - which publish only on change, and an
+event carried by those alone is legitimately quiet. Nothing here separates that from a slow feed,
+and failing a healthy run is worse than not measuring the rate. The rate is still printed and
+recorded, with a note when it is below one every two seconds.
 
+It also skips when nothing is live: an empty live list is legitimate between seasons, and a live
+row can name an event whose session has not started. Every skip records its reason in the run's
+steps - report it either way, because a run where this was skipped has not checked the hub.
+
+It runs last on purpose. Opening a live session loads a whole timing grid, and doing that before
+`final_pss_mb` is read would move a number the baseline is keeping. The patch count is
+deliberately not a summary key: the feed is a real race server sending on change, so the rate
+moves on its own, and a tracked metric that does that only teaches you to ignore it.
 
 Both take `--set-baseline`. **Do not pass it unless the user explicitly asked you to move
 the baseline.** See below.
