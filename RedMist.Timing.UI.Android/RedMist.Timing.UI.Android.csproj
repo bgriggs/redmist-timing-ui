@@ -138,6 +138,38 @@
 		<PackageReference Include="TypeGen" ExcludeAssets="all" PrivateAssets="all" />
 	</ItemGroup>
 
+	<!-- Excluding TypeGen leaves RedMist.TimingCommon referring to something that is no longer
+	     there: its TypeScript generation specs derive from TypeGen.Core's GenerationSpec. By
+	     default nothing trims TimingCommon, so it shipped exactly as it comes out of the package,
+	     dangling base type and all. Nothing walks the assembly today, so nothing notices, but
+	     anything that enumerated its types would get a ReflectionTypeLoadException rather than a
+	     build error. Marking it trimmable drops the spec classes, which nothing in the app reaches.
+
+	     SdkOnly is not the boundary the name suggests. What decides is whether an assembly marks
+	     itself with [AssemblyMetadata("IsTrimmable", "True")] - Sentry and CommunityToolkit.Mvvm
+	     both carry it and are both trimmed in this build. TrimmableAssembly sets that same flag
+	     from the outside, and that is the whole of what this line does.
+
+	     iOS pairs its copy of this line with TrimmerRootAssembly entries for MessagePack. They are
+	     not needed here, and they are no-ops there too: MessagePack carries no marker, so it is
+	     copied whole on both heads - the linked MessagePack.dll is byte-identical to the package's.
+	     iOS is on TrimMode=partial as well, so the two differ less than they appear to.
+
+	     What this does rest on is worth writing down, because it is implicit. The patch types have
+	     no source-generated MessagePack formatter in TimingCommon 1.15.0, and Android has a JIT, so
+	     DynamicObjectResolver builds their formatters at runtime by reflecting over properties that
+	     the app itself only ever reads. Their setters survive only because Mapperly's generated
+	     mappers call every one of them and the app calls the mappers. The trimmer follows that at
+	     fine granularity - SessionStateMapper.PatchToEntity was dropped while
+	     CarPositionMapper.PatchToEntity was kept - so a refactor that stopped calling a mapper
+	     could take the setters with it and break live timing silently. There would be no build
+	     error and no warning: trim analysis warnings are suppressed in this configuration, so a
+	     clean build says nothing about it. Moving to TimingCommon 1.17.1 or later, where the patch
+	     types have generated formatters of their own, removes the dependency outright. -->
+	<ItemGroup>
+		<TrimmableAssembly Include="RedMist.TimingCommon" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\RedMist.Timing.UI\RedMist.Timing.UI.csproj" />
 	</ItemGroup>
