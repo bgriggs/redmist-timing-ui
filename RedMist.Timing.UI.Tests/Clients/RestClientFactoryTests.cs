@@ -126,6 +126,24 @@ public sealed class RestClientFactoryTests
     }
 
     [TestMethod]
+    public void TheSharedAuthenticatorIsWrappedForConcurrentFirstRequests()
+    {
+        // Sharing the instance only helps a request that arrives after another has finished. The
+        // Keycloak authenticator reads its cache at the start of Authenticate and writes it at the
+        // end with nothing holding the gap, so requests that start together all miss and all fetch
+        // - measured at six token requests for six concurrent calls, each on its own HttpClient.
+        // Startup is exactly that case now that the version check runs alongside the events list
+        // rather than in front of it, which is what the wrapper is here for.
+        //
+        // Only the wiring is checked here. What the wrapper actually does with those callers is
+        // SingleFlightAuthenticatorTests' business.
+        using var factory = new RestClientFactory(Configuration());
+        var client = factory.Create("Server:EventUrl");
+
+        Assert.IsInstanceOfType<SingleFlightAuthenticator>(client.Options.Authenticator);
+    }
+
+    [TestMethod]
     public void ClientsKeepTheirOwnBaseUrl()
     {
         using var factory = new RestClientFactory(Configuration());

@@ -156,7 +156,13 @@ internal static class TestViewModelFactory
     /// the two have to agree on what code is held, because that is what the client keys its answers
     /// off and what the view model writes when a code is accepted.
     /// </remarks>
-    internal static MainViewModel CreateMain(EventClient? eventClient = null, EventAccessCodeStore? accessCodeStore = null)
+    /// <param name="versionCheckService">
+    /// Substitute for the startup version check. The default answers immediately, so a test that
+    /// cares about what startup does while the check is still outstanding has to supply one that
+    /// does not.
+    /// </param>
+    internal static MainViewModel CreateMain(EventClient? eventClient = null, EventAccessCodeStore? accessCodeStore = null,
+        IVersionCheckService? versionCheckService = null)
     {
         var configuration = CreateConfiguration();
         var restClientFactory = new RestClientFactory(configuration);
@@ -184,7 +190,7 @@ internal static class TestViewModelFactory
             new ViewSizeService(),
             new EventContext(),
             new DesignPlatformDetectionService(),
-            new DesignVersionCheckService(),
+            versionCheckService ?? new DesignVersionCheckService(),
             httpClientFactory,
             configuration,
             iconCacheService,

@@ -29,6 +29,11 @@ namespace RedMist.Timing.UI.Clients;
 /// timeout - all of which they were already agreeing on separately. The authenticator is shared
 /// deliberately: its whole purpose is the token cache, and one cache for one set of credentials is
 /// the point.
+///
+/// Sharing the instance is not on its own enough to share the token, which is what
+/// <see cref="SingleFlightAuthenticator"/> is wrapped around it for. The cache only helps a request
+/// that arrives after another has finished; requests that start together all find it empty. Startup
+/// is exactly that case now that the version check no longer runs in front of the events list.
 /// </remarks>
 public sealed class RestClientFactory : IDisposable
 {
@@ -46,7 +51,8 @@ public sealed class RestClientFactory : IDisposable
         var realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
         var clientId = configuration["Keycloak:ClientId"] ?? throw new InvalidOperationException("Keycloak client ID is not configured.");
         var clientSecret = configuration["Keycloak:ClientSecret"] ?? throw new InvalidOperationException("Keycloak client secret is not configured.");
-        authenticator = new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret);
+        authenticator = new SingleFlightAuthenticator(
+            new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret));
 
         // RestSharp enforces its own per-request timeout with a cancellation token, and sets the
         // handed-out client to infinite for that reason. A supplied client keeps whatever timeout it

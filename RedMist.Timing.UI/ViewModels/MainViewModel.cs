@@ -235,11 +235,32 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
         WeakReferenceMessenger.Default.Send(new AppResumeNotification());
     }
 
+    /// <summary>
+    /// Brings up the first screen, and starts the version check alongside it rather than in front
+    /// of it.
+    /// </summary>
+    /// <remarks>
+    /// The version check used to be awaited here, before <see cref="IsContentVisible"/>, and that
+    /// held back more than the paint. The events list is inside the content grid, and a control
+    /// under an invisible parent is never measured, so its ContentPresenter never builds it and its
+    /// OnLoaded - the only thing that starts the events request on a cold start - never runs. The
+    /// whole of startup was therefore serial: Keycloak token, then the version request, then a
+    /// blank screen for as long as that took, and only then the first request for the events the
+    /// person opened the app to see. Bounded at <see cref="VersionCheckTimeoutSeconds"/> seconds,
+    /// and the events request has its own retries to make on top.
+    ///
+    /// Nothing was bought with it. The mandatory-update overlay is the last child of that same
+    /// grid, so it is drawn over the list whenever it appears; blocking the paint was never what
+    /// made it block the app. A viewer on an old build may now see the list for a moment before the
+    /// overlay covers it, which is the same thing they already saw whenever the check timed out.
+    ///
+    /// Awaited at the end rather than dropped, so a fault in it is still observed - the check
+    /// swallows its own exceptions, but that is its business, not something to rely on from here.
+    /// </remarks>
     public async Task Initialize()
     {
-        // Perform version check before loading events list (User Stories 1, 2, 3)
-        await PerformVersionCheckAsync();
-        
+        var versionCheck = PerformVersionCheckAsync();
+
         if (OperatingSystem.IsBrowser())
         {
             await BrowserInterop.InitializeJsModuleAsync();
@@ -275,7 +296,11 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
             }
         }
 
+        // Before the await below, deliberately: this is what lets the layout pass build the events
+        // list and start its request, and it must not wait on the version check to do it.
         IsContentVisible = true;
+
+        await versionCheck;
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
