@@ -32,15 +32,18 @@
 		<!-- Preserve MessagePack assemblies from trimming -->
 		<TrimmerRootAssembly Include="MessagePack" />
 		<TrimmerRootAssembly Include="MessagePack.Annotations" />
-		<!-- Allow the trimmer to drop unused types from TimingCommon (notably TypeScript codegen specs that reach into TypeGen) -->
+		<!-- Kept, but the reason it was added has gone: TimingCommon 1.17.2 no longer compiles its
+		     TypeScript codegen specs into the shipped assembly, so there is nothing reaching into
+		     TypeGen for the trimmer to drop. What this line still does is hollow out the MessagePack
+		     patch formatters - see the long note in the Android head, which refuses the same line for
+		     exactly that reason. It is survivable here only because this hub runs JSON and never asks
+		     MessagePack for those types. Worth removing when someone can build and run iOS to confirm
+		     it; it is latent breakage the day iOS moves to the MessagePack protocol. -->
 		<TrimmableAssembly Include="RedMist.TimingCommon" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia.iOS" />
-		<!-- TypeGen is a build-time TS codegen library transitively pulled in by RedMist.TimingCommon.
-		     Strip it from the iOS publish so AOT never tries to compile TypeGen.Core (which uses reflection patterns AOT can't handle). -->
-		<PackageReference Include="TypeGen" ExcludeAssets="all" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>

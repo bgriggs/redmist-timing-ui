@@ -127,22 +127,16 @@
 		<!-- Exclude JVM variant of Compose Runtime Annotation to prevent duplicate types -->
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" ExcludeAssets="all" />
 
-		<!-- TypeGen is a build-time TypeScript codegen library pulled in transitively by
-		     RedMist.TimingCommon. It has no runtime role in the app, but it was still being
-		     packaged - and packaged incomplete. TypeGen 7.0.0's net10.0 dependency group is empty,
-		     so the Newtonsoft.Json that TypeGen.Core carries an assembly reference to is never
-		     restored alongside it; only the fallback group names it. AOT is what surfaced that,
-		     because the compiler walks every shipped assembly: TypeGen.Core could not resolve a
-		     reference nothing had brought in, and that took the whole build down. iOS already
-		     excludes it for the same reason. -->
-		<PackageReference Include="TypeGen" ExcludeAssets="all" PrivateAssets="all" />
 	</ItemGroup>
 
 	<!-- RedMist.TimingCommon is deliberately NOT marked trimmable, and this comment is here so
 	     that nobody adds it back. iOS carries <TrimmableAssembly Include="RedMist.TimingCommon" />
-	     and it is tempting to mirror: excluding TypeGen leaves TimingCommon deriving from a base
-	     type that no longer ships, because its TypeScript generation specs extend TypeGen.Core's
-	     GenerationSpec, and trimming drops those spec classes and 64 KB of IL with them.
+	     and it is tempting to mirror.
+
+	     What used to make it tempting is gone. TimingCommon 1.17.2 stopped compiling its TypeScript
+	     generation specs into the shipped assembly, so there is no longer a TypeGen reference for
+	     the trimmer to clean up after, and no spec classes whose removal reclaimed IL. Trimming
+	     here would now buy essentially nothing.
 
 	     It also breaks live timing outright. From 1.17.1 the patch types carry
 	     [MessagePackFormatter(typeof(SessionStatePatchFormatter))], and that attribute has no
@@ -167,11 +161,10 @@
 	     A descriptor here would work, and the reason not to add one is the payoff rather than the
 	     mechanism: ILLink descriptors take wildcards, so
 	     <type fullname="RedMist.TimingCommon.Models.*PatchFormatter" preserve="all" /> keeps every
-	     formatter the generator will ever emit, verified by relinking. What it buys is 64 KB of IL
-	     and no dangling reference - and f93794f already measured that less IL here does not mean a
-	     smaller app, because that build's APK came out 197 KB larger. Nothing reflects over the
-	     assembly, so the dangling reference costs nothing today. Not worth a mechanism that has to
-	     stay correct. The fix that would be worth having is upstream, on MessagePack's
+	     formatter the generator will ever emit, verified by relinking. What it buys is a little IL -
+	     and f93794f already measured that less IL here does not mean a smaller app, because that
+	     build's APK came out 197 KB larger. Not worth a mechanism that has to stay correct. The fix
+	     that would be worth having is upstream, on MessagePack's
 	     MessagePackFormatterAttribute, whose formatterType parameter wants
 	     [DynamicallyAccessedMembers(PublicConstructors | PublicFields)]; failing that, the patch
 	     generator emitting a DynamicDependency alongside each formatter. -->
