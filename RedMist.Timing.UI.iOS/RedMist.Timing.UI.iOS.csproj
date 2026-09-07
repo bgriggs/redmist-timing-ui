@@ -32,14 +32,30 @@
 		<!-- Preserve MessagePack assemblies from trimming -->
 		<TrimmerRootAssembly Include="MessagePack" />
 		<TrimmerRootAssembly Include="MessagePack.Annotations" />
-		<!-- Kept, but the reason it was added has gone: TimingCommon 1.17.2 no longer compiles its
-		     TypeScript codegen specs into the shipped assembly, so there is nothing reaching into
-		     TypeGen for the trimmer to drop. What this line still does is hollow out the MessagePack
-		     patch formatters - see the long note in the Android head, which refuses the same line for
-		     exactly that reason. It is survivable here only because this hub runs JSON and never asks
-		     MessagePack for those types. Worth removing when someone can build and run iOS to confirm
-		     it; it is latent breakage the day iOS moves to the MessagePack protocol. -->
-		<TrimmableAssembly Include="RedMist.TimingCommon" />
+		<!-- RedMist.TimingCommon deliberately carries no TrimmableAssembly line, matching the Android
+		     head. It had one, to drop the TypeScript codegen specs that reached into TypeGen, and
+		     TimingCommon 1.17.2 no longer ships those specs at all - so the line kept only its side
+		     effect.
+
+		     Measured on a Mac against ios-arm64, which is the only place this linker actually runs.
+		     With the line, both MessagePack patch formatters come out of ILLink as empty shells:
+
+		         SessionStatePatchFormatter   methods:  fields:  interfaces: 0
+
+		     and without it they are whole:
+
+		         SessionStatePatchFormatter   methods: Serialize, Deserialize, .ctor, .cctor
+		                                      fields: Instance   interfaces: 2
+
+		     The type survives either way, because [MessagePackFormatter(typeof(...))] names it and
+		     that attribute has no DynamicallyAccessedMembers - so AttributeFormatterResolver would
+		     find the shell and fail to activate it. That is the failure the Android head describes
+		     at length, and it cost 48 KB of IL in the linked assembly to cause.
+
+		     Nothing was observably broken here, and that is the point: this hub runs JSON, so iOS
+		     never asks MessagePack for these types and the damage stayed latent - live until the day
+		     iOS moves to the MessagePack protocol. Removing the line costs about 45 KB on a 39 MB
+		     IPA, roughly a tenth of a percent, verified running on an iPhone XR. -->
 	</ItemGroup>
 
 	<ItemGroup>

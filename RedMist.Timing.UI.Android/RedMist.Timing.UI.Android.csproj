@@ -155,8 +155,11 @@
 	     produces 357 IL2 warnings that between them say only that MessagePack does not support
 	     trimming - none points at a formatter. The app meanwhile goes on rendering its last state.
 
-	     iOS gets away with the same line because its hub runs JSON, so it never asks MessagePack
-	     for these types at all. It still ships the same hollow formatters.
+	     iOS carried the same line and got away with it, because its hub runs JSON and never asks
+	     MessagePack for these types - it was shipping the same hollow formatters, unnoticed. It no
+	     longer carries it: measured against ios-arm64 on a Mac, the line emptied both formatters of
+	     their methods, fields and interfaces, and removing it cost about 45 KB on a 39 MB IPA. So
+	     neither head trims this assembly now, for the same reason.
 
 	     A descriptor here would work, and the reason not to add one is the payoff rather than the
 	     mechanism: ILLink descriptors take wildcards, so
