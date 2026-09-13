@@ -65,4 +65,56 @@ internal static class LivePollingPolicy
 
         return sinceHubMessage >= HubSilenceBeforeRefreshing || sinceFullRefresh >= FullRefreshFloor;
     }
+
+    /// <summary>
+    /// How long the server has to keep saying an event has nothing live before the screen stops
+    /// asking on every tick.
+    /// </summary>
+    /// <remarks>
+    /// Long enough to sit out an event starting. Production shows twelve to fifteen seconds of these
+    /// answers between orchestration launching an event's processor and the processor serving state,
+    /// and a viewer who opened the event in that window should have the first whole state as soon as
+    /// there is one. An event still saying so after a minute has finished or has not begun.
+    /// </remarks>
+    public static readonly TimeSpan NotLiveBeforeHoldingOff = TimeSpan.FromMinutes(1);
+
+    /// <summary>How often a screen on an event with nothing live still asks.</summary>
+    /// <remarks>
+    /// Roughly every seventh tick instead of every one: the answer is stamped when it arrives, so the
+    /// first tick a full interval later is usually the seventh. It is the backstop rather than the way
+    /// an event coming back gets noticed - a running event sends patches, and any patch lifts the hold
+    /// at once.
+    /// </remarks>
+    public static readonly TimeSpan NotLiveRecheckInterval = TimeSpan.FromSeconds(30);
+
+    /// <summary>How far apart two not-live answers can be and still count as one run.</summary>
+    /// <remarks>
+    /// Well past a recheck, so a screen being held off stays in one run. What it separates is a screen
+    /// that stopped asking - the app in the background, or left open overnight on a multi-day event -
+    /// whose next answer should get the same grace as a first one.
+    /// </remarks>
+    public static readonly TimeSpan NotLiveRunBreak = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Whether the periodic tick should skip an event the server keeps saying has nothing live.
+    /// </summary>
+    /// <remarks>
+    /// Without this a screen left open on a finished event asked every five seconds for as long as it
+    /// stayed open - one viewer's phone for most of a day - because a finished event's hub is silent,
+    /// and silence is exactly what <see cref="ShouldRefresh"/> treats as needing a poll.
+    /// </remarks>
+    /// <param name="notLiveFor">How long the server has been answering that way without a break.</param>
+    /// <param name="sinceNotLiveAnswer">How long since it last did.</param>
+    /// <param name="hubHeardFromSince">Whether the hub has delivered anything for the event since then.</param>
+    public static bool IsHoldingOff(TimeSpan notLiveFor, TimeSpan sinceNotLiveAnswer, bool hubHeardFromSince)
+    {
+        // The feed outranks the last answer: patches arriving mean the event is running again, and
+        // the screen needs a whole state now rather than at the next recheck.
+        if (hubHeardFromSince)
+        {
+            return false;
+        }
+
+        return notLiveFor >= NotLiveBeforeHoldingOff && sinceNotLiveAnswer < NotLiveRecheckInterval;
+    }
 }

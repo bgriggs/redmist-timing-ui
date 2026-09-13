@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.Services;
@@ -50,6 +51,9 @@ public sealed class LiveTimingRefreshTests
 
             /// <summary>The call itself throws out of the refresh.</summary>
             Throws,
+
+            /// <summary>The server says the event has nothing live.</summary>
+            NotLive,
         }
 
         public override async Task<SessionState?> LoadEventStatusAsync(int eventId)
@@ -67,6 +71,9 @@ public sealed class LiveTimingRefreshTests
                 // Past the retry wrapper, so this reaches the refresh's own catch: applying a state
                 // with no car positions throws where the patches are built.
                 FailureMode.Throws => new SessionState { CarPositions = null! },
+
+                // What the real client makes of a 404 - see EventClientNotLiveTests.
+                FailureMode.NotLive => throw new EventNotLiveException(eventId),
 
                 _ => new SessionState { CarPositions = [] },
             };
@@ -88,6 +95,9 @@ public sealed class LiveTimingRefreshTests
 
     private readonly List<object> created = [];
 
+    /// <summary>Everything the view model logs - MSTest builds a fresh instance of this class per test.</summary>
+    private readonly RecordingLoggerFactory logs = new();
+
     [TestCleanup]
     public void UnregisterFromTheMessenger()
     {
@@ -107,7 +117,7 @@ public sealed class LiveTimingRefreshTests
         var server = new GatedEventClient(new RestClientFactory(configuration), store);
         var hub = new FakeHubClient(configuration, store);
 
-        var vm = TestViewModelFactory.CreateLiveTiming(hub, server);
+        var vm = TestViewModelFactory.CreateLiveTiming(hub, server, logs);
         vm.EventModel = new Event { EventId = eventId };
         vm.IsRealTime = true;
         created.Add(vm);
@@ -331,6 +341,132 @@ public sealed class LiveTimingRefreshTests
 
         hub.Connected = true;
         hub.LastMessage = null;
+
+        Assert.IsTrue(vm.ShouldRefreshNow());
+    });
+
+    // --- An event with nothing live -----------------------------------------------------------
+
+    [TestMethod]
+    public Task AnEventWithNothingLive_IsAskedOnceAndNotReported() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // REDMIST-APP-X: a screen left open on a finished event polled every five seconds, tried each
+        // poll three times, and filed an error at the end of every one - for most of a day.
+        var (vm, server, _) = CreateLive();
+        server.Fails = GatedEventClient.FailureMode.NotLive;
+        server.Release();
+
+        await vm.RefreshStatusAsync();
+
+        Assert.AreEqual(1, server.Calls, "Nothing live is an answer, and asking again half a second later gets the same one.");
+        var reported = logs.Entries.Where(e => e.Level >= LogLevel.Error).Select(e => e.Message).ToList();
+        Assert.IsEmpty(reported, "An event with nothing running is not a fault to report: " + string.Join("; ", reported));
+    });
+
+    [TestMethod]
+    public Task ANotLiveRunThatGoesOn_HoldsTheTickOff() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // A finished event's hub is silent, and silence is what makes the gate poll - so without the
+        // hold this screen would ask every five seconds for as long as it stayed open.
+        var (vm, server, hub) = CreateLive();
+        hub.Connected = true;
+        hub.LastMessage = DateTime.UtcNow - TimeSpan.FromMinutes(5);
+        vm.RecordNotLiveAnswer(DateTime.UtcNow - TimeSpan.FromMinutes(2));
+        server.Fails = GatedEventClient.FailureMode.NotLive;
+        server.Release();
+
+        // The server says so again, which is what keeps the hold current.
+        await vm.RefreshStatusAsync();
+
+        Assert.IsFalse(vm.ShouldRefreshNow());
+    });
+
+    [TestMethod]
+    public Task AnEventStartingUp_IsNotHeldOff() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // The first answers of a run are an event whose processor is still starting, and the viewer
+        // who opened it early has to get a whole state as soon as there is one.
+        var (vm, server, hub) = CreateLive();
+        hub.Connected = true;
+        hub.LastMessage = null;
+        server.Fails = GatedEventClient.FailureMode.NotLive;
+        server.Release();
+
+        await vm.RefreshStatusAsync();
+
+        Assert.IsTrue(vm.ShouldRefreshNow());
+    });
+
+    [TestMethod]
+    public Task PatchesArriving_LiftTheHold() => HeadlessTest.OnDispatcher(() =>
+    {
+        var (vm, _, hub) = CreateLive();
+        hub.Connected = true;
+        var now = DateTime.UtcNow;
+        vm.RecordNotLiveAnswer(now - TimeSpan.FromMinutes(2));
+        vm.RecordNotLiveAnswer(now - TimeSpan.FromSeconds(1));
+        hub.LastMessage = now - TimeSpan.FromMinutes(5);
+        Assert.IsFalse(vm.ShouldRefreshNow(), "Sanity check - held off while the hub is quiet.");
+
+        // The event has come back: patches are arriving after the server last said otherwise.
+        hub.LastMessage = now;
+
+        Assert.IsTrue(vm.ShouldRefreshNow(), "A screen that has never had a whole state needs one as soon as the event is running.");
+    });
+
+    [TestMethod]
+    public Task AWholeState_EndsTheRun() => HeadlessTest.OnDispatcher(async () =>
+    {
+        var (vm, server, hub) = CreateLive();
+        hub.Connected = true;
+        hub.LastMessage = DateTime.UtcNow - TimeSpan.FromMinutes(5);
+        vm.RecordNotLiveAnswer(DateTime.UtcNow - TimeSpan.FromMinutes(2));
+        vm.RecordNotLiveAnswer(DateTime.UtcNow);
+        Assert.IsFalse(vm.ShouldRefreshNow(), "Sanity check - held off.");
+
+        server.Release();
+        await vm.RefreshStatusAsync();
+
+        // A running event whose hub has gone quiet has to be polled. A hold left over from the run
+        // would stand the poll down exactly when it is needed.
+        Assert.IsTrue(vm.ShouldRefreshNow());
+    });
+
+    [TestMethod]
+    public Task ASessionReset_StartsTheQuestionOver() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // A reset comes from a running event, and the reload it triggers can still answer not live
+        // while the processor settles. A run carried across from before would hold that screen off at once.
+        var (vm, server, hub) = CreateLive();
+        hub.Connected = true;
+        hub.LastMessage = DateTime.UtcNow - TimeSpan.FromMinutes(5);
+        vm.RecordNotLiveAnswer(DateTime.UtcNow - TimeSpan.FromMinutes(2));
+        vm.RecordNotLiveAnswer(DateTime.UtcNow);
+        server.Fails = GatedEventClient.FailureMode.NotLive;
+        server.Release();
+
+        var beforeReset = server.Calls;
+        vm.Receive(new ResetNotification());
+        await WaitForCallsAsync(server, beforeReset + 1);
+
+        Assert.IsTrue(vm.ShouldRefreshNow());
+    });
+
+    [TestMethod]
+    public Task ARunLeftOvernight_StartsAgain() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // A multi-day event left open overnight. The first answer of the morning belongs to a new run,
+        // with the same grace as a first open, and not to last night's - which would hold the screen
+        // off before it had asked a second time.
+        var (vm, server, hub) = CreateLive();
+        hub.Connected = true;
+        hub.LastMessage = DateTime.UtcNow - TimeSpan.FromHours(10);
+        vm.RecordNotLiveAnswer(DateTime.UtcNow - TimeSpan.FromHours(10));
+        vm.RecordNotLiveAnswer(DateTime.UtcNow - TimeSpan.FromHours(9));
+        server.Fails = GatedEventClient.FailureMode.NotLive;
+        server.Release();
+
+        await vm.RefreshStatusAsync();
 
         Assert.IsTrue(vm.ShouldRefreshNow());
     });

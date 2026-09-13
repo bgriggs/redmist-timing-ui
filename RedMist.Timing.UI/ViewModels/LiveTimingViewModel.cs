@@ -180,6 +180,17 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// recently in sync.
     /// </remarks>
     private long lastFullRefreshTicks;
+
+    /// <summary>
+    /// When the status call began saying this event has nothing live, and when it last said so, in
+    /// UTC ticks. Both zero while it is answering normally. See <see cref="LivePollingPolicy.IsHoldingOff"/>.
+    /// </summary>
+    /// <remarks>
+    /// Longs behind Interlocked for the same reason as <see cref="lastFullRefreshTicks"/>, and cleared
+    /// wherever that one is, since a new event or a reset starts the question over.
+    /// </remarks>
+    private long notLiveSinceTicks;
+    private long notLiveLastTicks;
     /// <summary>
     /// Owns the lifetime of the rows in <see cref="carCache"/>. See where it is assigned.
     /// </summary>
@@ -380,7 +391,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             // then read the last event's timestamp, decide this screen was recently in sync, and
             // leave it empty for the length of the refresh floor while the hub delivered deltas for
             // rows that were never created.
-            MarkNotYetRefreshed();
+            ResetRefreshState();
 
             // Load organization icon from cache or CDN
             if (EventModel.OrganizationId > 0)
@@ -473,15 +484,72 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
 
         var now = DateTime.UtcNow;
-        var sinceHubMessage = hubClient.LastEventMessageUtc is { } last ? now - last : TimeSpan.MaxValue;
+        var lastHubMessage = hubClient.LastEventMessageUtc;
+
+        // Asked before the gate below, which on its own would poll a finished event forever: that
+        // event's hub has gone silent, and silence is what the gate treats as needing a poll.
+        var notLiveSince = Interlocked.Read(ref notLiveSinceTicks);
+        if (notLiveSince != 0)
+        {
+            var notLiveLast = Interlocked.Read(ref notLiveLastTicks);
+            if (LivePollingPolicy.IsHoldingOff(
+                    notLiveFor: now - new DateTime(notLiveSince, DateTimeKind.Utc),
+                    sinceNotLiveAnswer: now - new DateTime(notLiveLast, DateTimeKind.Utc),
+                    hubHeardFromSince: lastHubMessage?.Ticks > notLiveLast))
+            {
+                return false;
+            }
+        }
+
+        var sinceHubMessage = lastHubMessage is { } last ? now - last : TimeSpan.MaxValue;
         var lastRefresh = Interlocked.Read(ref lastFullRefreshTicks);
         var sinceFullRefresh = lastRefresh == 0 ? TimeSpan.MaxValue : now - new DateTime(lastRefresh, DateTimeKind.Utc);
 
         return LivePollingPolicy.ShouldRefresh(hubClient.IsConnected, sinceHubMessage, sinceFullRefresh);
     }
 
-    /// <summary>Returns the screen to "no whole state has been applied yet".</summary>
-    private void MarkNotYetRefreshed() => Interlocked.Exchange(ref lastFullRefreshTicks, 0);
+    /// <summary>
+    /// Returns the screen to knowing nothing about its event: no whole state applied yet, and no
+    /// run of not-live answers.
+    /// </summary>
+    /// <remarks>
+    /// One method rather than two calls, so a new event and a session reset cannot drift apart on
+    /// what they forget. The reset path is the one with a test, and sharing this is what lets that
+    /// test speak for both.
+    /// </remarks>
+    private void ResetRefreshState()
+    {
+        Interlocked.Exchange(ref lastFullRefreshTicks, 0);
+        ForgetNotLiveAnswers();
+    }
+
+    /// <summary>Notes that the status call has just said this event has nothing live.</summary>
+    /// <remarks>
+    /// The start is set only when there is no run already, so repeated answers extend one - unless
+    /// they are further apart than <see cref="LivePollingPolicy.NotLiveRunBreak"/>. Internal so a test
+    /// can place the start of a run in the past instead of waiting a minute for one.
+    /// </remarks>
+    internal void RecordNotLiveAnswer(DateTime utcNow)
+    {
+        // Answers this far apart are not one run. Without the break, a phone left open overnight on a
+        // multi-day event would come back already held off, and wait out a recheck before its first
+        // whole state of the morning.
+        var last = Interlocked.Read(ref notLiveLastTicks);
+        if (last != 0 && utcNow.Ticks - last >= LivePollingPolicy.NotLiveRunBreak.Ticks)
+        {
+            Interlocked.Exchange(ref notLiveSinceTicks, 0);
+        }
+
+        Interlocked.CompareExchange(ref notLiveSinceTicks, utcNow.Ticks, 0);
+        Interlocked.Exchange(ref notLiveLastTicks, utcNow.Ticks);
+    }
+
+    /// <summary>Forgets any run of not-live answers.</summary>
+    private void ForgetNotLiveAnswers()
+    {
+        Interlocked.Exchange(ref notLiveSinceTicks, 0);
+        Interlocked.Exchange(ref notLiveLastTicks, 0);
+    }
 
     /// <summary>
     /// Fetches a whole session state and applies it.
@@ -545,7 +613,19 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             // Stamped only on success, so a failed attempt does not count as the screen having been
             // resynced and leave it running on deltas for another five minutes.
             Interlocked.Exchange(ref lastFullRefreshTicks, DateTime.UtcNow.Ticks);
+            ForgetNotLiveAnswers();
             Logger.LogInformation("Full update in {t}ms", sw.ElapsedMilliseconds);
+        }
+        catch (EventNotLiveException)
+        {
+            // Not a failure: the event has finished, has not started, or its processor is gone.
+            // Logged once per run, below the level crash reporting turns into an event, and the tick
+            // is held off while the run lasts. See LivePollingPolicy.IsHoldingOff.
+            if (Interlocked.Read(ref notLiveSinceTicks) == 0)
+            {
+                Logger.LogInformation("Event {EventId} has nothing live; polling less often until it does", EventModel.EventId);
+            }
+            RecordNotLiveAnswer(DateTime.UtcNow);
         }
         catch (Exception ex)
         {
@@ -832,7 +912,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             ResetEvent();
             // Same reason as in InitializeLiveAsync: the grid is empty again, and if the refresh
             // below fails the gate must not believe it is still in sync.
-            MarkNotYetRefreshed();
+            ResetRefreshState();
             _ = Task.Run(async () =>
             {
                 try

@@ -10,6 +10,7 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,6 +45,10 @@ public class EventClient : BaseRestClient
     /// believed rather than merely misreported. The constraint is <c>class?</c> rather than
     /// <c>class</c> only so operations that already return a nullable reference, such as
     /// <see cref="LoadEventStatusAsync"/>, still fit; value types remain excluded either way.
+    ///
+    /// Two answers are handed straight back rather than retried, because asking again cannot change
+    /// them: access denied, which needs a new code from the viewer, and an event with nothing live,
+    /// which is how the status call reports one that has finished or has not started.
     /// </remarks>
     public async Task<T?> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, int maxRetries = 3)
         where T : class?
@@ -64,6 +69,12 @@ public class EventClient : BaseRestClient
             catch (EventAccessDeniedException)
             {
                 // Don't retry on access denied - caller needs to prompt for a new code.
+                throw;
+            }
+            catch (EventNotLiveException)
+            {
+                // Nor on an event with nothing live. That is the server's answer rather than a
+                // failure, and logging it below as one filed an error for every poll of a finished event.
                 throw;
             }
             catch (Exception ex)
@@ -119,7 +130,18 @@ public class EventClient : BaseRestClient
         var request = new RestRequest("GetCurrentSessionState", Method.Get);
         request.AddQueryParameter("eventId", eventId);
         AttachAccessCode(request, eventId);
-        return await GetAsync<SessionState?>(request, eventId);
+        try
+        {
+            return await GetAsync<SessionState?>(request, eventId);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            // The StatusApi answers 404 when no processor is registered for the event, and also when
+            // the one it has cannot be reached - it does not tell the two apart. Either way there is
+            // no live state to be had. The status code is only on this exception because the server
+            // answered, so a dropped connection never lands here.
+            throw new EventNotLiveException(eventId, ex);
+        }
     }
 
     public virtual async Task<List<CarPosition>> LoadCarLapsAsync(int eventId, int sessionId, string carNumber)
@@ -232,6 +254,17 @@ public class EventClient : BaseRestClient
         }
         if (!response.IsSuccessful)
         {
+            // A server that refused is reported by its status, whatever its body held. RestSharp
+            // deserializes the body of a failed response too, and when that fails it puts the
+            // serializer's exception in ErrorException in place of the one carrying the status - so a
+            // 404 or 408 whose body is a MessagePack string arrived as "Unexpected msgpack code", read
+            // as a defect in the app, and slipped past everything that checks the status code.
+            if (response.StatusCode != 0 && ((int)response.StatusCode is < 200 or > 299)
+                && response.ErrorException is not HttpRequestException { StatusCode: not null })
+            {
+                throw new HttpRequestException($"Request failed with status code {response.StatusCode}",
+                    response.ErrorException, response.StatusCode);
+            }
             if (response.ErrorException != null)
                 throw response.ErrorException;
             return default;

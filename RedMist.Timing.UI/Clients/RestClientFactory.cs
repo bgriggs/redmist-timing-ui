@@ -39,25 +39,41 @@ public sealed class RestClientFactory : IDisposable
 {
     private readonly IConfiguration configuration;
     private readonly HttpClient httpClient;
-    private readonly IAuthenticator authenticator;
+    private readonly IAuthenticator? authenticator;
     private bool disposed;
 
 
     public RestClientFactory(IConfiguration configuration)
+        : this(configuration, CreateAuthenticator(configuration), CreateHandler())
+    {
+    }
+
+    /// <summary>
+    /// Builds the factory over an authenticator and handler the caller supplies.
+    /// </summary>
+    /// <remarks>
+    /// For tests that need a real RestClient - what RestSharp makes of a response is the thing they
+    /// are checking - without a server behind it or a Keycloak round trip in front of every request.
+    /// </remarks>
+    internal RestClientFactory(IConfiguration configuration, IAuthenticator? authenticator, HttpMessageHandler handler)
     {
         this.configuration = configuration;
-
-        var authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
-        var realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
-        var clientId = configuration["Keycloak:ClientId"] ?? throw new InvalidOperationException("Keycloak client ID is not configured.");
-        var clientSecret = configuration["Keycloak:ClientSecret"] ?? throw new InvalidOperationException("Keycloak client secret is not configured.");
-        authenticator = new SingleFlightAuthenticator(
-            new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret));
+        this.authenticator = authenticator;
 
         // RestSharp enforces its own per-request timeout with a cancellation token, and sets the
         // handed-out client to infinite for that reason. A supplied client keeps whatever timeout it
         // arrived with, so it has to be said here instead.
-        httpClient = new HttpClient(CreateHandler()) { Timeout = Timeout.InfiniteTimeSpan };
+        httpClient = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+    }
+
+    private static IAuthenticator CreateAuthenticator(IConfiguration configuration)
+    {
+        var authUrl = configuration["Keycloak:AuthServerUrl"] ?? throw new InvalidOperationException("Keycloak URL is not configured.");
+        var realm = configuration["Keycloak:Realm"] ?? throw new InvalidOperationException("Keycloak realm is not configured.");
+        var clientId = configuration["Keycloak:ClientId"] ?? throw new InvalidOperationException("Keycloak client ID is not configured.");
+        var clientSecret = configuration["Keycloak:ClientSecret"] ?? throw new InvalidOperationException("Keycloak client secret is not configured.");
+        return new SingleFlightAuthenticator(
+            new KeycloakServiceAuthenticator(string.Empty, authUrl, realm, clientId, clientSecret));
     }
 
 

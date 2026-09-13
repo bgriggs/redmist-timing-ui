@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
 using RedMist.Timing.UI.ViewModels;
@@ -98,13 +99,14 @@ internal static class TestViewModelFactory
 
     /// <summary>
     /// Builds the live timing view model, optionally against a caller-supplied hub and event client
-    /// so a test can stand in for the server and for the state of the hub subscription.
+    /// so a test can stand in for the server and for the state of the hub subscription, and a logger
+    /// factory so it can see what was logged.
     /// </summary>
-    internal static LiveTimingViewModel CreateLiveTiming(HubClient? hubClient, EventClient? serverClient)
+    internal static LiveTimingViewModel CreateLiveTiming(HubClient? hubClient, EventClient? serverClient, ILoggerFactory? loggerFactory = null)
     {
         var configuration = CreateConfiguration();
         var restClientFactory = new RestClientFactory(configuration);
-        var loggerFactory = new DebugLoggerFactory();
+        loggerFactory ??= new DebugLoggerFactory();
         var httpClientFactory = new DesignHttpClientFactory();
         var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
         var sponsorIconCache = new SponsorIconCacheService(CreateImageStore(), loggerFactory);

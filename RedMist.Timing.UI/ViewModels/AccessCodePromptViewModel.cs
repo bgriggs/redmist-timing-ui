@@ -81,6 +81,12 @@ public partial class AccessCodePromptViewModel : ObservableObject
                 ErrorMessage = "Incorrect access code. Please try again.";
                 return;
             }
+            catch (EventNotLiveException)
+            {
+                // The code is checked before the server looks for a live session - a wrong one is
+                // turned away with a 401 first - so this is an accepted code for an event that is not
+                // running, and not the network error the handler below would log it as.
+            }
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Network error validating access code for event {EventId} — assuming code is valid", eventId);

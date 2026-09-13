@@ -109,4 +109,67 @@ public sealed class LivePollingPolicyTests
         Assert.IsTrue(LivePollingPolicy.FullRefreshFloor <= TimeSpan.FromMinutes(10),
             "A session can end before the screen next checks its whole state against the server.");
     }
+
+    // --- An event with nothing live -----------------------------------------------------------
+
+    [TestMethod]
+    public void AnEventStartingUp_IsNotHeldOff()
+    {
+        // Twelve to fifteen seconds of not-live answers is an event whose processor is starting.
+        Assert.IsFalse(LivePollingPolicy.IsHoldingOff(notLiveFor: TimeSpan.FromSeconds(15),
+            sinceNotLiveAnswer: TimeSpan.Zero, hubHeardFromSince: false));
+    }
+
+    [TestMethod]
+    public void AnEventThatStaysNotLive_IsHeldOff()
+    {
+        Assert.IsTrue(LivePollingPolicy.IsHoldingOff(LivePollingPolicy.NotLiveBeforeHoldingOff,
+            sinceNotLiveAnswer: TimeSpan.FromSeconds(5), hubHeardFromSince: false));
+    }
+
+    [TestMethod]
+    public void AHeldOffEvent_IsStillCheckedNowAndThen()
+    {
+        // An event can come back without its feed saying so first, so the hold is not a stop.
+        Assert.IsFalse(LivePollingPolicy.IsHoldingOff(TimeSpan.FromHours(2),
+            LivePollingPolicy.NotLiveRecheckInterval, hubHeardFromSince: false));
+    }
+
+    [TestMethod]
+    public void PatchesArriving_LiftTheHold()
+    {
+        Assert.IsFalse(LivePollingPolicy.IsHoldingOff(TimeSpan.FromHours(2),
+            sinceNotLiveAnswer: TimeSpan.FromSeconds(5), hubHeardFromSince: true));
+    }
+
+    [TestMethod]
+    public void TheHoldSitsOutAnEventStarting()
+    {
+        // Production shows twelve to fifteen seconds between an event's processor being launched and
+        // it serving state. Holding off inside that window would leave an early viewer's grid empty
+        // for a recheck interval it had no need to wait out.
+        Assert.IsTrue(LivePollingPolicy.NotLiveBeforeHoldingOff >= TimeSpan.FromSeconds(45));
+    }
+
+    [TestMethod]
+    public void AHeldOffEvent_CostsAFractionOfPolling()
+    {
+        // The tick is five seconds, and asking on every one of them is what this replaces.
+        Assert.IsTrue(LivePollingPolicy.NotLiveRecheckInterval >= TimeSpan.FromSeconds(20),
+            "At this rate a finished event would still be asked about nearly as often as before.");
+
+        // Bounded above too, because it is also the longest an event that comes back without a patch
+        // waits to be noticed.
+        Assert.IsTrue(LivePollingPolicy.NotLiveRecheckInterval <= TimeSpan.FromMinutes(1),
+            "An event that resumes without its feed saying so would sit unnoticed for too long.");
+    }
+
+    [TestMethod]
+    public void AHeldOffScreen_StaysInOneRun()
+    {
+        // A screen being held off still asks once a recheck interval, plus up to a tick. The break has
+        // to sit well past that, or every recheck would start the run over and the hold would never
+        // take effect.
+        Assert.IsTrue(LivePollingPolicy.NotLiveRunBreak >= LivePollingPolicy.NotLiveRecheckInterval * 2);
+    }
 }
