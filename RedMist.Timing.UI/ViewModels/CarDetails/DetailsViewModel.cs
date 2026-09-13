@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
@@ -30,6 +31,15 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
     private readonly IHttpClientFactory httpClientFactory;
     private readonly string archiveBaseUrl;
     private ILogger Logger { get; }
+
+    /// <summary>1 while a load is out, metadata included. See <see cref="Initialize"/>.</summary>
+    private int loadInFlight;
+
+    /// <summary>1 when a load has been asked for and not yet started. See <see cref="Initialize"/>.</summary>
+    private int reloadOwed;
+
+    /// <summary>Set by <see cref="Dispose"/>; a closed panel starts no more loads.</summary>
+    private volatile bool disposed;
 
     [ObservableProperty]
     private bool isLoading = false;
@@ -85,6 +95,50 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
 
     public async Task Initialize()
     {
+        // One load out at a time for this panel. An app resume starts a load, and nothing used to stop
+        // one starting while the last was still out, so on a connection that had stalled each resume
+        // sent a whole set of requests - laps, competitor metadata, control log - alongside the ones
+        // still waiting. A load asked for mid-load is not dropped, though: it runs once when the
+        // current one finishes, however many asked, because the current one may be about to time out
+        // and leave the panel empty - and the resume that came after the connection returned is the
+        // one that would have filled it.
+        //
+        // The request is recorded before the guard is tried, so a load finishing at the same moment
+        // either sees it and runs again, or has already let go of the guard for this call to take.
+        // A closed panel starts no further loads. One already out still finishes, but a reload still
+        // owed when it closed would subscribe to its control log again, taking HubClient's single slot
+        // back from whichever car was opened since.
+        Volatile.Write(ref reloadOwed, 1);
+        while (!disposed && Volatile.Read(ref reloadOwed) == 1
+               && Interlocked.CompareExchange(ref loadInFlight, 1, 0) == 0)
+        {
+            try
+            {
+                while (!disposed && Interlocked.Exchange(ref reloadOwed, 0) == 1)
+                {
+                    try
+                    {
+                        await LoadOnceAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // LoadOnceAsync catches its own failures, so this is only for what gets past
+                        // them. Faulting out of the loop would skip the check below for a request
+                        // recorded during the load, leaving it unserved until the next one.
+                        Logger.LogError(ex, "Error loading details for car {CarNumber}", carNumber);
+                    }
+                }
+            }
+            finally
+            {
+                Volatile.Write(ref loadInFlight, 0);
+            }
+        }
+    }
+
+    private async Task LoadOnceAsync()
+    {
+        Task? metadataLoad = null;
         try
         {
             Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = true);
@@ -92,7 +146,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
             _ = hubClient.SubscribeToCarControlLogsAsync(evt.EventId, carNumber);
 
             // Load Competitor Metadata
-            _ = Task.Run(async () =>
+            metadataLoad = Task.Run(async () =>
             {
                 try
                 {
@@ -156,10 +210,19 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         {
             Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = false);
         }
+
+        // The panel stops showing as loading without the metadata, but the load is not over until it
+        // answers: letting go of the guard while it was still out would let the next load send
+        // another, so a metadata request that stalls holds back a reload just as a stalled laps request
+        // does. It cannot fault - it catches its own failures above.
+        if (metadataLoad is not null)
+        {
+            await metadataLoad;
+        }
     }
 
     /// <summary>The car's control log, or null if it could not be loaded.</summary>
-    /// <remarks>Never faults, because <see cref="Initialize"/> may never await it. The failure is
+    /// <remarks>Never faults, because <see cref="LoadOnceAsync"/> may never await it. The failure is
     /// logged here instead, where the noise policy groups and rations it like any other load.</remarks>
     private async Task<CarControlLogs?> LoadCarControlLogsAsync()
     {
@@ -280,6 +343,7 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
 
     public void Dispose()
     {
+        disposed = true;
         try
         {
             WeakReferenceMessenger.Default.UnregisterAll(this);
