@@ -11,7 +11,6 @@ using RedMist.Timing.UI.ViewModels.CarDetails;
 using RedMist.Timing.UI.Views;
 using RedMist.TimingCommon.Models;
 using System.Collections;
-using System.Reflection;
 
 namespace RedMist.Timing.UI.Tests.Headless;
 
@@ -43,36 +42,6 @@ namespace RedMist.Timing.UI.Tests.Headless;
 public sealed class LapListVirtualizationTests
 {
     private const int LapCount = 155;
-
-    /// <summary>
-    /// Puts the app's own resources and a control theme in reach of the view under test.
-    /// </summary>
-    /// <remarks>
-    /// HeadlessTestApp deliberately loads neither - see its remarks - so the view's StaticResource
-    /// lookups for geometries and converters would throw, and with no control theme an ItemsControl
-    /// gets no template and so never builds a panel at all. Both are added inside the dispatch and
-    /// go away with it, leaving ResourceFallbackTests the bare application it needs.
-    ///
-    /// The trampoline is how Avalonia's own generated InitializeComponent loads compiled XAML.
-    /// AvaloniaXamlLoader.Load cannot stand in for it: that fails on an Application built outside an
-    /// AppBuilder, which is exactly the situation here.
-    /// </remarks>
-    private static void LoadAppResources()
-    {
-        var app = new RedMist.Timing.UI.App();
-        var populate = typeof(RedMist.Timing.UI.App).GetMethod("!XamlIlPopulateTrampoline",
-            BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        Assert.IsNotNull(populate, "Avalonia no longer emits the populate trampoline - this needs another way to reach App.axaml's resources.");
-        populate.Invoke(null, [app]);
-
-        // Copied entry by entry: a ResourceDictionary refuses to be merged into a second owner.
-        var resources = new ResourceDictionary();
-        foreach (var entry in app.Resources)
-            resources.Add(entry.Key, entry.Value!);
-
-        Application.Current!.Resources.MergedDictionaries.Add(resources);
-        Application.Current!.Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
-    }
 
     /// <summary>
     /// Laps that fill in every part of the row template, so the heights being compared are the
@@ -150,7 +119,7 @@ public sealed class LapListVirtualizationTests
     [TestMethod]
     public Task OnlyTheVisibleLapsAreBuilt() => HeadlessTest.OnDispatcher(() =>
     {
-        LoadAppResources();
+        HeadlessAppResources.Load();
         var (view, window) = ExpandedCarWithLaps(LapCount);
 
         var laps = ListBoundTo(view, LapsOf(view));
@@ -174,7 +143,7 @@ public sealed class LapListVirtualizationTests
         // extent by extrapolating from the rows it realized, so checking it against the same
         // extrapolation - one row's height times the count - agrees with itself no matter how wrong
         // both are. Measuring the same template through a StackPanel builds every row for real.
-        LoadAppResources();
+        HeadlessAppResources.Load();
         var (view, window) = ExpandedCarWithLaps(LapCount);
 
         var laps = ListBoundTo(view, LapsOf(view));
@@ -254,7 +223,7 @@ public sealed class LapListVirtualizationTests
         // agrees no matter how badly the rows underneath it are mapped. They also insist, through
         // Single, that exactly one realized row covers the top of the window: gaps or overlaps in
         // what the panel laid out would throw there rather than pass quietly.
-        LoadAppResources();
+        HeadlessAppResources.Load();
 
         var virtualized = LapArrivesWhileScrolled(virtualize: true);
         var plain = LapArrivesWhileScrolled(virtualize: false);
@@ -279,7 +248,7 @@ public sealed class LapListVirtualizationTests
         // This covers the flat list. The grouped one a few lines below it in the view uses the same
         // car template under the same scroller and carries the same risk, but it is only built when
         // the grouping is on, so it is not reachable from here.
-        LoadAppResources();
+        HeadlessAppResources.Load();
         var (view, window) = ExpandedCarWithLaps(LapCount);
 
         var cars = ListBoundTo(view, ((LiveTimingViewModel)view.DataContext!).Cars);

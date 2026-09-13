@@ -352,10 +352,8 @@
 									</StackPanel>
 								</TabItem.Header>
 								<Grid>
-									<!--<lvc:CartesianChart MinWidth="90" Height="240" LegendPosition="Hidden"
-									Series="{Binding Chart.Series}" YAxes="{Binding Chart.YAxes}" XAxes="{Binding Chart.XAxes}"
-									ZoomMode="X" Padding="0"/>-->
-									<ContentControl Content="{Binding Chart.Chart}" IsVisible="{Binding LapList.Laps.Count}"/>
+									<!--One chart per car, shown in whichever of its rows is on screen. SharedControlHost explains why it is not declared here.-->
+									<c:SharedControlHost Child="{Binding Chart.Chart}" IsVisible="{Binding LapList.Laps.Count}"/>
 									<TextBlock Text="No laps found" Classes="sm" Margin="10,3" IsVisible="{Binding !LapList.Laps.Count}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 								</Grid>
 							</TabItem>

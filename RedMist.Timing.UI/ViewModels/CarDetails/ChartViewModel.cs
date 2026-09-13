@@ -24,6 +24,14 @@ public partial class ChartViewModel : ObservableObject
     private int lastSeriesValueCount;
 
     private CartesianChart? chart;
+    /// <summary>
+    /// The chart for this car, built once and kept while its details are open.
+    /// </summary>
+    /// <remarks>
+    /// A control, so it can have only one parent. Show it through a
+    /// <see cref="RedMist.Timing.UI.Controls.SharedControlHost"/>, never a ContentControl: the same
+    /// car can be realized in more than one row, and a second parent throws from inside layout.
+    /// </remarks>
     public CartesianChart Chart => chart ??= new()
     {
         Padding = new Thickness(0),
