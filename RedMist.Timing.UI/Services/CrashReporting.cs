@@ -180,8 +180,8 @@ public static class CrashReporting
     /// Caps how many connectivity failures a single window may report.
     /// </summary>
     /// <remarks>
-    /// HubClient reconnects on an infinite retry policy and logs an error per attempt, so a session
-    /// on bad cell service - the normal state of a phone in a paddock - can produce hundreds of
+    /// The app polls on a timer and its hub reconnects on an infinite retry policy, so a session on
+    /// bad cell service - the normal state of a phone in a paddock - can produce hundreds of
     /// identical events. On the free tier that is a month's allowance in one weekend, and it buries
     /// the faults worth reading.
     ///
@@ -271,6 +271,20 @@ public static class CrashReporting
             return e;
         }
 
+        // SignalR's own logging reaches crash reporting through the app's logger factory, and it logs
+        // the connection coming and going at Error: the hub connection when a connection is lost, and
+        // the connection on every failed attempt to connect - one every few seconds for as long as the
+        // hub cannot be reached. Nearly all of it is a phone's signal dropping for a few seconds. Those
+        // reports are not sent as events of their own; they still ride along with whatever is. A hub
+        // that stays unreachable is reported by HubClient instead - a first connection once its
+        // attempts keep failing, and a reconnect once it has gone on long enough, see
+        // ReportingRetryPolicy - and anything else SignalR reports, such as a hub message its protocol
+        // cannot read, goes through the rules below like any other fault.
+        if (IsSignalRInternal(e.Logger) && IsSignalRConnectionChurn(e))
+        {
+            return null;
+        }
+
         // Cancellation is the app stopping its own work - a car row collapsed while its laps were
         // still loading, or the user left the event - so nothing failed and there is nothing to
         // report. Dropped rather than rationed for that reason: a ration keeps what is worth seeing
@@ -288,6 +302,43 @@ public static class CrashReporting
 
         e.SetFingerprint([fingerprint]);
         return WithinWindow(fingerprint) ? e : null;
+    }
+
+    /// <summary>Whether a log category belongs to the SignalR client itself rather than to the app.</summary>
+    internal static bool IsSignalRInternal(string? category)
+        => category is not null
+           && (category.StartsWith("Microsoft.AspNetCore.SignalR.", StringComparison.Ordinal)
+               || category.StartsWith("Microsoft.AspNetCore.Http.Connections.", StringComparison.Ordinal));
+
+    /// <summary>
+    /// Whether one of SignalR's reports is about the connection coming and going rather than a fault:
+    /// a failed attempt to connect, a lost connection or a timeout, or the first of its two reports of a
+    /// server closing the connection with an error. A cancellation needs no rule here: the one below
+    /// drops it from any logger.
+    /// </summary>
+    /// <remarks>
+    /// A failed attempt to connect is recognized by its event name, whatever the exception. A hub that
+    /// is down behind its load balancer is answered with a 502 - a status on the negotiation, a refused
+    /// upgrade on the WebSocket - and that counts as the server answering, so the rules below would
+    /// send every attempt unrationed: about a dozen events a minute from each phone for as long as the
+    /// outage lasted.
+    ///
+    /// A server closing the connection with an error is reported twice: first with the message alone,
+    /// which is dropped here, and then with the exception as the connection shuts down or reconnects,
+    /// which is a fault on the server and is sent. SignalR's other reports without an exception - a
+    /// failed handshake, a response it did not expect - are faults too, and are left to the rules below.
+    /// </remarks>
+    private static bool IsSignalRConnectionChurn(SentryEvent e)
+    {
+        var eventId = e.Tags.TryGetValue("eventId", out var id) ? id : null;
+        if (eventId is "ErrorWithNegotiation" or "ErrorStartingTransport")
+        {
+            return true;
+        }
+
+        return e.Exception is { } exception
+            ? NoiseFingerprintFor(exception) is not null
+            : eventId == "ReceivedCloseWithError";
     }
 
     /// <summary>
@@ -375,6 +426,13 @@ public static class CrashReporting
         }
 
         if (Chain(exception).Any(x => x is HttpRequestException { StatusCode: not null }))
+        {
+            return false;
+        }
+
+        // A WebSocket upgrade the server refused - a 502 in place of the 101 while the hub is down, most
+        // often - carries no status code, but it is still the server answering.
+        if (Chain(exception).Any(x => x is WebSocketException { WebSocketErrorCode: WebSocketError.NotAWebSocket }))
         {
             return false;
         }

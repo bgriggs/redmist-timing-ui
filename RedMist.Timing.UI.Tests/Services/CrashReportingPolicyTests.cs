@@ -1,4 +1,5 @@
-﻿using RedMist.Timing.UI.Services;
+﻿using Microsoft.AspNetCore.SignalR;
+using RedMist.Timing.UI.Services;
 using Sentry;
 using Sentry.Protocol;
 using System.Net;
@@ -280,8 +281,8 @@ public sealed class CrashReportingPolicyTests
     [TestMethod]
     public void ConnectivityNoise_IsCappedWithinAWindow()
     {
-        // HubClient retries forever and logs an error per attempt, so an afternoon on bad cell
-        // service would otherwise spend a month's quota.
+        // The app polls on a timer and its hub retries forever, so an afternoon on bad cell service
+        // would otherwise spend a month's quota.
         var sent = 0;
         for (var i = 0; i < 50; i++)
         {
@@ -415,5 +416,137 @@ public sealed class CrashReportingPolicyTests
     {
         // Messages captured without an exception, e.g. via CaptureMessage.
         Assert.IsNotNull(CrashReporting.ApplyNoisePolicy(new SentryEvent()));
+    }
+
+    // --- SignalR's own logging ------------------------------------------------------------------
+
+    private const string HubConnectionCategory = "Microsoft.AspNetCore.SignalR.Client.HubConnection";
+    private const string ConnectionCategory = "Microsoft.AspNetCore.Http.Connections.Client.HttpConnection";
+
+    /// <summary>A report as SignalR's logging makes it: from its own category, tagged with its event name.</summary>
+    private static SentryEvent FromSignalR(string category, string eventId, Exception? exception = null, string? message = null)
+    {
+        var e = exception is null ? new SentryEvent() : new SentryEvent(exception);
+        e.Logger = category;
+        if (message is not null)
+        {
+            e.Message = message;
+        }
+
+        e.SetTag("eventId", eventId);
+        return e;
+    }
+
+    /// <summary>How a WebSocket upgrade the load balancer refused arrives: with no status code on it.</summary>
+    private static WebSocketException RefusedUpgrade()
+        => new(WebSocketError.NotAWebSocket, "The server returned status code '502' when status code '101' was expected.");
+
+    [TestMethod]
+    public void SignalRsOwnReportOfALostConnection_IsNotSentOnItsOwn()
+    {
+        // The hub connection logs a lost connection at Error as it starts reconnecting. On bad cell
+        // service that is most of the connectivity traffic 1.0.106 sent.
+        var dropped = FromSignalR(HubConnectionCategory, "ReconnectingWithError",
+            new WebSocketException(WebSocketError.ConnectionClosedPrematurely));
+
+        Assert.IsNull(CrashReporting.ApplyNoisePolicy(dropped));
+    }
+
+    [TestMethod]
+    public void SignalRsOwnReportOfAServerTimeout_IsNotSentOnItsOwn()
+    {
+        var timedOut = FromSignalR(HubConnectionCategory, "ReconnectingWithError",
+            new TimeoutException("Server timeout (30000.00ms) elapsed without receiving a message from the server."));
+
+        Assert.IsNull(CrashReporting.ApplyNoisePolicy(timedOut));
+    }
+
+    [TestMethod]
+    [DataRow("ErrorWithNegotiation", DisplayName = "A negotiation answered with a 502")]
+    [DataRow("ErrorStartingTransport", DisplayName = "A WebSocket upgrade refused with a 502")]
+    public void SignalRsReportOfAFailedAttemptToConnect_IsNotSentOnItsOwn(string eventId)
+    {
+        // One every few seconds for as long as the hub cannot be reached, and each of them the server
+        // answering - so without this, every attempt from every phone would be sent unrationed. The
+        // outage is reported by HubClient instead.
+        Exception refused = eventId == "ErrorWithNegotiation" ? ServerAnswered(HttpStatusCode.BadGateway) : RefusedUpgrade();
+
+        Assert.IsNull(CrashReporting.ApplyNoisePolicy(FromSignalR(ConnectionCategory, eventId, refused)));
+    }
+
+    [TestMethod]
+    public void SignalRsFirstReportOfAServerClosingTheConnection_IsNotSentOnItsOwn()
+    {
+        // REDMIST-APP-2E. It carries no exception, so SignalR's event name is what says what it is. It
+        // is the first of two reports of the same close; the second is the test below.
+        var closed = FromSignalR(HubConnectionCategory, "ReceivedCloseWithError",
+            message: "Received close message with an error: Connection closed with an error.");
+
+        Assert.IsNull(CrashReporting.ApplyNoisePolicy(closed));
+    }
+
+    [TestMethod]
+    public void TheServerClosingTheConnectionWithAnError_IsStillSent()
+    {
+        // The second report of that close, with the exception, as the connection reconnects. A server
+        // closing connections with an error is a fault on the server, not the phone losing signal.
+        var closed = FromSignalR(HubConnectionCategory, "ReconnectingWithError",
+            new HubException("The server closed the connection with the following error: Connection closed with an error."));
+
+        Assert.IsNotNull(CrashReporting.ApplyNoisePolicy(closed));
+    }
+
+    [TestMethod]
+    public void SignalRsOtherReportsWithoutAnException_AreStillSent()
+    {
+        // A handshake the server rejected is a fault, not a dropout, and SignalR reports it the same
+        // way - with a message and no exception.
+        var rejected = FromSignalR(HubConnectionCategory, "HandshakeServerError",
+            message: "Server returned handshake error: Handshake was canceled.");
+
+        Assert.IsNotNull(CrashReporting.ApplyNoisePolicy(rejected));
+    }
+
+    [TestMethod]
+    public void ASignalRFailureThatIsNotALostConnection_IsStillSent()
+    {
+        // What forwarding SignalR's logging was for: a hub message the protocol cannot read fails below
+        // every call site in HubClient, the connection stays up, and this is the only report of it.
+        var unreadable = new SentryEvent(new InvalidDataException("Unexpected character encountered while parsing the message.")) { Logger = HubConnectionCategory };
+
+        Assert.IsNotNull(CrashReporting.ApplyNoisePolicy(unreadable));
+    }
+
+    [TestMethod]
+    public void AWebSocketUpgradeTheServerRefused_IsTheServerAnswering()
+    {
+        // HubClient's own report of a first connection that keeps failing, in the shape production
+        // reported it: "net_WebSockets_ConnectStatusExpected, 502, 101", the hub's load balancer
+        // answering while the hub behind it was down. No status code on the exception, but not the
+        // phone losing signal.
+        var refused = new SentryEvent(RefusedUpgrade()) { Logger = "HubClient" };
+
+        Assert.IsNull(FingerprintOf(CrashReporting.ApplyNoisePolicy(refused)), "Sent, and not filed with the phone losing signal.");
+    }
+
+    [TestMethod]
+    public void TheAppsOwnReportOfALostConnection_IsStillGrouped()
+    {
+        var reported = new SentryEvent(new WebSocketException(WebSocketError.ConnectionClosedPrematurely)) { Logger = "HubClient" };
+
+        Assert.AreEqual("connectivity-failure", FingerprintOf(CrashReporting.ApplyNoisePolicy(reported)));
+    }
+
+    [TestMethod]
+    public void ASignalRCrash_IsStillSent()
+    {
+        // A crash is always sent, whichever logger it came through.
+        var fatal = new SentryEvent(new WebSocketException(WebSocketError.ConnectionClosedPrematurely))
+        {
+            Logger = HubConnectionCategory,
+            Level = SentryLevel.Fatal,
+        };
+
+        Assert.IsNotNull(CrashReporting.ApplyNoisePolicy(fatal));
     }
 }

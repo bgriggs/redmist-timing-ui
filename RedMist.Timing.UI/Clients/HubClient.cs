@@ -134,7 +134,10 @@ public class HubClient : HubClientBase
                 }
             };
         })
-        .WithAutomaticReconnect(new InfiniteRetryPolicy())
+        // SignalR's own reports of a lost connection and of each failed attempt to reconnect are not
+        // sent on their own - see CrashReporting - so the report that the hub has stayed unreachable
+        // is made here.
+        .WithAutomaticReconnect(new ReportingRetryPolicy(new InfiniteRetryPolicy(), ReconnectReportThreshold, ReportProlongedReconnect))
         // Information rather than Debug: the client logs a line per message at Debug, which at the
         // feed's one-patch-per-second would flush the in-app log viewer's buffer continuously and
         // bury the connection and protocol errors this exists to surface.
@@ -150,6 +153,27 @@ public class HubClient : HubClientBase
         InitializeStateLogging(hubConnection);
         return hubConnection;
     }
+
+    /// <summary>How long a reconnect may go on before the hub is reported as unreachable.</summary>
+    /// <remarks>
+    /// Counted from when SignalR noticed the connection had gone - for one that went quiet, after its
+    /// thirty-second server timeout - and, given InfiniteRetryPolicy's delays, some two dozen attempts
+    /// in when each fails quickly. Well past what a phone at a track loses to an ordinary dropout, and
+    /// short enough that an outage in the middle of a race is reported while it is still going on. See
+    /// <see cref="ReportingRetryPolicy"/>.
+    /// </remarks>
+    internal static readonly TimeSpan ReconnectReportThreshold = TimeSpan.FromMinutes(2);
+
+    /// <summary>Reports a reconnect that has outlasted <see cref="ReconnectReportThreshold"/>.</summary>
+    /// <remarks>
+    /// An error with no exception attached, deliberately. With the retry's exception it would be filed
+    /// under the lost-connection fingerprint beside every dropout from every phone, and rationed with
+    /// them. On its own it is one issue, reported once per reconnect per phone, which is the shape an
+    /// outage should have.
+    /// </remarks>
+    internal void ReportProlongedReconnect(RetryContext context)
+        => Logger.LogError("The hub has been reconnecting for {Minutes} minutes over {Attempts} attempts; last error: {Reason}",
+            (int)context.ElapsedTime.TotalMinutes, context.PreviousRetryCount, context.RetryReason?.Message ?? "none");
 
     private void HubClient_ConnectionStatusChanged(HubConnectionState obj)
     {
