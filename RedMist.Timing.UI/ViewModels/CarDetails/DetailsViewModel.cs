@@ -116,8 +116,12 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
                 }
             });
 
-            // Load control logs
-            var carControlLogsTask = serverClient.LoadCarControlLogsAsync(evt.EventId, carNumber);
+            // Load control logs. Started before the laps so the two load together, and through a
+            // wrapper that cannot fault: when the laps load below throws, nothing awaits this, and a
+            // faulted task nobody awaits is reported from the finalizer as an unobserved exception -
+            // which the app's global handler sends as unhandled, past the noise policy, once for every
+            // expanded car on a bad connection.
+            var carControlLogsTask = LoadCarControlLogsAsync();
 
             List<CarPosition>? laps = null;
             if (evt.IsArchived)
@@ -151,6 +155,22 @@ public partial class DetailsViewModel : ObservableObject, IRecipient<ControlLogN
         finally
         {
             Dispatcher.UIThread.InvokeOnUIThread(() => IsLoading = false);
+        }
+    }
+
+    /// <summary>The car's control log, or null if it could not be loaded.</summary>
+    /// <remarks>Never faults, because <see cref="Initialize"/> may never await it. The failure is
+    /// logged here instead, where the noise policy groups and rations it like any other load.</remarks>
+    private async Task<CarControlLogs?> LoadCarControlLogsAsync()
+    {
+        try
+        {
+            return await serverClient.LoadCarControlLogsAsync(evt.EventId, carNumber);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading the control log for car {CarNumber}", carNumber);
+            return null;
         }
     }
 
