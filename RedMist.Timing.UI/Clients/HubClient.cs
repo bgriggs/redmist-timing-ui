@@ -2,6 +2,7 @@
 using BigMission.Shared.SignalR;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
@@ -117,6 +118,19 @@ public class HubClient : HubClientBase
 
         var builder = new HubConnectionBuilder().WithUrl(hubUrl, delegate (HttpConnectionOptions options)
         {
+            // The WebSocket alone, without negotiating first. A negotiate creates the connection on
+            // the status API replica that answers it, and the upgrade that follows is a second
+            // request that can reach a different replica, which answers 404 and costs a retry. Before
+            // the ingress hashed on the client's address, that was about one hub upgrade in six on a
+            // live weekend with two replicas. The hash keeps the pair together, but a client whose
+            // address changes between them - IPv4 for one and IPv6 for the other - is still split.
+            // With one request there is nothing to split.
+            //
+            // SignalR allows this only with WebSockets as the sole transport, and the status API maps
+            // the hub for WebSockets alone anyway. The access token still goes with the upgrade: as a
+            // header, or in a browser as ?access_token=, which the status API reads for the hub.
+            options.SkipNegotiation = true;
+            options.Transports = HttpTransportType.WebSockets;
             options.AccessTokenProvider = async delegate
             {
                 try
@@ -204,7 +218,7 @@ public class HubClient : HubClientBase
     /// <remarks>
     /// Server-side subscriptions live on the connection, so a reconnect starts from nothing. This
     /// runs on every transition to Connected, which also covers the subscriptions that could not be
-    /// sent in the first place: StartConnection returns while the transport is still negotiating, so
+    /// sent in the first place: StartConnection returns while the transport is still connecting, so
     /// a view that subscribes immediately after entering an event is normally too early. That used
     /// to throw, get logged as an error, and leave the subscription silently missing until the user
     /// navigated away and back - which is where the control log would simply stop arriving.
@@ -397,7 +411,7 @@ public class HubClient : HubClientBase
             connection.Hub.Remove("ReceiveReset");
             connection.Hub.On("ReceiveReset", ProcessReset);
 
-            // Normally a no-op that logs a skip, because the transport is still negotiating and the
+            // Normally a no-op that logs a skip, because the transport is still connecting and the
             // status handler will do the real work. It matters in the case where the connection got
             // there first, which would otherwise leave the subscription with nothing left to fire it.
             await ResubscribeAsync(connection);
