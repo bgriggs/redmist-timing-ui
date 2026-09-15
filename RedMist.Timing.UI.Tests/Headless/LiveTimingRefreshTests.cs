@@ -56,11 +56,19 @@ public sealed class LiveTimingRefreshTests
             NotLive,
         }
 
+        /// <summary>From this call on, counting from one, every attempt is refused as it is for <see cref="FailureMode.GivesUp"/>.</summary>
+        public int FailsFromCall { get; set; } = int.MaxValue;
+
         public override async Task<SessionState?> LoadEventStatusAsync(int eventId)
         {
-            Interlocked.Increment(ref calls);
+            var call = Interlocked.Increment(ref calls);
             entered.TrySetResult();
             await gate.Task;
+
+            if (call >= FailsFromCall)
+            {
+                throw new HttpRequestException("Request failed with status code TooManyRequests");
+            }
 
             return Fails switch
             {
@@ -75,22 +83,65 @@ public sealed class LiveTimingRefreshTests
                 // What the real client makes of a 404 - see EventClientNotLiveTests.
                 FailureMode.NotLive => throw new EventNotLiveException(eventId),
 
-                _ => new SessionState { CarPositions = [] },
+                // Named for its event, so a test can see whose state reached the screen.
+                _ => new SessionState { SessionName = $"Session {eventId}", CarPositions = [] },
             };
         }
 
         public void Release() => gate.TrySetResult();
     }
 
-    /// <summary>A hub client that reports whatever state a test wants, without a connection.</summary>
+    /// <summary>A hub client that reports whatever state a test wants, and records subscriptions, without a connection.</summary>
     private sealed class FakeHubClient(IConfiguration configuration, EventAccessCodeStore store)
         : HubClient(new DebugLoggerFactory(), configuration, store)
     {
+        private readonly List<string> calls = [];
+        private readonly TaskCompletionSource subscribeEntered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public bool Connected { get; set; } = true;
         public DateTime? LastMessage { get; set; } = DateTime.UtcNow;
 
+        /// <summary>When set, a subscribe waits on it, so a test can leave the event part way through one.</summary>
+        public TaskCompletionSource? SubscribeGate { get; set; }
+
+        public Task SubscribeEntered => subscribeEntered.Task;
+
+        /// <summary>Subscribes and unsubscribes in the order they were made, as "subscribe 7" and "unsubscribe 7".</summary>
+        public string[] Calls
+        {
+            get
+            {
+                lock (calls)
+                {
+                    return [.. calls];
+                }
+            }
+        }
+
         public override bool IsConnected => Connected;
         public override DateTime? LastEventMessageUtc => LastMessage;
+
+        public override async Task SubscribeToEventAsync(int eventId)
+        {
+            lock (calls)
+            {
+                calls.Add($"subscribe {eventId}");
+            }
+            subscribeEntered.TrySetResult();
+            if (SubscribeGate is { } gate)
+            {
+                await gate.Task;
+            }
+        }
+
+        public override Task UnsubscribeFromEventAsync(int eventId)
+        {
+            lock (calls)
+            {
+                calls.Add($"unsubscribe {eventId}");
+            }
+            return Task.CompletedTask;
+        }
     }
 
     private readonly List<object> created = [];
@@ -523,6 +574,253 @@ public sealed class LiveTimingRefreshTests
 
         Assert.IsTrue(vm.ShouldRefreshNow());
     });
+
+    [TestMethod]
+    public Task OpeningAnEvent_SubscribesToItAndFollowsIt() => HeadlessTest.OnDispatcher(async () =>
+    {
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        server.Release();
+        try
+        {
+            await WithinAsync(vm.InitializeLiveAsync(new Event { EventId = 7 }));
+
+            CollectionAssert.AreEqual(new[] { "subscribe 7" }, hub.Calls);
+            Assert.IsTrue(vm.IsFollowingAnEvent);
+        }
+        finally
+        {
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    public Task AnEventLeftWhileItsFirstStateLoads_IsNeitherSubscribedToNorFollowed() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // Backing out on a slow connection. The leave runs while the first state is still loading and
+        // finds no refresh to stop, and the open used to go on to subscribe and poll regardless.
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        var opening = vm.InitializeLiveAsync(new Event { EventId = 7 });
+        try
+        {
+            await WithinAsync(server.Entered);
+
+            await vm.UnsubscribeLiveAsync();
+            server.Release();
+            await WithinAsync(opening);
+
+            CollectionAssert.AreEqual(new[] { "unsubscribe 7" }, hub.Calls, "The leave's own unsubscribe, and never a subscribe.");
+            Assert.IsFalse(vm.IsFollowingAnEvent, "Nothing may go on polling an event that was left.");
+        }
+        finally
+        {
+            server.Release();
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    public Task AnEventLeftWhileSubscribing_IsUnsubscribedAgainAndNotFollowed() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // The leave's unsubscribe can land before the subscription is recorded and take nothing off, so
+        // the open undoes its own subscription once it sees the event was left.
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        server.Release();
+        hub.SubscribeGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var opening = vm.InitializeLiveAsync(new Event { EventId = 7 });
+        try
+        {
+            await WithinAsync(hub.SubscribeEntered);
+
+            await vm.UnsubscribeLiveAsync();
+            hub.SubscribeGate.TrySetResult();
+            await WithinAsync(opening);
+
+            CollectionAssert.AreEqual(new[] { "subscribe 7", "unsubscribe 7", "unsubscribe 7" }, hub.Calls,
+                "The leave's unsubscribe, then the open's own once it saw the event had been left.");
+            Assert.IsFalse(vm.IsFollowingAnEvent);
+        }
+        finally
+        {
+            hub.SubscribeGate.TrySetResult();
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    public Task AStateForAnEventLeftWhileItLoaded_IsNotAppliedToTheNextOne() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // Leave an event while its first state loads and open another. The next event's first refresh is
+        // turned away by the one still out, so the late answer for the event that was left arrives with
+        // the next one on screen. Applied, it would stay there once the next event's own refresh failed.
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        server.FailsFromCall = 2;
+        var first = vm.InitializeLiveAsync(new Event { EventId = 7 });
+        try
+        {
+            await WithinAsync(server.Entered);
+
+            await vm.UnsubscribeLiveAsync();
+            var second = vm.InitializeLiveAsync(new Event { EventId = 8 });
+
+            // Released only once the next event has subscribed, which it does only after its own first
+            // refresh was turned away by the one still out - the path this is about.
+            await WithinAsync(hub.SubscribeEntered);
+            server.Release();
+            await WithinAsync(Task.WhenAll(first, second));
+
+            Assert.AreNotEqual("Session 7", vm.SessionName, "The state of the event that was left reached the screen of the next.");
+            CollectionAssert.AreEqual(new[] { "unsubscribe 7", "subscribe 8" }, hub.Calls);
+            Assert.IsTrue(vm.IsFollowingAnEvent, "The event now open is followed.");
+        }
+        finally
+        {
+            server.Release();
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    [DataRow(8, DisplayName = "Another event opened next")]
+    [DataRow(7, DisplayName = "The same event opened again")]
+    public Task ALeaveThatRunsLate_LeavesTheEventOpenedSinceAlone(int nextEventId) => HeadlessTest.OnDispatcher(async () =>
+    {
+        // MainViewModel reads a leave's mark when the user leaves and queues the rest on the thread
+        // pool, which need not run it before the next open the user makes. Here it runs while the next
+        // event is still subscribing: it must stop nothing of that one, and for the same event opened
+        // again it must not unsubscribe either, since HubClient knows a subscription only by its event.
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        var first = vm.InitializeLiveAsync(new Event { EventId = 7 });
+        hub.SubscribeGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            await WithinAsync(server.Entered);
+            var leaving = vm.CurrentMark;
+
+            var second = vm.InitializeLiveAsync(new Event { EventId = nextEventId }, vm.BeginOpening(nextEventId));
+            await WithinAsync(hub.SubscribeEntered);
+            server.Release();
+
+            await vm.UnsubscribeLiveAsync(leaving, eventId: 7);
+            hub.SubscribeGate.TrySetResult();
+            await WithinAsync(Task.WhenAll(first, second));
+
+            Assert.IsTrue(vm.IsFollowingAnEvent, "A late leave of the previous open stopped the one opened since.");
+            var expected = nextEventId == 7 ? new[] { "subscribe 7" } : new[] { "subscribe 8", "unsubscribe 7" };
+            CollectionAssert.AreEqual(expected, hub.Calls);
+        }
+        finally
+        {
+            server.Release();
+            hub.SubscribeGate.TrySetResult();
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    public Task AnEventOpenedAgainWhileItsFirstOpenSubscribes_KeepsTheNewSubscription() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // Open, leave while subscribing, open the same event again. The first open's undo would
+        // unsubscribe that event - and HubClient, knowing the subscription only by its event, would take
+        // off the new open's.
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        server.Release();
+        hub.SubscribeGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var first = vm.InitializeLiveAsync(new Event { EventId = 7 });
+        try
+        {
+            await WithinAsync(hub.SubscribeEntered);
+            await vm.UnsubscribeLiveAsync();
+            var second = vm.InitializeLiveAsync(new Event { EventId = 7 });
+            await WaitForAsync(() => hub.Calls.Length == 3);
+
+            hub.SubscribeGate.TrySetResult();
+            await WithinAsync(Task.WhenAll(first, second));
+
+            CollectionAssert.AreEqual(new[] { "subscribe 7", "unsubscribe 7", "subscribe 7" }, hub.Calls,
+                "The first open's undo took off the subscription of the open that replaced it.");
+            Assert.IsTrue(vm.IsFollowingAnEvent);
+        }
+        finally
+        {
+            hub.SubscribeGate.TrySetResult();
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    public Task AnEventOpenedAgainAndLeftAgainWhileTheFirstOpenSubscribes_IsUnsubscribed() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // The reopen the first open's undo would defer to has itself been left. Its leave can run before
+        // the first open's subscription is recorded and take nothing off, so the undo has to go ahead or
+        // the event stays subscribed with nobody watching.
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        server.Release();
+        hub.SubscribeGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var first = vm.InitializeLiveAsync(new Event { EventId = 7 });
+        try
+        {
+            await WithinAsync(hub.SubscribeEntered);
+            await vm.UnsubscribeLiveAsync();
+            vm.BeginOpening(7);
+            await vm.UnsubscribeLiveAsync();
+
+            hub.SubscribeGate.TrySetResult();
+            await WithinAsync(first);
+
+            CollectionAssert.AreEqual(new[] { "subscribe 7", "unsubscribe 7", "unsubscribe 7", "unsubscribe 7" }, hub.Calls,
+                "The first open's undo deferred to a reopen that had already been left.");
+            Assert.IsFalse(vm.IsFollowingAnEvent);
+        }
+        finally
+        {
+            hub.SubscribeGate.TrySetResult();
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    public Task AnOpenThatRunsLate_LeavesTheEventOpenedSinceOnScreen() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // The open is queued too, so its first write to the screen can land after the user has left and
+        // opened another event. It must stop there: writing its event over the screen would empty the
+        // grid of the one showing and point that screen's refresh at the event that was left.
+        var (vm, server, hub) = CreateLive(eventId: 7);
+        server.Release();
+        try
+        {
+            var lateOpening = vm.BeginOpening(7);
+            await WithinAsync(vm.InitializeLiveAsync(new Event { EventId = 8 }, vm.BeginOpening(8)));
+            var callsAfterTheNextOpen = server.Calls;
+
+            await WithinAsync(vm.InitializeLiveAsync(new Event { EventId = 7 }, lateOpening));
+
+            Assert.AreEqual(8, vm.EventModel.EventId, "The late open wrote its event over the one on screen.");
+            Assert.AreEqual(callsAfterTheNextOpen, server.Calls, "The late open asked for a state.");
+            CollectionAssert.AreEqual(new[] { "subscribe 8" }, hub.Calls);
+            Assert.IsTrue(vm.IsFollowingAnEvent);
+        }
+        finally
+        {
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    /// <summary>Awaits against a timeout, so an open that never finishes fails the test rather than hanging it.</summary>
+    private static async Task WithinAsync(Task task)
+    {
+        Assert.AreSame(task, await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10))), "Never finished.");
+        await task;
+    }
+
+    /// <summary>Polls a condition for up to ten seconds, failing the test if it never holds.</summary>
+    private static async Task WaitForAsync(Func<bool> condition)
+    {
+        for (var i = 0; i < 1000 && !condition(); i++)
+        {
+            await Task.Delay(10);
+        }
+        Assert.IsTrue(condition(), "The condition never held.");
+    }
 
     private static async Task WaitForCallsAsync(GatedEventClient server, int expected)
     {

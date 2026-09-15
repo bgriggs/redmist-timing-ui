@@ -390,11 +390,15 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     }
                 });
                 
+                // Read here, in the order the user acted, rather than when the thread pool reaches the
+                // task below - which can be after the user has opened another event.
+                var leaving = LiveTimingViewModel.CurrentMark;
+                var leftEventId = LiveTimingViewModel.EventModel.EventId;
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        await LiveTimingViewModel.UnsubscribeLiveAsync();
+                        await LiveTimingViewModel.UnsubscribeLiveAsync(leaving, leftEventId);
                     }
                     catch (Exception ex)
                     {
@@ -533,6 +537,8 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
     {
         if (eventModel.IsLive)
         {
+            // Taken here, in the order the user acted - see LiveTimingViewModel.InitializeLiveAsync.
+            var opening = LiveTimingViewModel.BeginOpening(eventModel.EventId);
             _ = Task.Run(async () =>
             {
                 try
@@ -540,7 +546,7 @@ public partial class MainViewModel : ObservableObject, IRecipient<ValueChangedMe
                     // Note: InitializeLiveAsync swallows its own exceptions, so an access-denied
                     // response never surfaces here. The re-prompt happens through
                     // EventAccessDeniedNotification, which EventClient raises on any 401.
-                    await LiveTimingViewModel.InitializeLiveAsync(eventModel);
+                    await LiveTimingViewModel.InitializeLiveAsync(eventModel, opening);
                 }
                 catch (Exception ex)
                 {

@@ -380,7 +380,7 @@ public class HubClient : HubClientBase
 
     #region Car Timing Status
 
-    public async Task SubscribeToEventAsync(int eventId)
+    public virtual async Task SubscribeToEventAsync(int eventId)
     {
         // Recorded before the first await so a concurrent teardown cannot overtake it. The two
         // modes share one connection, so entering an event ends whatever the previous one held.
@@ -422,7 +422,7 @@ public class HubClient : HubClientBase
         }
     }
 
-    public async Task UnsubscribeFromEventAsync(int eventId)
+    public virtual async Task UnsubscribeFromEventAsync(int eventId)
     {
         var connection = Volatile.Read(ref active);
 

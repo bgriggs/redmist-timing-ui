@@ -144,6 +144,23 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     //private IDisposable? consistencyCheckInterval;
     private IDisposable? fullUpdateInterval;
 
+    /// <summary>
+    /// Guards <see cref="followGeneration"/>, <see cref="latestOpening"/> and <see cref="latestOpeningEventId"/>.
+    /// </summary>
+    private readonly object followGate = new();
+
+    /// <summary>
+    /// Advanced by every open and every leave, so an open still in progress can tell it has been
+    /// superseded. See <see cref="InitializeLiveAsync(Event, long)"/>.
+    /// </summary>
+    private long followGeneration;
+
+    /// <summary>The mark of the latest open, and the event it was for. Guarded by <see cref="followGate"/>.</summary>
+    private long latestOpening;
+
+    /// <inheritdoc cref="latestOpening"/>
+    private int latestOpeningEventId;
+
     /// <summary>Set while a full refresh is in flight, so ticks cannot stack them up.</summary>
     /// <remarks>
     /// The refresh is started from a timer and not awaited, and it retries twice with a growing
@@ -363,16 +380,40 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     }
 
 
-    public async Task InitializeLiveAsync(Event eventModel)
+    public Task InitializeLiveAsync(Event eventModel) => InitializeLiveAsync(eventModel, BeginOpening(eventModel.EventId));
+
+    /// <summary>
+    /// Opens <paramref name="eventModel"/> for live timing under a mark from <see cref="BeginOpening"/>.
+    /// </summary>
+    /// <remarks>
+    /// The mark is taken by the caller, where the user opens the event, rather than here. MainViewModel
+    /// runs this and <see cref="UnsubscribeLiveAsync(long, int)"/> on the thread pool, which does not
+    /// keep them in the order the user acted in, and the first state alone can take seconds on a slow
+    /// connection - so the user can be back on the events list, or in another event, before this
+    /// reaches its hub subscription. The first write to the screen, the hub subscription and the
+    /// periodic refresh each check the mark first.
+    /// </remarks>
+    public async Task InitializeLiveAsync(Event eventModel, long opening)
     {
+        var eventId = eventModel.EventId;
         try
         {
             // Callers invoke this from a background task, so every write to bound state has to be
-            // marshalled. ResetEvent in particular clears carCache, which SortAndBind projects
+            // marshaled. ResetEvent in particular clears carCache, which SortAndBind projects
             // straight into the Cars/GroupedCars collections the ItemsControls are bound to -
             // mutating those off the UI thread desyncs the controls from their source.
+            var superseded = false;
             await Dispatcher.UIThread.InvokeOnUIThreadAsync(() =>
             {
+                // Left, or another event opened, before this reached the UI thread. Writing this event
+                // over the screen now would empty the grid of the event that is showing and point its
+                // refresh at this one - and start sponsor rotation again for an event already left.
+                if (!IsStillOpening(opening))
+                {
+                    superseded = true;
+                    return;
+                }
+
                 IsLoading = true;
                 EventModel = eventModel;
                 Flag = string.Empty;
@@ -384,6 +425,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
                 Logger.LogInformation("ResetEvent...");
                 ResetEvent();
             });
+
+            if (superseded)
+            {
+                Logger.LogInformation("Event {EventId} was left before it began opening", eventId);
+                return;
+            }
 
             // ResetEvent has just emptied the grid, so nothing on screen has been filled from a
             // whole state - whatever the previous event on this singleton managed. Said here rather
@@ -418,8 +465,33 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             {
                 Logger.LogInformation("ResetState...");
                 await Task.Run(() => RefreshStatusAsync(required: true));
+
+                // Left while the first state was loading. The leave has already run, so subscribing now
+                // would put the connection on an event nobody is watching with nothing to take it off.
+                if (!IsStillOpening(opening))
+                {
+                    Logger.LogInformation("Event {EventId} was left before it finished opening", eventId);
+                    return;
+                }
+
                 Logger.LogInformation("Subscribe...");
-                await Task.Run(() => hubClient.SubscribeToEventAsync(EventModel.EventId));
+                await Task.Run(() => hubClient.SubscribeToEventAsync(eventId));
+
+                // Left while subscribing. The leave's unsubscribe can run before this subscription is
+                // recorded and so take nothing off, which is why it is undone here. HubClient tears down
+                // nothing if another event has taken the connection by now - but it knows a subscription
+                // only by its event, so if this same event has been opened again since, undoing would
+                // take off the newer open's, and it is left to that one.
+                if (!IsStillOpening(opening))
+                {
+                    if (!IsReopenedSince(opening, eventId))
+                    {
+                        Logger.LogInformation("Event {EventId} was left while subscribing; unsubscribing", eventId);
+                        await Task.Run(() => hubClient.UnsubscribeFromEventAsync(eventId));
+                    }
+                    return;
+                }
+
                 Logger.LogInformation("Completed subscribe...");
                 Dispatcher.UIThread.InvokeOnUIThread(() => IsLive = true);
             }
@@ -443,7 +515,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             //}
             //consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(3)).Subscribe(_ => RunConsistencyCheck());
 
-            StartPeriodicRefresh();
+            // Under the same lock a leave takes, so a leave cannot land between the check and the start
+            // and leave a refresh running for an event nobody is watching.
+            StartPeriodicRefreshIfStillOpening(opening);
         }
         catch (Exception ex)
         {
@@ -573,22 +647,55 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
+    /// <summary>
+    /// Whether an answer for <paramref name="eventId"/> arrived after the screen moved on to another
+    /// event, in which case it is not applied.
+    /// </summary>
+    /// <remarks>
+    /// Possible when an event is left and another opened while the request for the first was out,
+    /// which on a slow connection is a matter of seconds - the next event's own first refresh is turned
+    /// away by that one and owed until it finishes. Applied, the late answer would put the left event's
+    /// session and entries on the screen now showing, and count as that screen's refresh - so while the
+    /// hub was delivering, a failed owed refresh would leave them there for up to five minutes before
+    /// the policy polled again. A not-live answer would likewise count toward the wrong event's run of
+    /// them.
+    /// </remarks>
+    private bool IsAnswerForAnotherEvent(int eventId)
+    {
+        if (EventModel.EventId == eventId)
+        {
+            return false;
+        }
+
+        Logger.LogInformation("Discarded an answer for event {EventId}, which is no longer on screen", eventId);
+        return true;
+    }
+
     private async Task RefreshOnceAsync()
     {
+        // The event this request is for, read once: EventModel moves on if the event is left and
+        // another opened while the request is out.
+        var eventId = EventModel.EventId;
         try
         {
             var sw = Stopwatch.StartNew();
 
-            sessionStatus = await serverClient.ExecuteWithRetryAsync(
-                () => serverClient.LoadEventStatusAsync(EventModel.EventId),
+            var state = await serverClient.ExecuteWithRetryAsync(
+                () => serverClient.LoadEventStatusAsync(eventId),
                 nameof(serverClient.LoadEventStatusAsync));
 
-            if (sessionStatus == null)
+            if (state == null)
             {
-                Logger.LogWarning("Session status was given up on for event {EventId}", EventModel.EventId);
+                Logger.LogWarning("Session status was given up on for event {EventId}", eventId);
                 return;
             }
 
+            if (IsAnswerForAnotherEvent(eventId))
+            {
+                return;
+            }
+
+            sessionStatus = state;
             var patch = SessionStateMapper.CreatePatch(new SessionState(), sessionStatus);
             Receive(new SessionStatusNotification(patch));
 
@@ -606,9 +713,14 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             // Not a failure: the event has finished, has not started, or its processor is gone.
             // Logged once per run, below the level crash reporting turns into an event, and the tick
             // is held off while the run lasts. See LivePollingPolicy.IsHoldingOff.
+            if (IsAnswerForAnotherEvent(eventId))
+            {
+                return;
+            }
+
             if (Interlocked.Read(ref notLiveSinceTicks) == 0)
             {
-                Logger.LogInformation("Event {EventId} has nothing live; polling less often until it does", EventModel.EventId);
+                Logger.LogInformation("Event {EventId} has nothing live; polling less often until it does", eventId);
             }
             RecordNotLiveAnswer(DateTime.UtcNow);
         }
@@ -618,17 +730,33 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
     }
 
-    public async Task UnsubscribeLiveAsync()
-    {
-        SponsorRotator.Stop();
+    public Task UnsubscribeLiveAsync() => UnsubscribeLiveAsync(CurrentMark, EventModel.EventId);
 
+    /// <summary>
+    /// Leaves <paramref name="eventId"/> as it stood when the user left it, which is when
+    /// <paramref name="leaving"/> was read from <see cref="CurrentMark"/>.
+    /// </summary>
+    public async Task UnsubscribeLiveAsync(long leaving, int eventId)
+    {
         // Leaving the event through a tab's back button routes here without going through Back(),
-        // so the periodic refresh has to be torn down here too or it keeps polling the old event.
-        StopFullUpdateInterval();
+        // so the periodic refresh has to be torn down here too or it keeps polling the old event - and
+        // an open of this event still in progress has to be told it was left. Queued on the thread
+        // pool, this can also run after the user has opened another event, and then it stops nothing.
+        // The unsubscribe below still goes out for the event that was left - HubClient tears down
+        // nothing once another event has the connection - unless that event has itself been opened
+        // again since, whose subscription HubClient could not tell apart from the one being left.
+        if (StopFollowing(leaving))
+        {
+            SponsorRotator.Stop();
+        }
+        else if (IsReopenedSince(leaving, eventId))
+        {
+            return;
+        }
 
         try
         {
-            await hubClient.UnsubscribeFromEventAsync(EventModel.EventId);
+            await hubClient.UnsubscribeFromEventAsync(eventId);
         }
         catch (Exception ex)
         {
@@ -673,7 +801,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         {
             logProvider.LogAdded -= OnLogAdded;
         }
-        StopFullUpdateInterval();
+        StopFollowing();
         searchDebounce?.Dispose();
 
         // Unbind before releasing the rows.
@@ -710,6 +838,112 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     }
 
     /// <summary>
+    /// Marks <paramref name="eventId"/> as opening and returns the mark, superseding any open still in
+    /// progress. Taken where the user opens the event, and handed to
+    /// <see cref="InitializeLiveAsync(Event, long)"/>.
+    /// </summary>
+    public long BeginOpening(int eventId)
+    {
+        lock (followGate)
+        {
+            latestOpeningEventId = eventId;
+            return latestOpening = ++followGeneration;
+        }
+    }
+
+    /// <summary>
+    /// Whether <paramref name="eventId"/> has been opened again since <paramref name="mark"/>, and that
+    /// open is still current.
+    /// </summary>
+    /// <remarks>
+    /// HubClient knows a subscription only by its event, so an unsubscribe for an event opened again
+    /// since would take off the newer open's subscription along with the old one. Only while that open
+    /// is current, though: once it has been left or superseded in turn, its own leave may already have
+    /// run and found nothing to take off, and skipping here would leave the event subscribed with
+    /// nobody watching.
+    /// </remarks>
+    private bool IsReopenedSince(long mark, int eventId)
+    {
+        lock (followGate)
+        {
+            return latestOpening > mark && latestOpeningEventId == eventId && followGeneration == latestOpening;
+        }
+    }
+
+    /// <summary>
+    /// Whether <paramref name="opening"/> is still the latest open, with nothing left or opened since.
+    /// </summary>
+    private bool IsStillOpening(long opening)
+    {
+        lock (followGate)
+        {
+            return followGeneration == opening;
+        }
+    }
+
+    /// <summary>
+    /// The mark of the latest open or leave. Read where the user leaves an event, and handed to
+    /// <see cref="UnsubscribeLiveAsync(long, int)"/>, so a leave that runs late cannot reach an event
+    /// opened since.
+    /// </summary>
+    public long CurrentMark
+    {
+        get
+        {
+            lock (followGate)
+            {
+                return followGeneration;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stops following the event on screen: supersedes any open still in progress, and stops the
+    /// periodic refresh.
+    /// </summary>
+    private void StopFollowing()
+    {
+        lock (followGate)
+        {
+            followGeneration++;
+            StopFullUpdateInterval();
+        }
+    }
+
+    /// <summary>
+    /// <see cref="StopFollowing()"/>, unless an event has been opened or left since
+    /// <paramref name="leaving"/> was read, in which case it does nothing and returns false.
+    /// </summary>
+    private bool StopFollowing(long leaving)
+    {
+        lock (followGate)
+        {
+            if (followGeneration != leaving)
+            {
+                return false;
+            }
+
+            followGeneration++;
+            StopFullUpdateInterval();
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Starts the periodic refresh for <paramref name="opening"/>, unless it has been left since.
+    /// </summary>
+    private void StartPeriodicRefreshIfStillOpening(long opening)
+    {
+        lock (followGate)
+        {
+            if (followGeneration == opening)
+            {
+                StartPeriodicRefresh();
+            }
+        }
+    }
+
+    /// <summary>
     /// Starts the five-second tick that keeps a followed event's screen in sync.
     /// </summary>
     /// <remarks>
@@ -741,9 +975,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// <see cref="InitializeLiveAsync"/> until leaving it stops the periodic refresh.
     /// </summary>
     /// <remarks>
-    /// One case falls outside that. An event left while it is still opening finds no refresh to
-    /// stop, and InitializeLiveAsync goes on to subscribe and start one anyway, so the event it left
-    /// is still polled and still reads as followed here.
+    /// An event left while it is still opening never gets that far: InitializeLiveAsync checks before
+    /// subscribing, and starts the refresh under the same lock a leave takes.
     /// </remarks>
     internal bool IsFollowingAnEvent => Volatile.Read(ref fullUpdateInterval) is not null;
 
@@ -1285,7 +1518,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     public void Back()
     {
-        StopFullUpdateInterval();
+        StopFollowing();
 
         var routerEvent = new RouterEvent { Path = BackRouterPath };
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<RouterEvent>(routerEvent));
