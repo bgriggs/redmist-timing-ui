@@ -443,22 +443,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             //}
             //consistencyCheckInterval = Observable.Interval(TimeSpan.FromSeconds(3)).Subscribe(_ => RunConsistencyCheck());
 
-            SetFullUpdateInterval(Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(tick =>
-            {
-                try
-                {
-                    // The tick still runs every five seconds; what it does with it now depends on
-                    // whether the hub is already delivering. See LivePollingPolicy.
-                    if (ShouldRefreshNow())
-                    {
-                        _ = RefreshStatusAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Error in periodic refresh timer");
-                }
-            }));
+            StartPeriodicRefresh();
         }
         catch (Exception ex)
         {
@@ -725,6 +710,44 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     }
 
     /// <summary>
+    /// Starts the five-second tick that keeps a followed event's screen in sync.
+    /// </summary>
+    /// <remarks>
+    /// It runs from here until the event is left - <see cref="Back"/>, <see cref="UnsubscribeLiveAsync"/>
+    /// and <see cref="Dispose"/> each stop it - which is what makes it the answer to
+    /// <see cref="IsFollowingAnEvent"/>. Internal so a test can put the screen in that state without
+    /// opening an event through a hub it would have to connect to.
+    /// </remarks>
+    internal void StartPeriodicRefresh()
+        => SetFullUpdateInterval(Observable.Interval(TimeSpan.FromSeconds(5)).Subscribe(tick =>
+        {
+            try
+            {
+                // The tick still runs every five seconds; what it does with it now depends on
+                // whether the hub is already delivering. See LivePollingPolicy.
+                if (ShouldRefreshNow())
+                {
+                    _ = RefreshStatusAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error in periodic refresh timer");
+            }
+        }));
+
+    /// <summary>
+    /// Whether an event is being followed on this screen: from the end of
+    /// <see cref="InitializeLiveAsync"/> until leaving it stops the periodic refresh.
+    /// </summary>
+    /// <remarks>
+    /// One case falls outside that. An event left while it is still opening finds no refresh to
+    /// stop, and InitializeLiveAsync goes on to subscribe and start one anyway, so the event it left
+    /// is still polled and still reads as followed here.
+    /// </remarks>
+    internal bool IsFollowingAnEvent => Volatile.Read(ref fullUpdateInterval) is not null;
+
+    /// <summary>
     /// Installs the periodic full-refresh subscription, disposing whatever it replaces.
     /// </summary>
     private void SetFullUpdateInterval(IDisposable subscription)
@@ -744,7 +767,12 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// </summary>
     public void Receive(AppResumeNotification message)
     {
-        if (!IsRealTime)
+        // Only while an event is followed. The activation this answers fires on a cold start as well as
+        // on a return from the background, and this view model is a singleton that outlives every
+        // event: before one is opened EventModel is an empty Event, and after one is left it is still
+        // the event that was left. Refreshing then either logged "given up on for event 0" at every
+        // launch, or asked the server for the state of an event nobody was watching.
+        if (!IsRealTime || !IsFollowingAnEvent)
             return;
         Dispatcher.UIThread.InvokeOnUIThread(() =>
         {

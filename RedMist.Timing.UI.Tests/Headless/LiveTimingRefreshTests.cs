@@ -265,6 +265,59 @@ public sealed class LiveTimingRefreshTests
     });
 
     [TestMethod]
+    public Task AnAppResume_WhileAnEventIsFollowed_TakesAWholeState() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // What a resume is for: nothing arrived while the app was in the background, so the grid is
+        // stale however healthy the hub looks the moment it comes back.
+        var (vm, server, _) = CreateLive(eventId: 7);
+        server.Release();
+        vm.StartPeriodicRefresh();
+        try
+        {
+            vm.Receive(new AppResumeNotification());
+
+            await WaitForCallsAsync(server, 1);
+            Assert.AreEqual(1, server.Calls);
+        }
+        finally
+        {
+            await vm.UnsubscribeLiveAsync();
+        }
+    });
+
+    [TestMethod]
+    public Task AnAppResume_BeforeAnyEventIsOpened_AsksForNothing() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // The app is activated on a cold start too, and this singleton exists before any event is
+        // opened, holding an empty Event whose id is 0. The real client answers that with null and no
+        // request, so what reached it was a refresh that logged a warning at every launch; this client
+        // counts the call instead.
+        var (vm, server, _) = CreateLive(eventId: 0);
+        server.Release();
+
+        vm.Receive(new AppResumeNotification());
+
+        await Task.Delay(150);
+        Assert.AreEqual(0, server.Calls);
+    });
+
+    [TestMethod]
+    public Task AnAppResume_AfterTheEventIsLeft_AsksForNothing() => HeadlessTest.OnDispatcher(async () =>
+    {
+        // Leaving an event stops its refresh but keeps it as EventModel, so a resume on the home screen
+        // fetched the state of the event just left, for a screen nobody was looking at.
+        var (vm, server, _) = CreateLive(eventId: 7);
+        server.Release();
+        vm.StartPeriodicRefresh();
+        await vm.UnsubscribeLiveAsync();
+
+        vm.Receive(new AppResumeNotification());
+
+        await Task.Delay(150);
+        Assert.AreEqual(0, server.Calls);
+    });
+
+    [TestMethod]
     public Task ASessionReset_LeavesTheScreenOwedAWholeState() => HeadlessTest.OnDispatcher(async () =>
     {
         // The view model is a singleton reused for every event and every session, so a success from
