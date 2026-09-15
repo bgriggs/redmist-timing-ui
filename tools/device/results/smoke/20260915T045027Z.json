@@ -1,0 +1,38 @@
+{
+  "scenario": "smoke",
+  "started_utc": "2026-09-15T04:50:27+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-14 22:50:23"
+  },
+  "notes": {
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "failure",
+      "at_s": 64.7,
+      "detail": "AssertionError: the home screen never appeared: on screen ['68\u00b0', 'Clear', 'Washington', 'Play Store', 'Google', 'Phone', 'Chrome', 'Camera']"
+    }
+  ],
+  "faults": [
+    {
+      "buffer": "events",
+      "line": "09-14 22:50:40.709  1363  1892 I am_proc_died: [0,26111,com.bigmissionmotorsports.redmist,0,2,300,819]"
+    }
+  ],
+  "summary": {},
+  "status": "fail",
+  "duration_s": 65.4
+}

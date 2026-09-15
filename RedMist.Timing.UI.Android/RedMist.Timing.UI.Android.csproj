@@ -39,13 +39,74 @@
 	     Costs a long build and needs the Android NDK, which CI runners have preinstalled but a
 	     dev machine may not.
 
-	     Not settled: one of six device runs died with a SIGSEGV whose stack is entirely inside
-	     libmonosgen with no managed frames. It did not reproduce in the five runs after it, and
-	     it matches the shape of the intermittent native crash the app already had, so it is not
-	     attributed to AOT - but it is not cleared either. -->
+	     One of six device runs died with a SIGSEGV whose stack is entirely inside libmonosgen.
+	     That run's crash (tools/device/results/smoke/20260831T030142Z.json, pid 11820, fault
+	     addr 0x8000) is the GC bridge crash described below, on the AOT build. The phone has the
+	     same crash on Play builds back to its oldest tombstone, October 2025, so AOT did not
+	     introduce it; whether AOT changes how often it happens is unmeasured. -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
 		<RunAOTCompilation>true</RunAOTCompilation>
+	</PropertyGroup>
+
+	<!-- Mono's major collector runs non-concurrently: MONO_GC_PARAMS=major=marksweep, where the
+	     SDK default is marksweep-conc. Debug builds too, so development runs the collector that
+	     ships.
+
+	     This is for the app's recurring native crash - a SIGSEGV inside libmonosgen with no
+	     managed frames, probably among the events in Sentry REDMIST-APP-M, which carry no native
+	     stack. The test phone holds ten tombstones from the app, October 2025 to August 2026 over
+	     six runtime builds. Symbolized against Microsoft's symbols for each build, they are:
+
+	         7  the Tarjan GC bridge in a nursery collection, following a reference somewhere in
+	            the graph reachable from Java peers that holds garbage - 0x37, 0x2020, 0x8000,
+	            UTF-16 text - some of them faulting on the object header itself:
+	            bridge_object_forward or is_opaque_object < push_object < dfs
+	            < processing_stw_step < finish_gray_stack < collect_nursery
+	         1  an abort in the concurrent collector's card scan of a large object, "How can an
+	            object and a reference inside it not be in the same block?" (October 2025)
+	         2  a bad class pointer in mono_rgctx_lazy_fetch_trampoline, which this setting is
+	            not known to affect
+
+	     The bridge crash is dotnet/runtime#123495. The Mono GC maintainer closed it into
+	     #123537, a SIGSEGV in the concurrent mark, as another face of the same problem; as of
+	     September 2026 that issue is open against 12.0.0. His first suggestion there is this
+	     setting, and the reporter's first test "looks very promising... couldn't reproduce the
+	     crash", with no follow-up. Neither Mono GC change .NET 10 has taken stopped it - a
+	     bridge change merged just before 10.0.0, and #125213's March 2026 fix to card scanning
+	     of large objects, which may account for the one abort: runtime 10.0.11 still crashed in
+	     August 2026. What he points to instead is .NET 11, where Android defaults to CoreCLR;
+	     drop this when the app moves there.
+
+	     What it changes: a major collection marks the whole heap with the app stopped instead of
+	     concurrently, so nursery collections no longer run in the middle of a concurrent mark.
+	     That interleaving is the suspect, not a confirmed cause. The cost is longer major
+	     pauses. Judge it by REDMIST-APP-M's events per release.
+
+	     Measured on the SM-S135DL, a Release build of each, 2026-09-14: smoke and soak pass with
+	     nothing beyond run-to-run noise - cold start 6059 ms against 6138, soak PSS 314 -> 368 MB
+	     against 312 -> 370. Frame cost was read from Choreographer's skipped-frame warnings, which
+	     on that phone report only skips of 30 frames or more, because neither Looper's
+	     slow-message log (refused to shell) nor SGen's per-collection timing (silent even with
+	     debug.mono.log=gc) could be read. Both builds freeze the live screen for about 600 ms at
+	     a time, each freeze followed within a fifth of a second by an explicit ART collection of
+	     the kind the GC bridge asks for, which points to Mono collections handing dead Java peers
+	     to the bridge; 35% of those collections froze the screen on the concurrent build and 44%
+	     on this one. Against a simulated live feed, five runs of the concurrent build had 3.0
+	     freezes per 100 hub messages and three runs of this one had 3.7. Runs of one build spread
+	     about as widely, but in the one session that alternated builds, both runs of this one were
+	     worse than all three of the other. Eight runs on one phone cannot settle it: treat a rise
+	     of up to a third as possible. One soak each, 4 freezes against 6, is too few to call.
+
+	     To check it took effect, look for major=marksweep in
+	     obj/<Configuration>/net10.0-android/android/environment.<abi>.ll - not for a missing
+	     thread: concurrent sweep stays on, so an SGen worker thread still exists.
+
+	     Keep it a property. If any AndroidEnvironment file, including one a NuGet package brings
+	     in, sets MONO_GC_PARAMS, the SDK drops this value entirely, so such a file has to carry
+	     major=marksweep itself. -->
+	<PropertyGroup>
+		<AndroidEnableSGenConcurrent>false</AndroidEnableSGenConcurrent>
 	</PropertyGroup>
 
 	<!-- Android has to keep its JIT, and this is what holds it to that.
