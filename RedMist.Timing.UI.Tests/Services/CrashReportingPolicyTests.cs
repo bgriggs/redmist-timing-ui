@@ -437,7 +437,7 @@ public sealed class CrashReportingPolicyTests
         return e;
     }
 
-    /// <summary>How a WebSocket upgrade the load balancer refused arrives: with no status code on it.</summary>
+    /// <summary>How a refused WebSocket upgrade arrives: with no status code on it.</summary>
     private static WebSocketException RefusedUpgrade()
         => new(WebSocketError.NotAWebSocket, "The server returned status code '502' when status code '101' was expected.");
 
@@ -521,9 +521,9 @@ public sealed class CrashReportingPolicyTests
     public void AWebSocketUpgradeTheServerRefused_IsTheServerAnswering()
     {
         // HubClient's own report of a first connection that keeps failing, in the shape production
-        // reported it: "net_WebSockets_ConnectStatusExpected, 502, 101", the hub's load balancer
-        // answering while the hub behind it was down. No status code on the exception, but not the
-        // phone losing signal.
+        // reported it: "net_WebSockets_ConnectStatusExpected, 502, 101" - a status API replica refusing
+        // an upgrade whose negotiate another replica had answered, which reached the app as a 502. No
+        // status code on the exception, but not the phone losing signal.
         var refused = new SentryEvent(RefusedUpgrade()) { Logger = "HubClient" };
 
         Assert.IsNull(FingerprintOf(CrashReporting.ApplyNoisePolicy(refused)), "Sent, and not filed with the phone losing signal.");

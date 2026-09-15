@@ -317,11 +317,13 @@ public static class CrashReporting
     /// drops it from any logger.
     /// </summary>
     /// <remarks>
-    /// A failed attempt to connect is recognized by its event name, whatever the exception. A hub that
-    /// is down behind its load balancer is answered with a 502 - a status on the negotiation, a refused
-    /// upgrade on the WebSocket - and that counts as the server answering, so the rules below would
-    /// send every attempt unrationed: about a dozen events a minute from each phone for as long as the
-    /// outage lasted.
+    /// A failed attempt to connect is recognized by its event name, whatever the exception, because
+    /// SignalR makes one for every attempt for as long as the hub cannot be reached. A refused attempt
+    /// counts as the server answering - a status on a negotiation, or a WebSocket upgrade that reaches
+    /// the app refused with a 502 - so the rules below would send every one unrationed: about a dozen
+    /// events a minute from each phone for as long as it went on. The refused upgrade seen most in
+    /// production was not an outage, but a status API replica refusing an upgrade whose negotiate
+    /// another replica had answered, which HubClient avoids by not negotiating at all.
     ///
     /// A server closing the connection with an error is reported twice: first with the message alone,
     /// which is dropped here, and then with the exception as the connection shuts down or reconnects,
@@ -430,8 +432,9 @@ public static class CrashReporting
             return false;
         }
 
-        // A WebSocket upgrade the server refused - a 502 in place of the 101 while the hub is down, most
-        // often - carries no status code, but it is still the server answering.
+        // A WebSocket upgrade the server refused carries no status code, but it is still the server
+        // answering. In production that was a 502 in place of the 101: a status API replica refusing an
+        // upgrade it had not negotiated, which reached the app through Cloudflare as a 502.
         if (Chain(exception).Any(x => x is WebSocketException { WebSocketErrorCode: WebSocketError.NotAWebSocket }))
         {
             return false;
