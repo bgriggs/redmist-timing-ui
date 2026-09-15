@@ -1,0 +1,196 @@
+{
+  "scenario": "smoke",
+  "started_utc": "2026-09-13T21:00:38+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 10106,
+    "version_name": "10106",
+    "installed_at": "2026-09-07 12:07:30"
+  },
+  "notes": {
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "screen",
+      "at_s": 15.8,
+      "screen": "home",
+      "nodes": 190,
+      "sample": [
+        "POC @ Willow Springs",
+        "LIVE",
+        "LDRL - DawgFest 2026",
+        "9:00 AM",
+        "-",
+        "5:00 PM"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 25.4,
+      "screen": "completed-events",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro",
+        "The Sebring NYE 14hr Enduro EC",
+        "AMP'd Up Duals Copy 1",
+        "LDRL - Dawgs In The Hunt 2025",
+        "Endurance Karting - 2025 3 Hours of Florida"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 35.0,
+      "screen": "completed-events-page-2",
+      "nodes": 180,
+      "sample": [
+        "The Fast Parts Grand Prix at Mid-Ohio Sat 8hr",
+        "Endurance Karting - 6 Hours of New England",
+        "World Racing League - High Plains 2025",
+        "Thompson 12",
+        "2025 Karting for CKG",
+        "Champcar VIR24"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 53.8,
+      "screen": "event",
+      "nodes": 119,
+      "sample": [
+        "Provisional Results for LDRL - Hair of the Dawg 2026",
+        "01/17/2026",
+        "Sessions",
+        "Sat 6.5Hr",
+        "01/17 9:58 AM",
+        "Provisional Results"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 71.6,
+      "screen": "session-results",
+      "nodes": 840,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 81.8,
+      "screen": "car-expanded",
+      "nodes": 917,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "expand",
+      "at_s": 81.8,
+      "delta_nodes": 77
+    },
+    {
+      "name": "screen",
+      "at_s": 96.6,
+      "screen": "completed-events-after-back",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro",
+        "The Sebring NYE 14hr Enduro EC",
+        "AMP'd Up Duals Copy 1",
+        "LDRL - Dawgs In The Hunt 2025",
+        "Endurance Karting - 2025 3 Hours of Florida"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 106.1,
+      "screen": "home-again",
+      "nodes": 190,
+      "sample": [
+        "POC @ Willow Springs",
+        "LIVE",
+        "LDRL - DawgFest 2026",
+        "9:00 AM",
+        "-",
+        "5:00 PM"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 114.8,
+      "screen": "driver-mode",
+      "nodes": 81,
+      "sample": [
+        "In-Car Driver Settings",
+        "Car Number",
+        "Select Event",
+        "Show in-class cars only",
+        "OK"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 120.3,
+      "screen": "home-after-driver-mode",
+      "nodes": 190,
+      "sample": [
+        "POC @ Willow Springs",
+        "LIVE",
+        "LDRL - DawgFest 2026",
+        "9:00 AM",
+        "-",
+        "5:00 PM"
+      ]
+    },
+    {
+      "name": "live-patches",
+      "at_s": 144.6,
+      "checked": true,
+      "clock": "Local Time: 2:03:43 PM",
+      "window_s": 10,
+      "received": 10,
+      "patches": 10,
+      "per_second": 1.0,
+      "app_log_lines": 10,
+      "errors": 0,
+      "errors_total": 0,
+      "first_error": null
+    }
+  ],
+  "faults": [],
+  "summary": {
+    "home_ready_s": 14.9,
+    "cold_start_ms": 6716,
+    "live_event_count": 10,
+    "completed_event_count": 10,
+    "page_2_event_count": 10,
+    "session_count": 2,
+    "car_row_count": 18,
+    "session_laps": 155,
+    "final_pss_mb": 378
+  },
+  "status": "pass",
+  "duration_s": 150.5
+}
