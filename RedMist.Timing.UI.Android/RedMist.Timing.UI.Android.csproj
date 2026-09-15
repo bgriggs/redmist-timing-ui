@@ -81,7 +81,10 @@
 	     What it changes: a major collection marks the whole heap with the app stopped instead of
 	     concurrently, so nursery collections no longer run in the middle of a concurrent mark.
 	     That interleaving is the suspect, not a confirmed cause. The cost is longer major
-	     pauses. Judge it by REDMIST-APP-M's events per release.
+	     pauses. Judge it by native crashes per release across issues, or by crash-free sessions,
+	     not by REDMIST-APP-M alone: once tombstone capture (MainActivity.cs) names the frames, the
+	     same crash groups under its real stack rather than that issue's single unknown frame, and
+	     the first launch with tombstones on also reports each phone's last crash from before.
 
 	     Measured on the SM-S135DL, a Release build of each, 2026-09-14: smoke and soak pass with
 	     nothing beyond run-to-run noise - cold start 6059 ms against 6138, soak PSS 314 -> 368 MB

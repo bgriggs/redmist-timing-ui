@@ -1,0 +1,188 @@
+{
+  "scenario": "smoke",
+  "started_utc": "2026-09-15T15:01:01+00:00",
+  "device": {
+    "model": "SM-S135DL",
+    "android": "13",
+    "manufacturer": "samsung",
+    "total_ram_mb": 2783,
+    "size": "720x1600",
+    "density": "280"
+  },
+  "app": {
+    "package": "com.bigmissionmotorsports.redmist",
+    "version_code": 34,
+    "version_name": "34",
+    "installed_at": "2026-09-15 09:00:57"
+  },
+  "notes": {
+    "event": "Hair of the Dawg",
+    "session": "Sat 6.5Hr"
+  },
+  "steps": [
+    {
+      "name": "screen",
+      "at_s": 14.1,
+      "screen": "home",
+      "nodes": 171,
+      "sample": [
+        "Test7",
+        "SIMULATION",
+        "Test Event",
+        "LDRL - DawgFest 2026",
+        "POC @ Willow Springs",
+        "NASA GL - ABCC - No Limits - September"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 23.7,
+      "screen": "completed-events",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro",
+        "The Sebring NYE 14hr Enduro EC",
+        "AMP'd Up Duals Copy 1",
+        "Endurance Karting - 2025 3 Hours of Florida",
+        "LDRL - Dawgs In The Hunt 2025"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 33.1,
+      "screen": "completed-events-page-2",
+      "nodes": 180,
+      "sample": [
+        "The Fast Parts Grand Prix at Mid-Ohio Sat 8hr",
+        "Endurance Karting - 6 Hours of New England",
+        "World Racing League - High Plains 2025",
+        "Thompson 12",
+        "2025 Karting for CKG",
+        "Champcar VIR24"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 51.6,
+      "screen": "event",
+      "nodes": 119,
+      "sample": [
+        "Provisional Results for LDRL - Hair of the Dawg 2026",
+        "01/17/2026",
+        "Sessions",
+        "Sat 6.5Hr",
+        "01/17 9:58 AM",
+        "Provisional Results"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 73.4,
+      "screen": "session-results",
+      "nodes": 840,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 85.2,
+      "screen": "car-expanded",
+      "nodes": 917,
+      "sample": [
+        "Sat 6.5Hr",
+        "Race Time: 06:39:38",
+        "Local Time: 4:53:55 PM",
+        "Laps: 155",
+        "Flag: Green",
+        "Sorting"
+      ]
+    },
+    {
+      "name": "expand",
+      "at_s": 85.2,
+      "delta_nodes": 77
+    },
+    {
+      "name": "screen",
+      "at_s": 100.0,
+      "screen": "completed-events-after-back",
+      "nodes": 180,
+      "sample": [
+        "LDRL - Hair of the Dawg 2026",
+        "The Sebring NYE 14hr Enduro",
+        "The Sebring NYE 14hr Enduro EC",
+        "AMP'd Up Duals Copy 1",
+        "Endurance Karting - 2025 3 Hours of Florida",
+        "LDRL - Dawgs In The Hunt 2025"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 109.4,
+      "screen": "home-again",
+      "nodes": 171,
+      "sample": [
+        "Test7",
+        "SIMULATION",
+        "Test Event",
+        "LDRL - DawgFest 2026",
+        "POC @ Willow Springs",
+        "NASA GL - ABCC - No Limits - September"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 118.3,
+      "screen": "driver-mode",
+      "nodes": 81,
+      "sample": [
+        "In-Car Driver Settings",
+        "Car Number",
+        "Select Event",
+        "Show in-class cars only",
+        "OK"
+      ]
+    },
+    {
+      "name": "screen",
+      "at_s": 123.6,
+      "screen": "home-after-driver-mode",
+      "nodes": 171,
+      "sample": [
+        "Test7",
+        "SIMULATION",
+        "Test Event",
+        "LDRL - DawgFest 2026",
+        "POC @ Willow Springs",
+        "NASA GL - ABCC - No Limits - September"
+      ]
+    },
+    {
+      "name": "live-patches",
+      "at_s": 175.0,
+      "checked": false,
+      "reason": "no session clock ({'contains': 'Local Time:'} never appeared: on screen ['Provisional Results for Test7', '09/14/2026', 'Sessions', 'Sunday - 7 Hour', '09/14 9:00 PM', 'Provisional Results'])"
+    }
+  ],
+  "faults": [],
+  "summary": {
+    "home_ready_s": 13.2,
+    "cold_start_ms": 6342,
+    "live_event_count": 10,
+    "completed_event_count": 10,
+    "page_2_event_count": 10,
+    "session_count": 2,
+    "car_row_count": 18,
+    "session_laps": 155,
+    "final_pss_mb": 368
+  },
+  "status": "pass",
+  "duration_s": 180.8
+}

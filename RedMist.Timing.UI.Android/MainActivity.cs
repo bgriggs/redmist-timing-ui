@@ -81,7 +81,27 @@ public class MainActivity : AvaloniaMainActivity<App>
         // Before base.OnCreate, which is where Avalonia starts: initializing here means the Android
         // SDK's native crash and tombstone capture is armed for the whole of startup, which is
         // where the unattributable libmonosgen crashes were happening.
-        CrashReporting.Init("android", o => o.DisableAppDomainUnhandledExceptionCapture());
+        //
+        // Tombstones are on because the signal handler alone cannot say where a native crash was.
+        // Its events for the libmonosgen crash arrive as SIGSEGV with a single unknown frame. The
+        // tombstone Android writes for the same crash carries the whole backtrace and each loaded
+        // library's build id, which is what the runtime's debug files are matched against, so a
+        // GC crash can be read as the function it happened in. That is Android 12 and later, where
+        // ApplicationExitInfo carries the tombstone; below it nothing changes. When the signal
+        // handler caught the same crash, the Android SDK merges the tombstone into that event rather
+        // than sending both; otherwise the tombstone goes as an event of its own.
+        //
+        // Historical tombstones stay off, but that does not keep an older crash out. The SDK always
+        // reports the most recent native crash it has not reported yet, up to 91 days old, and on
+        // the first launch with tombstones on nothing has been reported - so a phone that crashed
+        // recently sends one more event for a crash its signal handler already sent, too late to
+        // merge. That event carries the release the SDK saved on an earlier run, if any, not the new
+        // one. Historical reporting would do the same for every older tombstone as well.
+        CrashReporting.Init("android", static o =>
+        {
+            o.DisableAppDomainUnhandledExceptionCapture();
+            o.Native.TombstoneEnabled = true;
+        });
 
         // .NET maps no special folder to Android's cache directory, so the image cache cannot find
         // it on its own - InternetCache, which is how the iOS head reaches Library/Caches, resolves

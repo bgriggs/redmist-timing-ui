@@ -107,10 +107,13 @@ public static class CrashReporting
                 // the app's job here is crash attribution. Stated explicitly rather than left to
                 // defaults so that turning one on is a decision someone made rather than a default
                 // that changed under us in an SDK upgrade.
+                //
+                // Metrics have no switch of their own since Sentry 6.10: EnableMetrics is obsolete and
+                // ignored. A metric is only sent through SentrySdk.Metrics, which the app never calls,
+                // or by the System.Diagnostics.Metrics integration, which is disabled below.
                 options.TracesSampleRate = null;   // no tracing, and no profiling with it
                 options.EnableLogs = false;        // distinct from breadcrumbs; would be flooded by
                                                    // HubClient's per-second session-patch line
-                options.EnableMetrics = false;
                 options.DisableSystemDiagnosticsMetricsIntegration();
 
                 // Without a cache directory an envelope lives only in memory, so a crash in the
