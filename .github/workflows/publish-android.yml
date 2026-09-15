@@ -90,6 +90,22 @@ jobs:
         shell: pwsh
         run: Get-ChildItem -Path ${{ github.workspace }}\publish-output -Recurse | Format-List FullName
 
+      - name: Upload .NET runtime symbols to Sentry
+        # The runtime's native libraries ship stripped, so the upload above can name only their
+        # exported functions, not the GC internals a crash in libmonosgen lands in. This fetches
+        # Microsoft's debug files for the exact libraries in this bundle and uploads them. Same rules
+        # as the build's upload: a no-op without SENTRY_AUTH_TOKEN, and a failure here must not stop
+        # a release - hence continue-on-error, and a timeout, since continue-on-error does not help
+        # with a step that hangs.
+        continue-on-error: true
+        timeout-minutes: 15
+        shell: pwsh
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: ./tools/ci/upload-runtime-symbols.ps1 -Bundle "${{ github.workspace }}\publish-output\com.bigmissionmotorsports.redmist-Signed.aab"
+
       - name: Upload AAB to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
