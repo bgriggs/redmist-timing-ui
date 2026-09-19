@@ -536,15 +536,18 @@
 
 						<!--Share the event. Hidden outright on a private event: there is no link that
 						    would work for a recipient without carrying the access code.-->
+						<!--Larger than the legend and search icons above, and than the class's own
+						    Height of 20, because these are the two the header is actually asking
+						    someone to press.-->
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0"
 									IsVisible="{Binding CanShare}">
-							<Button Classes="icon" Command="{Binding ShareEventLink}" Padding="2" Margin="0,0,5,0"
+							<Button Classes="icon" Height="24" Command="{Binding ShareEventLink}" Padding="2" Margin="2,2,7,2"
 									ToolTip.Tip="Share a link to this event">
-								<PathIcon Height="13" Width="13" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareIcon}"/>
+								<PathIcon Height="16" Width="16" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareIcon}"/>
 							</Button>
-							<Button Classes="icon" Command="{Binding ShareEventCard}" Padding="2"
+							<Button Classes="icon" Height="24" Command="{Binding ShareEventCard}" Padding="2" Margin="2"
 									ToolTip.Tip="Share an image of the standings">
-								<PathIcon Height="13" Width="13" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareImageIcon}"/>
+								<PathIcon Height="16" Width="16" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareImageIcon}"/>
 							</Button>
 						</StackPanel>
 					</StackPanel>
