@@ -470,11 +470,15 @@
 				<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
 					<StackPanel VerticalAlignment="Center">
 						<Button Classes="back" Margin="0,0,5,0" Command="{Binding Back}" IsVisible="{Binding AllowEventList}"/>
-						<Button Classes="icon" Command="{Binding ToggleLegend}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,2,5,0" Padding="0" ToolTip.Tip="Show legend">
-							<PathIcon Height="11" Width="20" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
+						<!--Sized to match the share buttons in the right-hand column - see there. The
+						    glyph box is square so each icon keeps its own proportions inside it,
+						    rather than the 11x20 these used to be given, which fitted every one of
+						    them to 11 tall whatever its shape.-->
+						<Button Classes="icon" Height="26" Command="{Binding ToggleLegend}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,2,5,0" Padding="0" ToolTip.Tip="Show legend">
+							<PathIcon Height="18" Width="18" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource infogeom}"/>
 						</Button>
-						<Button Classes="icon" Command="{Binding ToggleSearch}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,3,5,0" Padding="0" ToolTip.Tip="Search cars">
-							<PathIcon Height="11" Width="20" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource searchIcon}"/>
+						<Button Classes="icon" Height="26" Command="{Binding ToggleSearch}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,3,5,0" Padding="0" ToolTip.Tip="Search cars">
+							<PathIcon Height="18" Width="18" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource searchIcon}"/>
 						</Button>
 					</StackPanel>
 
@@ -536,18 +540,18 @@
 
 						<!--Share the event. Hidden outright on a private event: there is no link that
 						    would work for a recipient without carrying the access code.-->
-						<!--Larger than the legend and search icons above, and than the class's own
-						    Height of 20, because these are the two the header is actually asking
-						    someone to press.-->
+						<!--26 over the icon class's own 20, because these and the legend and search
+						    buttons are the header's controls and were all small enough to be worth
+						    missing. Keep the four the same size: they read as one set.-->
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0"
 									IsVisible="{Binding CanShare}">
-							<Button Classes="icon" Height="24" Command="{Binding ShareEventLink}" Padding="2" Margin="2,2,7,2"
+							<Button Classes="icon" Height="26" Command="{Binding ShareEventLink}" Padding="2" Margin="2,2,7,2"
 									ToolTip.Tip="Share a link to this event">
-								<PathIcon Height="16" Width="16" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareIcon}"/>
+								<PathIcon Height="18" Width="18" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareIcon}"/>
 							</Button>
-							<Button Classes="icon" Height="24" Command="{Binding ShareEventCard}" Padding="2" Margin="2"
+							<Button Classes="icon" Height="26" Command="{Binding ShareEventCard}" Padding="2" Margin="2"
 									ToolTip.Tip="Share an image of the standings">
-								<PathIcon Height="16" Width="16" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareImageIcon}"/>
+								<PathIcon Height="18" Width="18" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareImageIcon}"/>
 							</Button>
 						</StackPanel>
 					</StackPanel>
