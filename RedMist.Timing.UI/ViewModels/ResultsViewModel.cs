@@ -166,6 +166,10 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
                     BackRouterPath = "SessionResultsList",
                     EventModel = EventModel,
                     IsRealTime = false,
+                    // Taken from the session being opened rather than from whatever state the load
+                    // brings back, so a shared link names the right session even when the load fails.
+                    // Session 0 is a real session, which is why this is nullable and not just 0.
+                    PinnedSessionId = session.Id,
                 };
 
                 if (results != null)

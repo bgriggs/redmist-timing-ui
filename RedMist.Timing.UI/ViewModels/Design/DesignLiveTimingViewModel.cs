@@ -207,6 +207,13 @@ public class DesignLiveTimingViewModel : LiveTimingViewModel
 
         //ToggleGroupMode();
 
+        // The real grid hands each row this as it is built, so without it the previewer shows an
+        // expanded car with no share buttons on it.
+        foreach (var car in carCache.Items)
+        {
+            car.ShareHost = this;
+        }
+
         // Load a design-time sponsor image
         _ = LoadDesignSponsorAsync();
     }

@@ -1,6 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="com.bigmissionmotorsports.redmist" android:versionCode="34" android:versionName="34">
 	<uses-permission android:name="android.permission.INTERNET" />
-	<application android:label="Red Mist Timing" android:icon="@drawable/icon" />
+	<application android:label="Red Mist Timing" android:icon="@drawable/icon">
+		<!--
+			Lets the share sheet hand a timing card to another app. Sharing an image needs a content://
+			URI: a raw file:// one throws FileUriExposedException on anything since Android 7, and the
+			receiving app has no rights to this app's cache directory in any case. The authority is
+			written out rather than using a manifest placeholder, and has to stay in step with
+			AndroidShareSheet, which builds it from the package name at runtime.
+
+			Not exported, and grantUriPermissions on: the only access anyone gets is the read
+			permission the share intent grants for the single file it names. file_paths.xml limits that
+			to one directory.
+		-->
+		<provider
+			android:name="androidx.core.content.FileProvider"
+			android:authorities="com.bigmissionmotorsports.redmist.fileprovider"
+			android:exported="false"
+			android:grantUriPermissions="true">
+			<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+		</provider>
+	</application>
 	<!--android:usesCleartextTraffic="true"-->
 </manifest>

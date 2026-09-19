@@ -72,6 +72,10 @@ public class MainActivity : AvaloniaMainActivity<App>
         // fault before the host exists still goes through App.LogException to Console, which lands
         // under DOTNET rather than this tag.
         App.PlatformLogProviderFactory = static () => new AndroidLogProvider();
+
+        // Same reason the two above do not capture this activity: the share sheet is built once and
+        // has to start its chooser from whichever activity is live when someone taps share.
+        App.ShareSheetFactory = static () => new AndroidShareSheet(static () => Current);
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }

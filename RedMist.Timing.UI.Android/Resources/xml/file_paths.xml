@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    What the FileProvider declared in AndroidManifest.xml is allowed to hand out. Only the one
+    directory the share sheet writes cards into: a provider scoped to the whole cache would expose
+    the image cache and the crash reporter's queue to any app the chooser offers.
+
+    The path here has to match AndroidShareSheet.SharedDirectory.
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+	<cache-path name="shared" path="shared/" />
+</paths>

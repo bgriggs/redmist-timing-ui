@@ -76,6 +76,9 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     [NotifyPropertyChangedFor(nameof(IsBroadcastVisible))]
     [NotifyPropertyChangedFor(nameof(BroadcastCompanyName))]
     [NotifyPropertyChangedFor(nameof(IsControlLogAvailable))]
+    // Sharing is decided from this event and nothing else, so the buttons have to move with it.
+    // See LiveTimingViewModel.Share.cs.
+    [NotifyPropertyChangedFor(nameof(CanShare))]
     private Event eventModel = new();
 
     [ObservableProperty]
@@ -803,6 +806,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         }
         StopFollowing();
         searchDebounce?.Dispose();
+        shareStatusTimer?.Dispose();
 
         // Unbind before releasing the rows.
         flatProjection.Dispose();
@@ -1199,6 +1203,10 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             if (!carVm.HasValue && !isDeltaUpdate)
             {
                 var vm = new CarViewModel(EventModel, serverClient, hubClient, pitTracking, viewSizeService, httpClientFactory, configuration, loggerFactory) { CurrentGroupMode = CurrentGrouping, CurrentSortMode = this.CurrentSortMode };
+                // The row shares itself through the grid, which is the only thing that knows the
+                // event, the session and what is on screen. Set before the row is realized so its
+                // share buttons are never briefly visible on a private event.
+                vm.ShareHost = this;
                 vm.ApplyEntry(entry, classColor);
                 carCache.AddOrUpdate(vm);
 
@@ -1485,6 +1493,8 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             Number = "DuplicateCar",
             Class = "Test Class",
             OverallPosition = 1,
+            // As ApplyEntries does, so the test row behaves like the ones beside it.
+            ShareHost = this,
         };
         if (Cars.Count > 0 && CurrentGrouping == GroupMode.Overall)
         {

@@ -1,19 +1,23 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using BigMission.Avalonia.Utilities.Extensions;
 using BigMission.Shared.Utilities;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Models;
 using RedMist.Timing.UI.ViewModels;
 using System;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.Views;
 
-public partial class MainView : UserControl, IRecipient<LauncherEvent>
+public partial class MainView : UserControl, IRecipient<LauncherEvent>, IRecipient<ShareRequest>,
+    IRecipient<ShareImageRequest>
 {
     private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(25));
 
@@ -72,6 +76,142 @@ public partial class MainView : UserControl, IRecipient<LauncherEvent>
         {
             Logger.LogError(ex, "Failed to launch URI {Uri}", message.Uri);
         }
+    }
+
+    /// <summary>
+    /// Hands a link to the platform, falling back to the clipboard.
+    /// </summary>
+    /// <remarks>
+    /// Handled here rather than in the timing view because two timing grids can be alive at once -
+    /// the live tab and a stored session under the results tab - and a request message may only be
+    /// answered once. There is one of these.
+    /// </remarks>
+    public void Receive(ShareRequest message)
+    {
+        if (!ShouldAnswer(message))
+        {
+            return;
+        }
+
+        message.Reply(ShareLinkAsync(message.Payload));
+    }
+
+    /// <inheritdoc cref="Receive(ShareRequest)"/>
+    public void Receive(ShareImageRequest message)
+    {
+        if (!ShouldAnswer(message))
+        {
+            return;
+        }
+
+        message.Reply(ShareImageAsync(message));
+    }
+
+    /// <summary>
+    /// Whether this view should be the one to answer <paramref name="message"/>.
+    /// </summary>
+    /// <remarks>
+    /// Android can briefly hold two of these - a recreated activity's view alongside the one it
+    /// replaces - and the messenger delivers in registration order, so the stale one is asked first.
+    /// A second reply throws, so it has to be the detached view that stands down rather than the
+    /// live one: an unattached view has no TopLevel, and so neither of the fallbacks this reply
+    /// exists to provide.
+    /// </remarks>
+    private bool ShouldAnswer(AsyncRequestMessage<ShareOutcome> message)
+        => !message.HasReceivedResponse && TopLevel.GetTopLevel(this) is not null;
+
+    private async Task<ShareOutcome> ShareLinkAsync(SharePayload payload)
+    {
+        try
+        {
+            if (App.ShareSheet.CanShareText)
+            {
+                var outcome = await App.ShareSheet.ShareTextAsync(payload);
+                if (outcome != ShareOutcome.Failed)
+                {
+                    return outcome;
+                }
+
+                // Fell through deliberately: a sheet that refused still leaves the viewer wanting
+                // the link.
+            }
+
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard is not null)
+            {
+                await clipboard.SetTextAsync(payload.Url);
+                return ShareOutcome.Copied;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to share a link");
+        }
+
+        return ShareOutcome.Failed;
+    }
+
+    /// <summary>
+    /// Hands the card to the platform, falling back to saving it where the viewer chooses.
+    /// </summary>
+    /// <remarks>
+    /// A save dialog rather than a clipboard write, which is the browser's fallback: Avalonia's
+    /// clipboard takes text everywhere and an image nowhere in particular, and a file is what a
+    /// desktop viewer is going to attach to a post anyway.
+    /// </remarks>
+    private async Task<ShareOutcome> ShareImageAsync(ShareImageRequest request)
+    {
+        try
+        {
+            if (App.ShareSheet.CanShareImages)
+            {
+                var outcome = await App.ShareSheet.ShareImageAsync(request.Payload, request.Image, request.FileName);
+                if (outcome != ShareOutcome.Failed)
+                {
+                    return outcome;
+                }
+            }
+
+            return await SaveImageAsync(request);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to share a timing card");
+            return ShareOutcome.Failed;
+        }
+    }
+
+    private async Task<ShareOutcome> SaveImageAsync(ShareImageRequest request)
+    {
+        var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
+        if (storage is null || !storage.CanSave)
+        {
+            return ShareOutcome.Failed;
+        }
+
+        var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save timing card",
+            SuggestedFileName = request.FileName,
+            DefaultExtension = "png",
+            FileTypeChoices = [FilePickerFileTypes.ImagePng],
+            ShowOverwritePrompt = true,
+        });
+
+        if (file is null)
+        {
+            // Closed the dialog, which is a decision rather than a failure.
+            return ShareOutcome.Dismissed;
+        }
+
+        // The picked file is a handle, not a path, and holds a stream on some backends.
+        using (file)
+        {
+            await using var stream = await file.OpenWriteAsync();
+            await stream.WriteAsync(request.Image);
+        }
+
+        return ShareOutcome.Saved;
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)

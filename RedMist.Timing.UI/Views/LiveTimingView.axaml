@@ -250,8 +250,29 @@
 		<DataTemplate x:Key="carExpanderTemplate" DataType="model:CarViewModel">
 			<Expander Header="{Binding .}" HeaderTemplate="{StaticResource carTemplate}" Template="{StaticResource rowExpanderTemplate}"
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
-				<Grid RowDefinitions="Auto,*" DataContext="{Binding CarDetailsViewModel}">
-					<Border Padding="5,4" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0" IsVisible="{Binding IsCarMetadataVisible}">
+				<!--The grid stays on the car so its share commands are in reach; the rows below take
+				    the details view model individually.-->
+				<Grid RowDefinitions="Auto,Auto,*">
+					<!--Share this car. Absent on a private event, same as the event's own buttons.-->
+					<Border Grid.Row="0" IsVisible="{Binding CanShare}" Padding="5,4" Margin="0,1,0,0"
+							BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0">
+						<StackPanel Orientation="Horizontal" Spacing="6">
+							<Button Command="{Binding ShareLink}" Padding="7,3" ToolTip.Tip="Share a link that opens this car">
+								<StackPanel Orientation="Horizontal" Spacing="5">
+									<PathIcon Height="11" Width="11" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareIcon}" VerticalAlignment="Center"/>
+									<TextBlock Text="Share car" FontSize="10" VerticalAlignment="Center"/>
+								</StackPanel>
+							</Button>
+							<Button Command="{Binding ShareCard}" Padding="7,3" ToolTip.Tip="Share an image of the standings with this car picked out">
+								<StackPanel Orientation="Horizontal" Spacing="5">
+									<PathIcon Height="11" Width="11" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareImageIcon}" VerticalAlignment="Center"/>
+									<TextBlock Text="Share image" FontSize="10" VerticalAlignment="Center"/>
+								</StackPanel>
+							</Button>
+						</StackPanel>
+					</Border>
+
+					<Border Grid.Row="1" DataContext="{Binding CarDetailsViewModel}" Padding="5,4" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0" IsVisible="{Binding IsCarMetadataVisible}">
 						<Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
 							<!-- Row 1: Personal Info -->
 							<StackPanel Orientation="Horizontal">
@@ -288,7 +309,7 @@
 							</StackPanel>
 						</Grid>
 					</Border>
-					<Grid Grid.Row="1">
+					<Grid Grid.Row="2" DataContext="{Binding CarDetailsViewModel}">
 						<TextBlock Text="Loading..." Classes="sm" IsVisible="{Binding IsLoading}"/>
 						<TabControl Padding="0" IsVisible="{Binding !IsLoading}">
 							<!--Laps-->
@@ -512,6 +533,20 @@
 								<TextBlock Text="{Binding GroupToggleText}" FontSize="9"/>
 							</StackPanel>
 						</Button>
+
+						<!--Share the event. Hidden outright on a private event: there is no link that
+						    would work for a recipient without carrying the access code.-->
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0"
+									IsVisible="{Binding CanShare}">
+							<Button Classes="icon" Command="{Binding ShareEventLink}" Padding="2" Margin="0,0,5,0"
+									ToolTip.Tip="Share a link to this event">
+								<PathIcon Height="13" Width="13" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareIcon}"/>
+							</Button>
+							<Button Classes="icon" Command="{Binding ShareEventCard}" Padding="2"
+									ToolTip.Tip="Share an image of the standings">
+								<PathIcon Height="13" Width="13" Foreground="{DynamicResource IconButtonForegroundBrush}" Data="{StaticResource shareImageIcon}"/>
+							</Button>
+						</StackPanel>
 					</StackPanel>
 				</Grid>
 			</Border>
@@ -541,13 +576,15 @@
 
 			<!--Car Table-->
 			<Border x:Name="tableBody" Grid.Row="4" BorderThickness="1" BorderBrush="{DynamicResource BorderPrimaryBrush}" Margin="3,0,3,3" Background="{DynamicResource TimingTableBackgroundBrush}">
-				<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
+				<!--Named so the code-behind can work out which rows are actually on screen when the
+				    standings are shared as an image.-->
+				<ScrollViewer x:Name="tableScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
 					<Grid>
 						<!--Flat-->
-						<ItemsControl ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carExpanderTemplate}" IsVisible="{Binding IsFlat}"/>
+						<ItemsControl x:Name="flatCarRows" ItemsSource="{Binding Cars}" ItemTemplate="{StaticResource carExpanderTemplate}" IsVisible="{Binding IsFlat}"/>
 
 						<!--Grouped Classes-->
-						<ItemsControl ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
+						<ItemsControl x:Name="groupedCarRows" ItemsSource="{Binding GroupedCars}" IsVisible="{Binding !IsFlat}">
 							<ItemsControl.ItemTemplate>
 								<DataTemplate DataType="model:GroupHeaderViewModel">
 									<Expander Header="{Binding .}" HorizontalAlignment="Stretch"
@@ -567,6 +604,14 @@
 						</ItemsControl>
 					</Grid>
 				</ScrollViewer>
+			</Border>
+
+			<!--What the last share did. Shown for a few seconds, so a link that went to the clipboard
+			    instead of a share sheet - or one that went nowhere - says so.-->
+			<Border Grid.Row="5" IsVisible="{Binding IsShareStatusVisible}" Margin="3,0,3,3" Padding="8,5"
+					Background="{DynamicResource TimingTableBackgroundBrush}" BorderThickness="1"
+					BorderBrush="{DynamicResource BorderPrimaryBrush}" CornerRadius="4">
+				<TextBlock Text="{Binding ShareStatus}" Classes="sm" TextWrapping="Wrap" HorizontalAlignment="Center"/>
 			</Border>
 
 			<!--Log Display-->

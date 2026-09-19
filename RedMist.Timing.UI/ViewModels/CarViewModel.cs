@@ -20,6 +20,7 @@ using System;
 using System.Globalization;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace RedMist.Timing.UI.ViewModels;
 
@@ -973,6 +974,47 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             WeakReferenceMessenger.Default.Send(new LauncherEvent(url));
         }
     }
+
+    #region Sharing
+
+    private ICarShareHost? shareHost;
+
+    /// <summary>
+    /// The grid this row belongs to, which is what actually shares it.
+    /// </summary>
+    /// <remarks>
+    /// Assigned as the row is built, before it is realized, so a private event's rows never show a
+    /// share button even briefly. See <see cref="ICarShareHost"/> for why this is handed over rather
+    /// than found.
+    /// </remarks>
+    internal ICarShareHost? ShareHost
+    {
+        get => shareHost;
+        set
+        {
+            shareHost = value;
+            OnPropertyChanged(nameof(CanShare));
+        }
+    }
+
+    /// <summary>
+    /// Whether this row offers to share itself. False for a private event, and false for a row with
+    /// no grid behind it - tests, and a designer that has not set one.
+    /// </summary>
+    /// <remarks>
+    /// Asked of the host each time rather than cached, but only raised when the host is assigned -
+    /// which is enough because a row never outlives the event it was built for. The grid sets
+    /// <c>EventModel</c> and clears its row cache inside one dispatcher invoke (see
+    /// <c>LiveTimingViewModel.InitializeLiveAsync</c>), so there is no frame in which an old row is
+    /// bound against a new event's answer.
+    /// </remarks>
+    public bool CanShare => ShareHost?.CanShare == true;
+
+    public Task ShareLink() => ShareHost?.ShareCarLinkAsync(this) ?? Task.CompletedTask;
+
+    public Task ShareCard() => ShareHost?.ShareCarCardAsync(this) ?? Task.CompletedTask;
+
+    #endregion
 }
 
 public partial class PositionChange : ObservableObject

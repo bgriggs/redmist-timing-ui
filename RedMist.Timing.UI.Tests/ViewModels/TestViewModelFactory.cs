@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using RedMist.Timing.UI.Clients;
 using RedMist.Timing.UI.Services;
+using RedMist.Timing.UI.Utilities;
 using RedMist.Timing.UI.ViewModels;
 using RedMist.Timing.UI.ViewModels.Design;
 using RedMist.TimingCommon.Models;
@@ -38,7 +39,13 @@ internal static class TestViewModelFactory
     internal static PersistentImageStore CreateImageStore() =>
         new(new DesignHttpClientFactory(), new DebugLoggerFactory(), cacheDirectory: null);
 
-    internal static IConfiguration CreateConfiguration()
+    internal static IConfiguration CreateConfiguration() => CreateConfiguration(shareSiteUrl: null);
+
+    /// <param name="shareSiteUrl">
+    /// Where shared links should point. Null leaves the key out altogether, which is what a build
+    /// without the setting looks like, so the fallback stays the path most tests take.
+    /// </param>
+    internal static IConfiguration CreateConfiguration(string? shareSiteUrl)
     {
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -57,6 +64,7 @@ internal static class TestViewModelFactory
                 ["Cdn:ArchiveUrl"] = "http://localhost/archive",
                 ["Cdn:BaseUrl"] = "http://localhost/cdn",
                 ["Cdn:Logos"] = "http://localhost/cdn/logos",
+                [ShareLinks.SiteUrlConfigurationKey] = shareSiteUrl,
             })
             .Build();
     }
@@ -98,13 +106,21 @@ internal static class TestViewModelFactory
     internal static LiveTimingViewModel CreateLiveTiming() => CreateLiveTiming(hubClient: null, serverClient: null);
 
     /// <summary>
+    /// Builds the live timing view model against a configured share site, for the tests that care
+    /// where a shared link points.
+    /// </summary>
+    internal static LiveTimingViewModel CreateLiveTiming(string? shareSiteUrl)
+        => CreateLiveTiming(hubClient: null, serverClient: null, shareSiteUrl: shareSiteUrl);
+
+    /// <summary>
     /// Builds the live timing view model, optionally against a caller-supplied hub and event client
     /// so a test can stand in for the server and for the state of the hub subscription, and a logger
     /// factory so it can see what was logged.
     /// </summary>
-    internal static LiveTimingViewModel CreateLiveTiming(HubClient? hubClient, EventClient? serverClient, ILoggerFactory? loggerFactory = null)
+    internal static LiveTimingViewModel CreateLiveTiming(HubClient? hubClient, EventClient? serverClient,
+        ILoggerFactory? loggerFactory = null, string? shareSiteUrl = null)
     {
-        var configuration = CreateConfiguration();
+        var configuration = CreateConfiguration(shareSiteUrl);
         var restClientFactory = new RestClientFactory(configuration);
         loggerFactory ??= new DebugLoggerFactory();
         var httpClientFactory = new DesignHttpClientFactory();

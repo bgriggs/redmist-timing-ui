@@ -46,6 +46,25 @@ public partial class App : Application
     /// </summary>
     public static Func<ILoggerProvider>? PlatformLogProviderFactory { get; set; }
 
+    /// <summary>
+    /// Factory for the platform's native share sheet - <c>UIActivityViewController</c> on iOS,
+    /// <c>ACTION_SEND</c> on Android, <c>navigator.share</c> in a browser. Set by platform projects
+    /// before app initialization, the same way <see cref="ScreenWakeServiceFactory"/> is.
+    /// </summary>
+    public static Func<IShareSheet>? ShareSheetFactory { get; set; }
+
+    private static IShareSheet? shareSheet;
+
+    /// <summary>
+    /// The platform's share sheet, or one that reports having none.
+    /// </summary>
+    /// <remarks>
+    /// Never null, so a caller decides its own fallback rather than null-checking: a head with no
+    /// share sheet is the desktop build, where a link goes to the clipboard and a card to a save
+    /// dialog. Not in the container because only a view needs it, and views here are not built by it.
+    /// </remarks>
+    public static IShareSheet ShareSheet => shareSheet ??= ShareSheetFactory?.Invoke() ?? new NoShareSheet();
+
 
     public override void Initialize()
     {

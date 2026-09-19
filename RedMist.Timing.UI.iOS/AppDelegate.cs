@@ -13,6 +13,7 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
         App.ScreenWakeServiceFactory = () => new iOSScreenWakeService();
+        App.ShareSheetFactory = () => new iOSShareSheet();
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }
