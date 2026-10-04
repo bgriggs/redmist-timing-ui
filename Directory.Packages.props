@@ -1,54 +1,50 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="Avalonia" Version="11.3.20" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.20" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.20" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.20" />
-    <PackageVersion Include="Avalonia.Desktop" Version="11.3.20" />
-    <PackageVersion Include="Avalonia.iOS" Version="11.3.20" />
-    <PackageVersion Include="Avalonia.Browser" Version="11.3.20" />
-    <PackageVersion Include="Avalonia.Android" Version="11.3.20" />
+    <PackageVersion Include="Avalonia" Version="11.3.22" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.22" />
+    <PackageVersion Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageVersion Include="Avalonia.iOS" Version="11.3.22" />
+    <PackageVersion Include="Avalonia.Browser" Version="11.3.22" />
+    <PackageVersion Include="Avalonia.Android" Version="11.3.22" />
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.3.13" />
-    <PackageVersion Include="Avalonia.Headless" Version="11.3.20" />
+    <PackageVersion Include="Avalonia.Headless" Version="11.3.22" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.1.1" />
-    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <!-- Crash and error reporting. On net*-android the Sentry package also brings the
          Android SDK bindings, which capture native (libmonosgen) crashes and tombstones
          that the managed handlers never see. -->
-    <PackageVersion Include="Sentry" Version="6.11.0" />
-    <PackageVersion Include="Sentry.Extensions.Logging" Version="6.11.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.10" />
-    <PackageVersion Include="MessagePack" Version="3.1.8" />
-    <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.1" />
+    <PackageVersion Include="Sentry" Version="6.12.0" />
+    <PackageVersion Include="Sentry.Extensions.Logging" Version="6.12.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.12" />
+    <PackageVersion Include="MessagePack" Version="3.1.11" />
+    <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
     <!-- AndroidX Lifecycle dependencies - align versions to fix dependency conflicts -->
-    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.10.0.1" />
-    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.10.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.11.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.11.0.1" />
     <!-- Sentry.Bindings.Android carries these two at 2.9.2.1, whose constraint on
-         Lifecycle.Common/Runtime (< 2.9.3) conflicts with the 2.10.0.1 pins above (NU1608).
+         Lifecycle.Common/Runtime (< 2.9.3) conflicts with the 2.11.0.1 pins above (NU1608).
          Aligned to the same version as the rest of the Lifecycle stack. -->
-    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common.Java8" Version="2.10.0.1" />
-    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.10.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common.Java8" Version="2.11.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.11.0.1" />
     <!-- AndroidX Activity for modern back press handling -->
-    <PackageVersion Include="Xamarin.AndroidX.Activity" Version="1.12.4" />
+    <PackageVersion Include="Xamarin.AndroidX.Activity" Version="1.13.0.1" />
     <!-- Exclude JVM variant of Compose Runtime Annotation to prevent duplicate types with Android variant -->
-    <PackageVersion Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.3" />
+    <PackageVersion Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.12.1" />
     <PackageVersion Include="CommunityToolkit.Labs.Extensions.DependencyInjection" Version="0.1.250319-build.2093" />
-    <PackageVersion Include="DynamicData" Version="9.4.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.10" />
+    <PackageVersion Include="DynamicData" Version="9.4.33" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.12" />
     <PackageVersion Include="BigMission.Avalonia.Utilities" Version="1.0.4.1" />
     <PackageVersion Include="BigMission.Shared" Version="1.1.0" />
     <PackageVersion Include="RedMist.TimingCommon" Version="1.17.2" />
     <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.12" />
     <PackageVersion Include="RestSharp" Version="114.0.0" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.11.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.5.1" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.1.0" />
-    <PackageVersion Include="MSTest" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.4.1" />
+    <PackageVersion Include="MSTest" Version="4.4.1" />
     <!-- SkiaSharp - for Android 16KB requirement, use 3.119.0 -->
     <!-- For other platforms, use the standard version -->
     <PackageVersion Include="SkiaSharp" Version="3.119.2" />

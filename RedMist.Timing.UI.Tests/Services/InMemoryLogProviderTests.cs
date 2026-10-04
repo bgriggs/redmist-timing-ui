@@ -178,6 +178,11 @@ public sealed class InMemoryLogProviderTests
             Exception = new InvalidOperationException("detail"),
         };
 
-        Assert.AreSame(entry.FormattedMessage, entry.FormattedMessage);
+        // Two reads into separate locals, so the analyzer does not mistake this for comparing an
+        // expression with itself - each read goes through the getter, which is the point.
+        var first = entry.FormattedMessage;
+        var second = entry.FormattedMessage;
+
+        Assert.AreSame(first, second);
     }
 }
