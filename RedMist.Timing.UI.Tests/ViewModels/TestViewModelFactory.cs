@@ -39,6 +39,21 @@ internal static class TestViewModelFactory
     internal static PersistentImageStore CreateImageStore() =>
         new(new DesignHttpClientFactory(), new DebugLoggerFactory(), cacheDirectory: null);
 
+    /// <summary>
+    /// The sponsor rotator every timing view model is built with. Constructing it makes no request.
+    /// </summary>
+    private static SponsorRotatorViewModel CreateSponsorRotator(RestClientFactory restClientFactory,
+        DesignHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory)
+    {
+        var sponsorIconCache = new SponsorIconCacheService(CreateImageStore(), loggerFactory);
+        var sponsorClient = new SponsorClient(restClientFactory, httpClientFactory);
+        return new SponsorRotatorViewModel(
+            new SponsorsService(sponsorClient, sponsorIconCache, loggerFactory),
+            sponsorIconCache,
+            sponsorClient,
+            loggerFactory);
+    }
+
     internal static IConfiguration CreateConfiguration() => CreateConfiguration(shareSiteUrl: null);
 
     /// <param name="shareSiteUrl">
@@ -125,13 +140,7 @@ internal static class TestViewModelFactory
         loggerFactory ??= new DebugLoggerFactory();
         var httpClientFactory = new DesignHttpClientFactory();
         var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
-        var sponsorIconCache = new SponsorIconCacheService(CreateImageStore(), loggerFactory);
-        var sponsorClient = new SponsorClient(restClientFactory, httpClientFactory);
-        var sponsorRotator = new SponsorRotatorViewModel(
-            new SponsorsService(sponsorClient, sponsorIconCache, loggerFactory),
-            sponsorIconCache,
-            sponsorClient,
-            loggerFactory);
+        var sponsorRotator = CreateSponsorRotator(restClientFactory, httpClientFactory, loggerFactory);
 
         return new LiveTimingViewModel(
             hubClient ?? new HubClient(loggerFactory, configuration, accessCodeStore),
@@ -147,6 +156,40 @@ internal static class TestViewModelFactory
             EventModel = new Event { EventId = 1 },
             IsRealTime = false,
         };
+    }
+
+    /// <summary>
+    /// Builds the results view model for <paramref name="eventModel"/>, with its sessions list and the
+    /// grid it opens both served by <paramref name="eventClient"/>.
+    /// </summary>
+    /// <remarks>
+    /// Registers with the shared messenger, as it does in the app, so dispose it at the end of a test
+    /// or it goes on answering router messages that other tests send.
+    /// </remarks>
+    /// <param name="eventContext">
+    /// The context the view model and every grid it opens share, passed in so a test can see which
+    /// session it ends up pointing at.
+    /// </param>
+    internal static ResultsViewModel CreateResults(Event eventModel, EventClient eventClient, EventContext? eventContext = null)
+    {
+        var configuration = CreateConfiguration();
+        var restClientFactory = new RestClientFactory(configuration);
+        var loggerFactory = new DebugLoggerFactory();
+        var httpClientFactory = new DesignHttpClientFactory();
+        var accessCodeStore = new EventAccessCodeStore(new MockPreferencesService());
+        var sponsorRotator = CreateSponsorRotator(restClientFactory, httpClientFactory, loggerFactory);
+
+        return new ResultsViewModel(
+            eventModel,
+            new HubClient(loggerFactory, configuration, accessCodeStore),
+            eventClient,
+            loggerFactory,
+            new ViewSizeService(),
+            eventContext ?? new EventContext(),
+            httpClientFactory,
+            configuration,
+            new OrganizationIconCacheService(new OrganizationClient(configuration, restClientFactory), CreateImageStore(), loggerFactory),
+            sponsorRotator);
     }
 
     internal static InCarSettingsViewModel CreateInCarSettings()
@@ -191,13 +234,7 @@ internal static class TestViewModelFactory
         var hubClient = new HubClient(loggerFactory, configuration, accessCodeStore);
         var organizationClient = new OrganizationClient(configuration, restClientFactory);
         var iconCacheService = new OrganizationIconCacheService(organizationClient, CreateImageStore(), loggerFactory);
-        var sponsorIconCache = new SponsorIconCacheService(CreateImageStore(), loggerFactory);
-        var sponsorClient = new SponsorClient(restClientFactory, httpClientFactory);
-        var sponsorRotator = new SponsorRotatorViewModel(
-            new SponsorsService(sponsorClient, sponsorIconCache, loggerFactory),
-            sponsorIconCache,
-            sponsorClient,
-            loggerFactory);
+        var sponsorRotator = CreateSponsorRotator(restClientFactory, httpClientFactory, loggerFactory);
 
         return new MainViewModel(
             new EventsListViewModel(eventClient, organizationClient, iconCacheService, loggerFactory),

@@ -146,39 +146,7 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
             // Show live timing when session results are selected
             if (path == "SessionResults" && router?.Data is Session session)
             {
-                SessionState? results = null;
-                try
-                {
-                    eventContext.SetContext(EventModel.EventId, session.Id);
-                    results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Error loading results for session {SessionId}", session.Id);
-                }
-
-                // Opening a session while one is already open replaces the grid, so let the old one
-                // go rather than leaving it holding a field of rows.
-                ReleaseLiveTiming();
-
-                LiveTimingViewModel = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator)
-                {
-                    BackRouterPath = "SessionResultsList",
-                    EventModel = EventModel,
-                    IsRealTime = false,
-                    // Taken from the session being opened rather than from whatever state the load
-                    // brings back, so a shared link names the right session even when the load fails.
-                    // Session 0 is a real session, which is why this is nullable and not just 0.
-                    PinnedSessionId = session.Id,
-                };
-
-                if (results != null)
-                {
-                    var p = SessionStateMapper.ToPatch(results);
-                    var statusNotification = new SessionStatusNotification(p);
-                    Dispatcher.UIThread.InvokeOnUIThread(() => LiveTimingViewModel.ApplySessionUpdate(statusNotification));
-                }
-                IsLiveTimingVisible = true;
+                await OpenSessionAsync(session);
             }
             else if (path == "SessionResultsList")
             {
@@ -199,6 +167,75 @@ public partial class ResultsViewModel : ObservableObject, IRecipient<ValueChange
         {
             Logger.LogError(ex, "Error handling router message for path {Path}", path);
         }
+    }
+
+    /// <summary>
+    /// Puts a completed session's timing grid on screen straight away, showing it loading, and fills
+    /// it once the session's results arrive.
+    /// </summary>
+    /// <remarks>
+    /// The grid used to be built only after the results had downloaded, so for the whole download a
+    /// tap on a session changed nothing on screen - the list just sat there, and on a slow connection
+    /// that read as a tap that had not registered, which invited a second one. Switching first gives
+    /// the tap an answer at once, and the grid's frame is built while the download is in flight rather
+    /// than after it. The rows themselves still arrive with the data.
+    ///
+    /// Showing the grid before its data means the user can move on before the data gets there - back
+    /// to the list, out to another event, or into another session. Each releases the grid this built,
+    /// so a load that finds it is no longer the one on screen drops its results. Applying them anyway
+    /// would do worse than fill a disposed grid: ApplySessionUpdate points the shared EventContext at
+    /// its session, so a late load would re-aim the control log and flags at a session already left.
+    /// </remarks>
+    internal async Task OpenSessionAsync(Session session)
+    {
+        // Opening a session while one is already open replaces the grid, so let the old one go rather
+        // than leaving it holding a field of rows.
+        ReleaseLiveTiming();
+        eventContext.SetContext(EventModel.EventId, session.Id);
+
+        var timing = new LiveTimingViewModel(hubClient, eventClient, loggerFactory, viewSizeService, eventContext, httpClientFactory, configuration, iconCacheService, sponsorRotator)
+        {
+            BackRouterPath = "SessionResultsList",
+            EventModel = EventModel,
+            IsRealTime = false,
+            // Taken from the session being opened rather than from whatever state the load brings
+            // back, so a shared link names the right session even when the load fails. Session 0 is a
+            // real session, which is why this is nullable and not just 0.
+            PinnedSessionId = session.Id,
+            // The name from the list, so the header says which session is loading instead of standing
+            // blank. The results carry the server's own name, which replaces this when they arrive.
+            SessionName = session.Name,
+            IsLoading = true,
+        };
+        LiveTimingViewModel = timing;
+        IsLiveTimingVisible = true;
+
+        SessionState? results = null;
+        try
+        {
+            results = await eventClient.LoadSessionResultsAsync(session.EventId, session.Id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading results for session {SessionId}", session.Id);
+        }
+
+        Dispatcher.UIThread.InvokeOnUIThread(() =>
+        {
+            if (!ReferenceEquals(LiveTimingViewModel, timing))
+            {
+                return;
+            }
+
+            if (results != null)
+            {
+                timing.ApplySessionUpdate(new SessionStatusNotification(SessionStateMapper.ToPatch(results)));
+            }
+
+            // Cleared on failure as well, so a load that never arrives leaves an empty grid rather than
+            // one that claims to be loading forever.
+            timing.IsLoading = false;
+        });
     }
 
     /// <summary>
