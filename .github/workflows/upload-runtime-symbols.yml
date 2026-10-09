@@ -1,0 +1,70 @@
+name: Upload .NET Runtime Symbols to Sentry
+
+# Run by hand. The publish workflow uploads Microsoft's debug files for the runtime libraries in the
+# bundle it ships, but only since 1.0.108, so releases before 1.0.107 shipped a runtime no publish run
+# uploaded for, and native crashes from phones still on them stay bare addresses. This uploads them
+# from the runtime packs those releases were built from, which hold the same files their bundles
+# shipped.
+#
+# Releases 1.0.96 through 1.0.98 shipped .NET runtime 10.0.10, 1.0.99 through 1.0.106 shipped
+# 10.0.11, and 1.0.107 onward 10.0.12. A publish run's log shows which: the workload install's
+# "Microsoft.NETCore.App.Runtime.Mono.android-arm64.Msi.x64 (<version>)" line. Running this again
+# for a version already uploaded is harmless: sentry-cli sends only what Sentry does not have.
+on:
+  workflow_dispatch:
+    inputs:
+      runtime-versions:
+        description: '.NET runtime versions to cover, comma separated (for example 10.0.11)'
+        required: true
+        default: '10.0.10,10.0.11'
+
+jobs:
+  upload:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # Puts the Sentry package this repo pins, and the sentry-cli inside it, in the NuGet cache,
+      # which is where upload-runtime-symbols.ps1 looks for it.
+      - name: Restore the Sentry package
+        run: dotnet restore RedMist.Timing.UI/RedMist.Timing.UI.csproj
+
+      - name: Download the Android Mono runtime packs
+        shell: pwsh
+        env:
+          RUNTIME_VERSIONS: ${{ inputs.runtime-versions }}
+        run: |
+          $versions = @($env:RUNTIME_VERSIONS -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+          if ($versions.Count -eq 0) { throw 'No runtime version given.' }
+          New-Item -ItemType Directory -Force -Path runtime-packs | Out-Null
+          foreach ($version in $versions) {
+            if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "Not a runtime version: $version" }
+            # The app ships arm64-v8a and x86_64 only.
+            foreach ($arch in 'arm64', 'x64') {
+              $id = "microsoft.netcore.app.runtime.mono.android-$arch"
+              $lower = $version.ToLowerInvariant()
+              $file = "runtime-packs/$id.$lower.nupkg"
+              Invoke-WebRequest -Uri "https://api.nuget.org/v3-flatcontainer/$id/$lower/$id.$lower.nupkg" -OutFile $file -TimeoutSec 300
+              Write-Host "Downloaded $id $version"
+            }
+          }
+
+      - name: Upload their debug files to Sentry
+        shell: pwsh
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: |
+          # The script skips quietly without a token and carries on past a library it could not
+          # cover, which suits a publish run; here the upload is the whole point, so both fail the run.
+          if (-not $env:SENTRY_AUTH_TOKEN) { throw 'SENTRY_AUTH_TOKEN is not available to this workflow.' }
+          ./tools/ci/upload-runtime-symbols.ps1 -Strict -Bundle (Get-ChildItem runtime-packs -Filter *.nupkg).FullName
