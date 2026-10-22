@@ -192,6 +192,31 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
     private bool isStale;
     [ObservableProperty]
     private PitStates pitState;
+    /// <summary>
+    /// The pit phase the server last sent, or <see cref="PitPhase.None"/> when none is in effect - an
+    /// older server, or a timing source with no pit sequence - which leaves the pit flags to decide
+    /// <see cref="PitState"/>.
+    /// </summary>
+    private PitPhase pitPhase;
+    /// <summary>
+    /// When the car stopped in its box, in UTC. Only meaningful while it is still there: the server
+    /// leaves it in place afterwards, since a patch cannot clear a value.
+    /// </summary>
+    private DateTime? pitStopStartTime;
+    private const string PIT_LABEL = "PIT";
+    /// <summary>
+    /// The badge while the car is stopped in its box: "PIT" and the time stopped, which the grid
+    /// counts up. Just "PIT" until it does, and for a stop with no start time.
+    /// </summary>
+    [ObservableProperty]
+    private string pitBoxText = PIT_LABEL;
+    /// <summary>
+    /// How long the car's most recent completed box stop took, or empty before it has completed one.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLastPitStop))]
+    private string lastPitStopDuration = string.Empty;
+    public bool HasLastPitStop => !string.IsNullOrEmpty(LastPitStopDuration);
     [ObservableProperty]
     private Size pageSize;
     /// <summary>
@@ -590,8 +615,34 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
         if (p.IsStale != null)
             IsStale = p.IsStale.Value;
 
-        // Pit state
-        if (p.IsEnteredPit ?? false)
+        // Pit state. A pit phase, from a server that publishes one, outranks the pit flags. Without
+        // one the flags decide as they always have: Entered > S/F > Exited > InPit, and a patch
+        // carrying none of them leaves the badge alone.
+        var hadPitPhase = pitPhase != PitPhase.None;
+        if (p.PitPhase != null)
+            pitPhase = FromPitPhase(p.PitPhase.Value) != null ? p.PitPhase.Value : PitPhase.None;
+        var pitStopStartChanged = p.PitStopStartTime != null && p.PitStopStartTime != pitStopStartTime;
+        if (p.PitStopStartTime != null)
+            pitStopStartTime = p.PitStopStartTime;
+        if (p.LastPitStopDurationMs != null)
+            LastPitStopDuration = FormatPitStopTime(TimeSpan.FromMilliseconds(p.LastPitStopDurationMs.Value));
+
+        if (FromPitPhase(pitPhase) is PitStates phaseState)
+        {
+            PitState = phaseState;
+        }
+        else if (hadPitPhase)
+        {
+            // The phase has just ended. This patch need not carry a pit flag, and without one the
+            // chain below would leave the badge on whatever the phase last showed, so the flags are
+            // read off the whole car instead.
+            PitState = FromPitFlags(
+                p.IsEnteredPit ?? LastCarPosition?.IsEnteredPit ?? false,
+                p.IsPitStartFinish ?? LastCarPosition?.IsPitStartFinish ?? false,
+                p.IsExitedPit ?? LastCarPosition?.IsExitedPit ?? false,
+                p.IsInPit ?? LastCarPosition?.IsInPit ?? false);
+        }
+        else if (p.IsEnteredPit ?? false)
             PitState = PitStates.EnteredPit;
         else if (p.IsPitStartFinish ?? false)
             PitState = PitStates.PitSF;
@@ -604,6 +655,11 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             else
                 PitState = PitStates.None;
         }
+
+        // Nothing to count, or a new stop that must not show the last one's time until the grid's
+        // clock reaches it.
+        if (!HasPitStopClock || pitStopStartChanged)
+            PitBoxText = PIT_LABEL;
 
         // Driver Name
         if (p.DriverName != null)
@@ -930,6 +986,76 @@ public partial class CarViewModel : ObservableObject, IRecipient<SizeChangedNoti
             return ts.TotalMilliseconds;
         return 0;
     }
+
+    #region Pit Stop
+
+    /// <summary>
+    /// Whether the badge is counting the time stopped: from a stop with a known start until the car
+    /// moves off.
+    /// </summary>
+    internal bool HasPitStopClock => PitState == PitStates.InPitBox && pitStopStartTime != null;
+
+    /// <summary>
+    /// Brings the time stopped on the badge up to <paramref name="utcNow"/>. Driven by the grid,
+    /// which runs one clock for every row rather than one per row.
+    /// </summary>
+    internal void UpdatePitStopClock(DateTime utcNow)
+    {
+        if (!HasPitStopClock)
+        {
+            PitBoxText = PIT_LABEL;
+            return;
+        }
+
+        // The server sends UTC, but System.Text.Json turns a stamp with an offset into local time.
+        var start = pitStopStartTime!.Value;
+        if (start.Kind == DateTimeKind.Local)
+            start = start.ToUniversalTime();
+        PitBoxText = $"{PIT_LABEL} {FormatPitStopTime(utcNow - start)}";
+    }
+
+    /// <summary>
+    /// Formats a pit stop as m:ss, or h:mm:ss past an hour, which a car parked in its garage reaches.
+    /// A negative length, from a device clock behind the server's, reads as zero.
+    /// </summary>
+    internal static string FormatPitStopTime(TimeSpan duration)
+    {
+        if (duration < TimeSpan.Zero)
+            duration = TimeSpan.Zero;
+        return duration.TotalHours >= 1
+            ? string.Create(CultureInfo.InvariantCulture, $"{(int)duration.TotalHours}:{duration.Minutes:00}:{duration.Seconds:00}")
+            : string.Create(CultureInfo.InvariantCulture, $"{duration.Minutes}:{duration.Seconds:00}");
+    }
+
+    /// <summary>
+    /// The badge for a pit phase, or null for <see cref="PitPhase.None"/> and for a value this build
+    /// does not know, which the contract asks clients to read as None.
+    /// </summary>
+    internal static PitStates? FromPitPhase(PitPhase phase) => phase switch
+    {
+        PitPhase.EnteredPit => PitStates.EnteredPit,
+        PitPhase.InPitBox => PitStates.InPitBox,
+        PitPhase.ExitingPit => PitStates.ExitingPit,
+        PitPhase.ExitedPit => PitStates.ExitedPit,
+        PitPhase.InPit => PitStates.InPit,
+        _ => null,
+    };
+
+    /// <summary>
+    /// The badge for a car's pit flags taken together, in the order ApplyPatch checks them.
+    /// </summary>
+    private static PitStates FromPitFlags(bool entered, bool pitStartFinish, bool exited, bool inPit)
+    {
+        if (entered)
+            return PitStates.EnteredPit;
+        if (pitStartFinish)
+            return PitStates.PitSF;
+        if (exited)
+            return PitStates.ExitedPit;
+        return inPit ? PitStates.InPit : PitStates.None;
+    }
+
+    #endregion
 
     /// <summary>
     /// Handles notifications related to size changes.

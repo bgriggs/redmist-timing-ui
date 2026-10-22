@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -260,6 +260,16 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     //private DateTime? lastConsistencyCheckReset;
 
     private readonly PitTracking pitTracking = new();
+
+    /// <summary>
+    /// Counts up the time stopped on every row whose car is in its pit box. One for the whole grid
+    /// rather than one per row, and running only while some car is. See <see cref="UpdatePitStopClocks"/>.
+    /// </summary>
+    /// <remarks>
+    /// Started and ticked on the dispatcher, but stopped from whichever thread leaves the event, so
+    /// it is swapped with Interlocked like <see cref="fullUpdateInterval"/>.
+    /// </remarks>
+    private IDisposable? pitStopClock;
 
     [ObservableProperty]
     private bool showPenaltyColumn = false;
@@ -903,7 +913,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
     /// <summary>
     /// Stops following the event on screen: supersedes any open still in progress, and stops the
-    /// periodic refresh.
+    /// periodic refresh and the pit stop clock.
     /// </summary>
     private void StopFollowing()
     {
@@ -911,6 +921,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         {
             followGeneration++;
             StopFullUpdateInterval();
+            StopPitStopClock();
         }
     }
 
@@ -929,6 +940,7 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
 
             followGeneration++;
             StopFullUpdateInterval();
+            StopPitStopClock();
             return true;
         }
     }
@@ -1156,6 +1168,13 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
         // here as well as on the race clock rather than waiting for the next clock tick.
         UpdateLapProgress();
 
+        // Stored results have no clock to run: a car that finished the session in its box shows
+        // "PIT" rather than the time since.
+        if (IsRealTime)
+        {
+            UpdatePitStopClocks(canStart: true);
+        }
+
         if (carCache.Count > 0)
         {
             TotalLaps = carCache.Items.Max(c => c.LastLap).ToString();
@@ -1325,14 +1344,23 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
     /// </summary>
     /// <remarks>
     /// A patch carries "no change" as null, which a full state has no way to mean - everything it
-    /// leaves out, it genuinely does not have. That only matters for the measured track position,
-    /// where the difference is visible: the server normally says "no usable measurement" with the
+    /// leaves out, it genuinely does not have. That matters where the difference is visible. For the
+    /// measured track position the server normally says "no usable measurement" with the
     /// <see cref="CarPosition.InvalidTrackPosition"/> sentinel, but a timing system that stops
     /// reporting the field altogether would otherwise leave the last measurement on screen forever.
+    ///
+    /// The pit fields are the same case. A car out of the pit has every pit flag false and its phase
+    /// None, which a patch built against an empty car drops entirely, so this patch alone could never
+    /// take down a badge left behind by a missed delta. Internal so a test can apply one to a row.
     /// </remarks>
-    private static CarPositionPatch ToFullPatch(CarPositionPatch patch)
+    internal static CarPositionPatch ToFullPatch(CarPositionPatch patch)
     {
         patch.LapPositionPercent ??= CarPosition.InvalidTrackPosition;
+        patch.PitPhase ??= PitPhase.None;
+        patch.IsInPit ??= false;
+        patch.IsEnteredPit ??= false;
+        patch.IsExitedPit ??= false;
+        patch.IsPitStartFinish ??= false;
         return patch;
     }
 
@@ -1344,6 +1372,61 @@ public partial class LiveTimingViewModel : ObservableObject, IRecipient<SizeChan
             carVm.UpdateLapProgress(raceTime);
         }
     }
+
+    /// <summary>
+    /// Brings the time stopped up to date on every row whose car is in its pit box, and starts or
+    /// stops the once-a-second clock that does this to match.
+    /// </summary>
+    /// <param name="canStart">
+    /// False from the clock's own tick, so a tick already queued when the event was left cannot
+    /// start it again. Only a car update can, and only while the event it is for is still open.
+    /// </param>
+    private void UpdatePitStopClocks(bool canStart)
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var anyStopped = false;
+        foreach (var carVm in carCache.Items)
+        {
+            if (carVm.HasPitStopClock)
+            {
+                carVm.UpdatePitStopClock(now);
+                anyStopped = true;
+            }
+        }
+
+        // Stops itself on the first tick that finds no car in a box, which covers every way a car
+        // can leave one, including its row going away.
+        if (!anyStopped)
+        {
+            StopPitStopClock();
+        }
+        else if (canStart && Volatile.Read(ref pitStopClock) is null)
+        {
+            // Not once the event has been left. A late hub delta or a refresh still in flight can
+            // land after the leave, and the clock it started would tick on a grid nobody is watching
+            // with nothing left to stop it. Checked under the lock the leave takes, so a leave cannot
+            // fall between the check and the start.
+            lock (followGate)
+            {
+                if (followGeneration == latestOpening)
+                {
+                    var clock = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ =>
+                        Dispatcher.UIThread.PostSafe(() => UpdatePitStopClocks(canStart: false), Logger, DispatcherPriority.Background));
+                    Interlocked.Exchange(ref pitStopClock, clock)?.Dispose();
+                }
+            }
+        }
+    }
+
+    private void StopPitStopClock() => Interlocked.Exchange(ref pitStopClock, null)?.Dispose();
+
+    /// <summary>Whether the pit stop clock is running. Internal so a test can see it start and stop.</summary>
+    internal bool IsPitStopClockRunning => Volatile.Read(ref pitStopClock) is not null;
 
     private void UpdatePositionsByFastestTime()
     {

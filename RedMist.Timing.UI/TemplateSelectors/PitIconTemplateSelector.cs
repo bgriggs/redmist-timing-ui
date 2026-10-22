@@ -31,6 +31,14 @@ public class PitIconTemplateSelector : IDataTemplate
             {
                 return Templates["InPitTemplate"].Build(param);
             }
+            else if (p == PitStates.InPitBox)
+            {
+                return Templates["InPitBoxTemplate"].Build(param);
+            }
+            else if (p == PitStates.ExitingPit)
+            {
+                return Templates["ExitingPitTemplate"].Build(param);
+            }
         }
         return Templates["NoPit"].Build(param); 
     }

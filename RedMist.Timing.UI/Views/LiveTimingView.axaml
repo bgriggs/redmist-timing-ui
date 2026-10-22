@@ -96,6 +96,19 @@
 											<TextBlock Text="PIT" Classes="pit"/>
 										</Border>
 									</DataTemplate>
+									<!--Stopped in the box, with the time stopped. The template's data is the pit state, so
+									    the text comes from the row. A minimum rather than a fixed width keeps the badge
+									    steady as the seconds change and still fits a stop past an hour.-->
+									<DataTemplate x:Key="InPitBoxTemplate">
+										<Border MinWidth="63" Margin="1" Padding="3,0" CornerRadius="4" Background="{DynamicResource PitStateInPitBrush}">
+											<TextBlock Text="{Binding $parent[ContentControl].((model:CarViewModel)DataContext).PitBoxText}" Classes="pit"/>
+										</Border>
+									</DataTemplate>
+									<DataTemplate x:Key="ExitingPitTemplate">
+										<Border Width="66" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateExitedBrush}">
+											<TextBlock Text="EXITING PIT" Classes="pit"/>
+										</Border>
+									</DataTemplate>
 									<DataTemplate x:Key="EnteredPitTemplate">
 										<Border Width="68" Margin="1" CornerRadius="4" Background="{DynamicResource PitStateEnteredBrush}">
 											<TextBlock Text="ENTERED PIT" Classes="pit"/>
@@ -252,7 +265,7 @@
 					  Padding="0" CornerRadius="0" MinHeight="0" HorizontalAlignment="Stretch" IsExpanded="{Binding IsDetailsExpanded}">
 				<!--The grid stays on the car so its share commands are in reach; the rows below take
 				    the details view model individually.-->
-				<Grid RowDefinitions="Auto,Auto,*">
+				<Grid RowDefinitions="Auto,Auto,Auto,*">
 					<!--Share this car. Absent on a private event, same as the event's own buttons.-->
 					<Border Grid.Row="0" IsVisible="{Binding CanShare}" Padding="5,4" Margin="0,1,0,0"
 							BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0">
@@ -309,7 +322,14 @@
 							</StackPanel>
 						</Grid>
 					</Border>
-					<Grid Grid.Row="2" DataContext="{Binding CarDetailsViewModel}">
+					<!--Last pit stop. Only from a server that times box stops, once the car has completed one.-->
+					<Border Grid.Row="2" IsVisible="{Binding HasLastPitStop}" Padding="5,4" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource CarDetailsSeperatorBackgroundBrush}" CornerRadius="0" Margin="0,1,0,0">
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Text="Last pit stop:" Classes="sm" FontWeight="SemiBold" Foreground="{DynamicResource IconButtonForegroundBrush}"/>
+							<TextBlock Text="{Binding LastPitStopDuration}" Classes="sm" Margin="4,0,0,0"/>
+						</StackPanel>
+					</Border>
+					<Grid Grid.Row="3" DataContext="{Binding CarDetailsViewModel}">
 						<TextBlock Text="Loading..." Classes="sm" IsVisible="{Binding IsLoading}"/>
 						<TabControl Padding="0" IsVisible="{Binding !IsLoading}">
 							<!--Laps-->

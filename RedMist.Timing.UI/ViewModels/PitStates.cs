@@ -6,5 +6,8 @@ public enum PitStates
     InPit,
     EnteredPit,
     ExitedPit,
-    PitSF
+    PitSF,
+    // These two come only from a server's pit phase, never from the pit flags.
+    InPitBox,
+    ExitingPit
 }
